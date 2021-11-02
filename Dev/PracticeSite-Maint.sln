@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31613.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiteUtility", "SiteUtility\SiteUtility.csproj", "{9D372979-B93C-4937-920A-19D2D36DE21D}"
 EndProject
@@ -36,5 +36,26 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {31813A0A-12DA-4840-B68C-846C9614C493}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 5
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = http://or-tfs-svr-01:8080/tfs/defaultcollection
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = SiteUtility\\SiteUtility.csproj
+		SccProjectName1 = SiteUtility
+		SccLocalPath1 = SiteUtility
+		SccProjectUniqueName2 = SiteUtilityTest\\SiteUtilityTest.csproj
+		SccProjectName2 = SiteUtilityTest
+		SccLocalPath2 = SiteUtilityTest
+		SccProjectUniqueName3 = Release_1_1\\Release_1_1.csproj
+		SccProjectName3 = Release_1_1
+		SccLocalPath3 = Release_1_1
+		SccProjectUniqueName4 = Release_1_2\\Release_1_2.csproj
+		SccProjectName4 = Release_1_2
+		SccLocalPath4 = Release_1_2
 	EndGlobalSection
 EndGlobal
