@@ -52,11 +52,13 @@
     <Compile Include="PracticeSite.cs" />
     <Compile Include="ProgramManagerSite.cs" />
     <Compile Include="SiteCredentialUtility.cs" />
+    <Compile Include="SiteDeleteUtility.cs" />
     <Compile Include="SiteInfoUtility.cs" />
     <Compile Include="SiteListUtility.cs" />
     <Compile Include="SiteLogUtility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SitePermissionUtility.cs" />
+    <Compile Include="SitePMData.cs" />
     <Compile Include="SitePublishUtility.cs" />
   </ItemGroup>
   <ItemGroup>
