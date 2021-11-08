@@ -19,8 +19,8 @@ namespace SiteUtility
         public string EncryptedPracticeTIN { get; set; }
         public string PracticeNPI { get; set; }
 
-        public string IWNRegion { get; set; }
-        public string IWNRegionURL { get; set; }
+        public string PM { get; set; }
+        public string PMURL { get; set; }
         public string ProgramManager { get; set; }
         public string ReferralURL { get; set; }
 
@@ -30,4 +30,6 @@ namespace SiteUtility
         public DateTime RowCreateDate { get; set; }
         public DateTime RowUpdateDate { get; set; }
     }
+
+    
 }

@@ -13,69 +13,44 @@ namespace SiteUtilityTest
     {
         static void Main(string[] args)
         {
-            // APPROACH:
-            //  1. Get all subwebs...populate the appropriate classes
-            //  2. Get all existing objects/assets...populate the appropriate classes
-            //  3. Do Something...
-            
-
             string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
+            string releaseName = "SiteUtilityTest";
+
+            SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
             
             using(ClientContext clientContext = new ClientContext(siteUrl))
             {
                 clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
 
                 Console.WriteLine("=============Release Starts=============");
+                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "=============Release Starts=============", "Log", siteUrl);
 
-                //  1. Get all subwebs...populate the appropriate classes
-                List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
-                foreach (ProgramManagerSite pm in practicePMSites)
+                try
                 {
-                    Console.WriteLine($"     Program Mgr - {pm.ProgramManagerName}");
-                    foreach (PracticeSite psite in pm.PracticeSiteCollection)
+                    //  1. Get all subwebs...populate the appropriate classes
+                    List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
+
+                    //  3. Maintenance Tasks...
+                    foreach (ProgramManagerSite pm in practicePMSites)
                     {
-                        Console.WriteLine($"       Practice Site - {psite.Name}");
+                        foreach (PracticeSite psite in pm.PracticeSiteCollection)
+                        {
+                            // Get and Remove SP Groups...
+                            //SitePermissionUtility.GetSpGroups(pm, psite);
+                        }
                     }
                 }
-
-                //  TO-DO:
-                //  2. Get all existing objects/assets...populate the appropriate classes
-                foreach (ProgramManagerSite pm in practicePMSites)
+                catch (Exception ex)
                 {
-                    foreach (PracticeSite psite in pm.PracticeSiteCollection)
-                    {
-                        // Do Something...
-                    }
+                    SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", siteUrl);
                 }
-                Console.WriteLine("2. GetAllObjects - Complete");
 
-
-                //  3. Maintenance Tasks...
-                foreach (ProgramManagerSite pm in practicePMSites)
-                {
-                    foreach (PracticeSite psite in pm.PracticeSiteCollection)
-                    {
-                        // Task - Examples 1...
-                        //SiteLogUtility.LogFunction1();
-                        //SiteLogUtility.LogFunction2();
-                        //SitePublishUtility.PublishFunction1();
-                        //SitePublishUtility.PublishFunction2();
-                        //SiteListUtility.ListFunction1();
-                        //SiteListUtility.ListFunction2();
-
-                        // Task - Examples 2...
-                        //PracticeSiteLibrary.PublishPage(psite, "Home.aspx", "Pages");
-                        //PracticeSiteLibrary.PublishPage(psite, "cePrac_Home.html", "SiteAssets");
-                        //PracticeSiteLibrary.PublishPage(psite, "Hospital.aspx", "Pages");
-                        //PracticeSiteLibrary.PublishPage(psite, "cePrac_Hospital.html", "SiteAssets");
-                    }
-                }
                 Console.WriteLine("3. Maintenance Tasks Complete - Complete");
-
                 Console.WriteLine("=============Release Ends=============");
+                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "=============Release Ends=============", "Log", siteUrl);
             }
-            
+
         }
     }
 }
