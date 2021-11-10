@@ -53,6 +53,7 @@
     <Compile Include="ProgramManagerSite.cs" />
     <Compile Include="SiteCredentialUtility.cs" />
     <Compile Include="SiteDeleteUtility.cs" />
+    <Compile Include="SiteFilesUtility.cs" />
     <Compile Include="SiteInfoUtility.cs" />
     <Compile Include="SiteListUtility.cs" />
     <Compile Include="SiteLogUtility.cs" />
