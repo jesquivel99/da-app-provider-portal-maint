@@ -86,38 +86,54 @@ namespace SiteUtility
             string strUrl = clientContext.Url;
 
             List<ProgramManagerSite> pmSites = new List<ProgramManagerSite>();
+            
 
             try
             {
                 foreach (Web web in clientContext.Web.Webs)
                 {
-
-                    PmAssignment pmAssignments = GetPM(web.Url);
-                    ProgramManagerSite pmSite = new ProgramManagerSite();
-                    pmSite.ProgramManagerName = pmAssignments.PMName;
-                    pmSite.PMURL = web.Url;
-                    pmSite.ProgramManager = pmAssignments.PMRefId;
-                    pmSite.IWNSiteMgrPermission = pmAssignments.PMGroup;
-                    pmSite.PracticeSiteCollection = new List<PracticeSite>();
-
-                    using (ClientContext clientContext0 = new ClientContext(web.Url))
+                    if (web.Url.Contains("admingroup01") == false)
                     {
-                        clientContext0.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                        clientContext0.Load(clientContext0.Web.Webs);
-                        clientContext0.ExecuteQuery();
+                        PmAssignment pmAssignments = GetPM(web.Url);
+                        ProgramManagerSite pmSite = new ProgramManagerSite();
+                        pmSite.ProgramManagerName = pmAssignments.PMName;
+                        pmSite.PMURL = web.Url;
+                        pmSite.ProgramManager = pmAssignments.PMRefId;
+                        pmSite.IWNSiteMgrPermission = pmAssignments.PMGroup + "_SiteManager";
+                        pmSite.IWNSiteMgrReadOnlyPermission = pmAssignments.PMGroup + "_ReadOnly";
+                        pmSite.PracticeSiteCollection = new List<PracticeSite>();
 
-                        foreach (Web web0 in clientContext0.Web.Webs)
+                        SiteLogUtility.Log_Entry(SiteLogUtility.textLine);
+                        SiteLogUtility.Log_Entry($"{pmSite.ProgramManagerName} - {pmSite.ProgramManager}");
+                        SiteLogUtility.Log_Entry(pmSite.PMURL);
+
+                        using (ClientContext clientContext0 = new ClientContext(web.Url))
                         {
-                            PracticeSite practiceSite = new PracticeSite();
-                            practiceSite.Name = web0.Title;
-                            practiceSite.URL = web0.Url;
-                            pmSite.PracticeSiteCollection.Add(practiceSite);
-                        }
-                    }
+                            clientContext0.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                            clientContext0.Load(clientContext0.Web.Webs);
+                            clientContext0.ExecuteQuery();
 
-                    if (pmSite.PMURL.Contains("admingroup01") == false)
-                    {
-                        pmSites.Add(pmSite);
+                            foreach (Web web0 in clientContext0.Web.Webs)
+                            {
+                                string siteId = GetPracSiteName(web0.Url);
+                                siteId = DecryptPTIN(siteId);
+                                PracticeSite practiceSite = new PracticeSite();
+                                practiceSite.Name = web0.Title;
+                                practiceSite.URL = web0.Url;
+                                practiceSite.PracUserPermission = $"Prac_{siteId}_User";
+                                practiceSite.PracUserReadOnlyPermission = $"Prac_{siteId}_ReadOnly";
+                                pmSite.PracticeSiteCollection.Add(practiceSite);
+
+                                SiteLogUtility.Log_Entry(practiceSite.Name);
+                                SiteLogUtility.Log_Entry(practiceSite.URL);
+                            }
+                        }
+
+                        if (pmSite.PMURL.Contains("admingroup01") == false)
+                        {
+                            pmSites.Add(pmSite);
+                            SiteLogUtility.Log_Entry($"Total Practices:  {pmSite.PracticeSiteCollection.Count}");
+                        } 
                     }
                     
                 }
@@ -226,6 +242,41 @@ namespace SiteUtility
             string siteName = segCnt > 4 ? pracUrl.Segments.Last() : string.Empty;
 
             return siteName;
+        }
+
+        public static string GetPracSiteName(string sUrl)
+        {
+            Uri pracUrl = new Uri(sUrl);
+            int segCnt = pracUrl.Segments.Count();
+            string siteName = segCnt > 4 ? pracUrl.Segments.Last() : string.Empty;
+
+            return siteName;
+        }
+
+        public static string DecryptPTIN(string s)
+        {
+            try
+            {
+                int sLen = s.Length;
+                string sFirst = s.Substring(0, 1);
+                string sLast = s.Substring(sLen - 1, 1);
+
+                if (sFirst.Equals("9") && sLast.Equals("9"))
+                {
+                    s = s.Substring(1, sLen - 1);
+                    sLen = s.Length;
+                    s = s.Substring(0, sLen - 1);
+                }
+
+                char[] charArray = s.ToCharArray();
+                Array.Reverse(charArray);
+                return new string(charArray);
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("DecryptPTIN", ex.Message, "Error", "");
+                return s;
+            }
         }
     }
 }

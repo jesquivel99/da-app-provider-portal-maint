@@ -19,10 +19,13 @@ namespace SiteUtility
             try
             {
                 var path = pracInfo.URL;
-                Console.WriteLine("Processing: " + path);
+
+                SiteLogUtility.LogText = $"Processing:  {path}";
+                Console.WriteLine(SiteLogUtility.LogText);
+                SiteLogUtility.Log_Entry(SiteLogUtility.LogText);
 
                 // Set Permission Property Values...
-                SetPermissionValue(pmInfo, pracInfo);
+                //SetPermissionValue(pmInfo, pracInfo);
 
                 using (ClientContext clientContext = new ClientContext(path))
                 {
@@ -44,13 +47,102 @@ namespace SiteUtility
                         SiteLogUtility.Log_Entry("GetSpGroups Error: " + ex.ToString());
                     }
 
-                    finally
+                    //finally
+                    //{
+                    //    SiteLogUtility.Log_Entry("Remove Summary: " +
+                    //        "PracUserGroup = " + removePracUserGroup.ToString() + " | " +
+                    //        "PracReadOnlyGroup = " + removePracReadOnlyGroup.ToString() + " | " +
+                    //        "SiteMgrGroup = " + removeSiteMgrGroup.ToString() + " | " +
+                    //        "SiteMgrReadOnly = " + removeSiteMgrReadOnlyGroup.ToString());
+                    //}
+
+                }
+            }
+
+            catch (Exception ex)
+            {
+                Console.WriteLine("GetSpGroups Error: " + ex.ToString());
+                SiteLogUtility.Log_Entry("GetSpGroups Error: " + ex.ToString());
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool RemoveAllSpGroups(ProgramManagerSite pmInfo, PracticeSite pracInfo)
+        {
+            try
+            {
+                var path = pracInfo.URL;
+
+                SiteLogUtility.LogText = $"Processing:  {path}";
+                Console.WriteLine(SiteLogUtility.LogText);
+                SiteLogUtility.Log_Entry(SiteLogUtility.LogText);
+
+                using (ClientContext clientContext = new ClientContext(path))
+                {
+                    bool removePracUserGroup = false;
+                    bool removePracReadOnlyGroup = false;
+                    bool removeSiteMgrGroup = false;
+                    bool removeSiteMgrReadOnlyGroup = false;
+
+                    try
                     {
-                        SiteLogUtility.Log_Entry("Remove Summary: " +
-                            "PracUserGroup = " + removePracUserGroup.ToString() + " | " +
-                            "PracReadOnlyGroup = " + removePracReadOnlyGroup.ToString() + " | " +
-                            "SiteMgrGroup = " + removeSiteMgrGroup.ToString() + " | " +
-                            "SiteMgrReadOnly = " + removeSiteMgrReadOnlyGroup.ToString());
+                        removePracUserGroup = RemoveSpGroups(pracInfo.PracUserPermission, path);
+                        removePracReadOnlyGroup = RemoveSpGroups(pracInfo.PracUserReadOnlyPermission, path);
+                        removeSiteMgrGroup = RemoveSpGroups(pmInfo.IWNSiteMgrPermission, path);
+                        removeSiteMgrReadOnlyGroup = RemoveSpGroups(pmInfo.IWNSiteMgrReadOnlyPermission, path);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("GetSpGroups Error: " + ex.ToString());
+                        SiteLogUtility.Log_Entry("GetSpGroups Error: " + ex.ToString());
+                    }
+
+                    //finally
+                    //{
+                    //    SiteLogUtility.Log_Entry("Remove Summary: " +
+                    //        "PracUserGroup = " + removePracUserGroup.ToString() + " | " +
+                    //        "PracReadOnlyGroup = " + removePracReadOnlyGroup.ToString() + " | " +
+                    //        "SiteMgrGroup = " + removeSiteMgrGroup.ToString() + " | " +
+                    //        "SiteMgrReadOnly = " + removeSiteMgrReadOnlyGroup.ToString());
+                    //}
+
+                }
+            }
+
+            catch (Exception ex)
+            {
+                Console.WriteLine("GetSpGroups Error: " + ex.ToString());
+                SiteLogUtility.Log_Entry("GetSpGroups Error: " + ex.ToString());
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool RemoveSingleSpGroup(string spUserGroup, string sUrl)
+        {
+            try
+            {
+                SiteLogUtility.LogText = $"Processing:  {sUrl}";
+                Console.WriteLine(SiteLogUtility.LogText);
+                SiteLogUtility.Log_Entry(SiteLogUtility.LogText);
+
+                using (ClientContext clientContext = new ClientContext(sUrl))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+                    bool removePracUserGroup = false;
+
+                    try
+                    {
+                        removePracUserGroup = RemoveSpGroups(spUserGroup, sUrl);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("GetSpGroups Error: " + ex.ToString());
+                        SiteLogUtility.Log_Entry("GetSpGroups Error: " + ex.ToString());
                     }
 
                 }
@@ -68,85 +160,80 @@ namespace SiteUtility
 
         private static bool RemoveSpGroups(string spUserGroup, string path)
         {
-            try
+            using (ClientContext clientContext = new ClientContext(path))
             {
-                using (ClientContext clientContext = new ClientContext(path))
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+                try
                 {
-                    try
+                    Web web = null;
+                    web = clientContext.Web;
+                    RoleAssignmentCollection assignColl;
+                    RoleAssignment roleAssign;
+
+                    string userOrGroup = spUserGroup; //we can give either title or login Name of the user/group.
+                    string permissionLevel = "Practice Site User Permission Level"; //we can Give name of any permission level name.
+
+                    clientContext.Load(web.RoleAssignments,
+                        roles => roles.Include(
+                            r => r.Member,
+                            r => r.Member.LoginName,
+                            r => r.Member.Title,
+                            r => r.RoleDefinitionBindings
+                    ));
+
+                    clientContext.ExecuteQuery();
+
+                    assignColl = web.RoleAssignments;
+
+                    //for (int isitePermCount = 0; isitePermCount < assignColl.Count; isitePermCount++)
+                    for (int isitePermCount = 0; isitePermCount < assignColl.Count; isitePermCount++)
                     {
-                        // ------------------ Get groups object using Users 
-                        // clientContext.Web.RoleAssignments.GetByPrincipal(spUserGroup).DeleteObject();
-                        //var web = clientContext.Web;
-                        //clientContext.Load(clientContext.Web, a => a.)
-                        // Load the group
-                        /*clientContext.Load(clientContext.Web,
-                                                web => web.SiteGroups.Include(
-                                                    g => g.Title,
-                                                    g => g.Id),
-                                                web => web.RoleAssignments.Include(
-                                                    assignment => assignment.PrincipalId,
-                                                    assignment => assignment.RoleDefinitionBindings.Include(
-                                                        definition => definition.Name)),
-                                                web => web.RoleDefinitions.Include(
-                                                    definition => definition.Name));
-                        clientContext.ExecuteQuery();
-                        */
-                        //Group myGroup = clientContext.Web.SiteGroups.GetByName(spUserGroup);
-                        //myclientContext.Web.RoleAssignments.GetByPrincipal(spUserGroup).DeleteObject();
-
-
-                        // ------------------ Get groups object using group name 
-                        Group oGroup = clientContext.Web.SiteGroups.GetByName(spUserGroup);
-                        // Load the group
-                        clientContext.Load(oGroup);
-                        //clientContext.Load(oGroup, w => w.Id,
-                        //                            w => w.Title,
-                        //                            w => w.LoginName,
-                        //                            w => w.PrincipalType,
-                        //                            w => w.Description);
-                        clientContext.ExecuteQuery();
-
-                        var oGroupTitle = oGroup.Title;
-                        var oGroupLen = oGroup.Title.Length;
-                        var oGroupStatus = "";
-                        if (oGroupLen > 0)
+                        try
                         {
-                            //if (!AuditMode)
-                            //{
-                            //    // Remove group
-                            //    clientContext.Web.SiteGroups.Remove(oGroup);
-                            //    clientContext.ExecuteQuery();
+                            roleAssign = assignColl[isitePermCount];
+                            string userLoginName = string.Empty;
+                            string userTitle = string.Empty;
+                            userLoginName = roleAssign.Member.LoginName;
+                            userTitle = roleAssign.Member.Title;
 
-                            //    oGroupStatus = "Removed SP Group: ";
-                            //    Console.WriteLine(oGroupStatus + oGroupTitle);
-                            //    SiteLogUtility.Log_Entry(oGroupStatus + oGroupTitle);
-                            //}
+                            if (userTitle == userOrGroup || userLoginName == userOrGroup)
 
-                            if (AuditMode)
                             {
-                                oGroupStatus = "Will Remove SP Group: ";
-                                Console.WriteLine("SP Group: " + oGroupTitle);
-                                SiteLogUtility.Log_Entry("Will Remove SP Group: " + oGroupTitle);
+                                //Get the roledefinition from it’s name
+                                RoleDefinition roleDef = web.RoleDefinitions.GetByName(permissionLevel);
+
+                                // If we want to Remove selected Permission
+                                //roleAssign.RoleDefinitionBindings.Remove(roleDef);
+                                SiteLogUtility.LogText = $"Will be removed: {roleAssign.PrincipalId}";
+                                SiteLogUtility.Log_Entry(SiteLogUtility.LogText);
+
+                                // If we want to Add selected Permission
+                                //roleAssign.RoleDefinitionBindings.Add(roleDef);
+                                //roleAssign.Update();
+                                clientContext.ExecuteQuery();
+
+                                Console.WriteLine(SiteLogUtility.LogText);
                             }
-                        };
+                        }
+
+                        catch
+                        {
+                            return false;
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("ClientContext RemoveSpGroups Error: " + ex.Message.ToString());
-                        SiteLogUtility.Log_Entry("ClientContext SPUserGroup: " + spUserGroup);
-                        SiteLogUtility.Log_Entry("ClientContext RemoveSpGroups Error: " + ex.Message.ToString());
-                        //throw;
-                    }
+                    //Console.ReadLine();
+                    return true;
+                }
+                catch
+                {
+                    return false;
                 }
             }
-            catch (Exception ex)
-            {
-                SiteLogUtility.Log_Entry("RemoveSpGroups Error: " + ex.Message.ToString());
-                //throw;
-                return false;
-            }
-            return true;
+
         }
+
+                
 
         //private static bool RoleAssignmentCollection_AddGroupReadOnly(PracticeSite pracInfo)
         //{
@@ -271,11 +358,91 @@ namespace SiteUtility
 
         public static void SetPMPermissionValue(ProgramManagerSite pmsi, PracticeSite si)
         {
-            si.PracUserPermission = "Prac_" + si.PracticeTIN + "_User";
-            si.PracUserReadOnlyPermission = "Prac_" + si.PracticeTIN + "_ReadOnly";
             pmsi.IWNSiteMgrPermission = si.IWNRegion + "_SiteManager";
             pmsi.IWNSiteMgrReadOnlyPermission = si.IWNRegion + "_ReadOnly";
 
+        }
+
+        public static void Permissions_BAK()
+        {
+            //----------------------------------------------------------------------
+            //Web web = clientContext.Web;
+            //clientContext.Load(web);
+            //clientContext.ExecuteQuery();
+
+            //var contributeRole = web.RoleDefinitions.GetByType(RoleType.Contributor);
+            //var contributeRole2 = web.RoleDefinitions.GetByName("Read");
+
+            //var group = web.SiteGroups.GetByName(spUserGroup);
+            //var groupAssignment = web.RoleAssignments.GetByPrincipalId(group.Id);
+            //var roles = groupAssignment.RoleDefinitionBindings;
+
+            //clientContext.Load(group);
+            //clientContext.Load(groupAssignment);
+            //clientContext.ExecuteQuery();
+
+            //if (roles.Contains(contributeRole2))
+            //{
+            //    //roles.Remove(contributeRole);
+            //    //groupAssignment.Update();
+            //    SiteLogUtility.Log_Entry($"{groupAssignment.PrincipalId} - {contributeRole2.Name}");
+            //}
+            //----------------------------------------------------------------------
+
+            ////////clientContext.Load(
+            ////////    clientContext.Web,
+            ////////    web => web.SiteGroups.Include(
+            ////////        g => g.Title,
+            ////////        g => g.Id),
+            ////////        web => web.RoleAssignments.Include(
+
+            ////////            assignment => assignment.PrincipalId,
+            ////////            assignment => assignment.RoleDefinitionBindings.Include(
+
+            ////////                definitionb => definitionb.Name)),
+            ////////        web => web.RoleDefinitions.Include(
+
+            ////////                definition => definition.Name));
+
+            ////////clientContext.ExecuteQuery();
+
+            ////////RoleDefinition readDef = clientContext.Web.RoleDefinitions.FirstOrDefault(
+            ////////        definition => definition.Name == "Read");
+            ////////Group group = clientContext.Web.SiteGroups.FirstOrDefault(
+            ////////        g => g.Title == spUserGroup);
+            ////////if (readDef == null || group == null) return false;
+
+            ////////foreach (RoleAssignment roleAssignment in clientContext.Web.RoleAssignments)
+            ////////{
+            ////////    if(roleAssignment.PrincipalId == group.Id)
+            ////////    {
+            ////////        SiteLogUtility.Log_Entry($"PrincipalId: {roleAssignment.PrincipalId}  - GroupId: {group.Id}");
+            ////////    }
+            ////////    SiteLogUtility.Log_Entry($"PrincipalId: {roleAssignment.PrincipalId} - RoleDefBindings Cnt: {roleAssignment.RoleDefinitionBindings.Count}");
+            ////////    //clientContext.ExecuteQuery();
+            ////////}
+
+            //foreach (var rd in from roleAssignment in clientContext.Web.RoleAssignments
+            //                   where roleAssignment.PrincipalId == @group.Id
+            //                   from rd in roleAssignment.RoleDefinitionBindings.Where(
+            //                       rd => rd.Name == readDef.Name)
+            //                   select rd)
+            //{
+            //    //rd.DeleteObject();
+            //    SiteLogUtility.Log_Entry($"Will be deleted: {rd.Name} - {rd.Description} - {rd.Id}");
+            //}
+            //clientContext.ExecuteQuery();
+            //}
+            //}
+            //catch (Exception ex)
+            //{
+            //    SiteLogUtility.LogText = path;
+            //    SiteLogUtility.Log_Entry(SiteLogUtility.LogText);
+            //    SiteLogUtility.Log_Entry("RemoveSpGroups Error: " + ex.Message.ToString());
+            //    return false;
+            //}
+            //return true;
+            //}
         }
     }
 }

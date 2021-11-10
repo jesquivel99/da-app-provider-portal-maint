@@ -11,17 +11,17 @@ namespace SiteUtility
 {
     public class SiteLogUtility
     {
-        private static string LogText = "";
-        private static string LogFile = "";
-        private static string LogFileName = "";
-        private static string FileDir = "";
-        private static List<string> FileList = new List<string>();
-        private static List<string> LogList = new List<string>();
+        public static string LogText = "";
+        public static string LogFile = "";
+        public static string LogFileName = "";
+        public static string FileDir = "";
+        public static List<string> FileList = new List<string>();
+        public static List<string> LogList = new List<string>();
         public static List<LogInfo> logEntryList = new List<LogInfo>();
 
-        static string ResultDescription = "", ResultDescConcern = "", EmailDesc = "";
-        static string textLine = "\n------------------------------\n\n";
-        static string textLineSPGroups = "\n-----------------------------------------------------------------------------------------------------\n";
+        public static string ResultDescription = "", ResultDescConcern = "", EmailDesc = "";
+        public static string textLine = "\n------------------------------\n\n";
+        public static string textLineSPGroups = "\n-----------------------------------------------------------------------------------------------------\n";
 
         public class LogInfo
         {
@@ -45,7 +45,7 @@ namespace SiteUtility
 
         public static void InitLogFile(string maintAppName, string rootUrl, string siteUrl)
         {
-
+            LogFile = ConfigurationManager.AppSettings["LogFile"];
             LogText = "PracticeSite-Maint - SiteLogUtility \n   In Progress...";
             Console.WriteLine(textLine);
             Console.WriteLine(LogText);
