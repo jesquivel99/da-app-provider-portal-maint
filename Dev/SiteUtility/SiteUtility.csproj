@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientPortalNavigation.cs" />
     <Compile Include="PracticeRoot.cs" />
     <Compile Include="PracticeSite.cs" />
     <Compile Include="ProgramManagerSite.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="SiteListUtility.cs" />
     <Compile Include="SiteLogUtility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SiteNavigateUtility.cs" />
     <Compile Include="SitePermissionUtility.cs" />
     <Compile Include="SitePMData.cs" />
     <Compile Include="SitePublishUtility.cs" />

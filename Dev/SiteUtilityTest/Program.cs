@@ -15,6 +15,7 @@ namespace SiteUtilityTest
         {
             string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
+            string siteInfoFile = ConfigurationManager.AppSettings["Csv_File"];
             string releaseName = "SiteUtilityTest";
 
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
@@ -22,29 +23,35 @@ namespace SiteUtilityTest
             using(ClientContext clientContext = new ClientContext(siteUrl))
             {
                 clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-
-                SiteLogUtility.LogText = "=============Release Starts=============";
-                SiteLogUtility.Log_Entry(SiteLogUtility.LogText);
-                Console.WriteLine(SiteLogUtility.LogText);
+                SiteLogUtility.Log_Entry("=============Release Starts=============", true);
 
                 try
                 {
                     //  Get all Practice Data...
-                    SiteLogUtility.LogText = "=============[ Get all Practice Data ]=============";
-                    SiteLogUtility.Log_Entry(SiteLogUtility.LogText);
+                    SiteLogUtility.Log_Entry("=============[ Get all Practice Data ]=============", true);
                     List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
 
                     //  Maintenance Tasks...
-                    SiteLogUtility.LogText = "\n\n=============[ Maintenance Tasks ]=============";
-                    SiteLogUtility.Log_Entry(SiteLogUtility.LogText);
+                    SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks ]=============", true);
                     foreach (ProgramManagerSite pm in practicePMSites)
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
                             // Get and Remove SP Groups...
-                            //SitePermissionUtility.GetSpGroups(pm, psite);
-                            //SitePermissionUtility.RemoveAllSpGroups(pm, psite);
-                            SitePermissionUtility.RemoveSingleSpGroup(psite.PracUserReadOnlyPermission, psite.URL);
+                            //SitePermissionUtility.GetWebGroups(psite);
+                            //SitePermissionUtility.RemoveSingleSpGroup(psite.PracUserReadOnlyPermission, psite.PracUserReadOnlyPermissionDesc, psite.URL);
+
+                            if (psite.URL.Contains("94910221369") || psite.URL.Contains("91101941279"))
+                            {
+                                SiteNavigateUtility.NavigationPracticeMnt(psite.URL, pm.PMURL);
+                            }
+
+                            if (psite.URL.Contains("94910221369") || psite.URL.Contains("91101941279"))
+                            {
+                                SiteLogUtility.Log_Entry("Adding RoleAssignments - AddPortalBusinessAdminUserReadOnly, AddRiskAdjustmentUserReadOnly", true);
+                                SitePermissionUtility.RoleAssignment_AddPortalBusinessAdminUserReadOnly(psite);
+                                SitePermissionUtility.RoleAssignment_AddRiskAdjustmentUserReadOnly(psite);
+                            }
                         }
                     }
                 }
@@ -54,22 +61,10 @@ namespace SiteUtilityTest
                 }
                 finally
                 {
-                    SiteLogUtility.Log_ProcessLogs(SiteLogUtility.logEntryList);
-
-                    // Append all LogList items to log file...
-                    System.IO.File.AppendAllLines(SiteLogUtility.LogFileName, SiteLogUtility.LogList);
-
-                    SiteLogUtility.LogText = $"PracticeSiteMaint - {releaseName} \n   Complete";
-                    SiteLogUtility.Log_Entry(SiteLogUtility.LogText);
-                    Console.WriteLine(SiteLogUtility.textLine);
-                    Console.WriteLine(SiteLogUtility.LogText);
-
-                    //Log_EmailToMe();
+                    SiteLogUtility.finalLog(releaseName);
                 }
-
-                Console.WriteLine("=============Release Ends=============");
+                SiteLogUtility.Log_Entry("=============Release Ends=============", true);
             }
-
         }
     }
 }

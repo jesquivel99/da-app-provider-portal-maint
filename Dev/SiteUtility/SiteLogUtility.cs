@@ -48,17 +48,17 @@ namespace SiteUtility
             LogFile = ConfigurationManager.AppSettings["LogFile"];
             LogText = "PracticeSite-Maint - SiteLogUtility \n   In Progress...";
             Console.WriteLine(textLine);
-            Console.WriteLine(LogText);
+            Log_Entry(LogText, true);
 
             LogText = CreateLog(LogFile);
-            Log_Entry(LogText);
+            Log_Entry(LogText, true);
             LogText = string.Format("                  App Name: {0}", maintAppName);
-            Log_Entry(LogText);
+            Log_Entry(LogText, true);
             LogText = string.Format("                  Root URL: {0}", rootUrl);
-            Log_Entry(LogText);
+            Log_Entry(LogText, true);
             LogText = string.Format("                  Site URL: {0}", siteUrl);
-            Log_Entry(LogText);
-            Log_Entry(textLine);
+            Log_Entry(LogText, true);
+            Log_Entry(textLine, true);
         }
 
         public static void CreateLogEntry(string strMethod, string strMessage, string strType, string strURL)
@@ -69,7 +69,7 @@ namespace SiteUtility
             }
             using (ClientContext clientContext = new ClientContext(strURL))
             {
-                clientContext.Credentials = new NetworkCredential("spAdmin_Dev", "$5ApjXy9", "Medspring");
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
                 Web w = clientContext.Web;
                 clientContext.Load(w);
                 clientContext.ExecuteQuery();
@@ -92,9 +92,13 @@ namespace SiteUtility
             }
         }
 
-        public static void Log_Entry(string logtext)
+        public static void Log_Entry(string logtext, bool consolePrint = false)
         {
             logEntryList.AddRange(AddLogEntry(logtext));
+            if(consolePrint)
+            {
+                Console.WriteLine(logtext);
+            }
         }
 
         public static List<LogInfo> AddLogEntry(string logEntry)
@@ -232,6 +236,20 @@ namespace SiteUtility
                 sw.WriteLine(ex.ToString());
 
             Log_Entry(ex.ToString());
+        }
+
+        public static void finalLog(string rName)
+        {
+            Log_ProcessLogs(logEntryList);
+
+            // Append all LogList items to log file...
+            System.IO.File.AppendAllLines(LogFileName, LogList);
+
+            Console.WriteLine(textLine);
+            LogText = $"PracticeSiteMaint - {rName} \n   Complete";
+            Log_Entry(LogText, true);
+
+            //Log_EmailToMe();
         }
         public static void LogFunction1()
         {

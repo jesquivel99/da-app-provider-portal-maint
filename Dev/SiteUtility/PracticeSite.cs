@@ -24,7 +24,9 @@ namespace SiteUtility
         public string ReferralURL { get; set; }
 
         public string PracUserPermission { get; set; }
+        public string PracUserPermissionDesc = "Practice Site User Permission Level";
         public string PracUserReadOnlyPermission { get; set; }
+        public string PracUserReadOnlyPermissionDesc = "Read";
 
         public DateTime RowCreateDate { get; set; }
         public DateTime RowUpdateDate { get; set; }

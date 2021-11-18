@@ -81,12 +81,13 @@ namespace SiteUtility
 
         public static List<ProgramManagerSite> GetAllPracticeDetails(ClientContext clientContext)
         {
+            clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
             clientContext.Load(clientContext.Web.Webs);
             clientContext.ExecuteQuery();
             string strUrl = clientContext.Url;
 
             List<ProgramManagerSite> pmSites = new List<ProgramManagerSite>();
-            
 
             try
             {
@@ -98,6 +99,7 @@ namespace SiteUtility
                         ProgramManagerSite pmSite = new ProgramManagerSite();
                         pmSite.ProgramManagerName = pmAssignments.PMName;
                         pmSite.PMURL = web.Url;
+                        pmSite.URL = web.Url;
                         pmSite.ProgramManager = pmAssignments.PMRefId;
                         pmSite.IWNSiteMgrPermission = pmAssignments.PMGroup + "_SiteManager";
                         pmSite.IWNSiteMgrReadOnlyPermission = pmAssignments.PMGroup + "_ReadOnly";
@@ -120,6 +122,7 @@ namespace SiteUtility
                                 PracticeSite practiceSite = new PracticeSite();
                                 practiceSite.Name = web0.Title;
                                 practiceSite.URL = web0.Url;
+                                practiceSite.PracticeTIN = siteId;
                                 practiceSite.PracUserPermission = $"Prac_{siteId}_User";
                                 practiceSite.PracUserReadOnlyPermission = $"Prac_{siteId}_ReadOnly";
                                 pmSite.PracticeSiteCollection.Add(practiceSite);
@@ -144,7 +147,7 @@ namespace SiteUtility
                 throw;
             }
             
-            Console.WriteLine("1. GetAllPracticeDetails - Complete");
+            SiteLogUtility.Log_Entry("1. GetAllPracticeDetails - Complete", true);
             return pmSites;
         }
 
@@ -277,6 +280,68 @@ namespace SiteUtility
                 SiteLogUtility.CreateLogEntry("DecryptPTIN", ex.Message, "Error", "");
                 return s;
             }
+        }
+
+        /// <summary>
+        /// Method will receive CSV file input
+        /// Utilize existing Classes
+        /// </summary>
+        public static class GenericTextFileProcessor
+        {
+            public static List<T> LoadFromTextFile<T>(string filePath) where T : class, new()
+            {
+                var lines = System.IO.File.ReadAllLines(filePath).ToList();
+                List<T> output = new List<T>();
+                T entry = new T();
+                var cols = entry.GetType().GetProperties();
+
+                // Checks to be sure we have at least one header row and one data row...
+                if (lines.Count < 2)
+                {
+                    throw new IndexOutOfRangeException("The file was either empty or missing.");
+                }
+
+                // Splits the header into one column header per entry...
+                var headers = lines[0].Split(',');
+
+                // Removes header row from the lines so we don't
+                //  have to worry about skipping over that first row.
+                lines.RemoveAt(0);
+
+                foreach (var row in lines)
+                {
+                    entry = new T();
+                    var vals = row.Split(',');
+
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        foreach (var col in cols)
+                        {
+                            if (col.Name == headers[i])
+                            {
+                                col.SetValue(entry, Convert.ChangeType(vals[i], col.PropertyType));
+                            }
+                        }
+                    }
+
+                    output.Add(entry);
+                }
+
+                return output;
+            }
+        }
+
+        public static void loadFromTextFile()
+        {
+            // Load records to process into PracticeSite...
+            //List<PracticeSite> newSiteInfo = SiteInfoUtility.GenericTextFileProcessor.LoadFromTextFile<PracticeSite>(siteInfoFile);
+            //SiteLogUtility.Log_Entry("Will be processed: ");
+            //foreach (var item in newSiteInfo)
+            //{
+            //    Console.WriteLine($"{item.URL}, {item.Name}");
+            //    SiteLogUtility.Log_Entry($"{item.URL}, {item.Name}");
+            //}
+            //Console.ReadLine();
         }
     }
 }
