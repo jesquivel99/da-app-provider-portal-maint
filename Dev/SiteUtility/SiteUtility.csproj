@@ -34,9 +34,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.SharePoint.Client, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.SharePoint.Client.Publishing, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.SharePoint.Client.Runtime, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.SharePoint.Client">
+      <HintPath>..\..\..\PracticeSite-Core\Prod\packages\Microsoft.SharePoint2013.CSOM.15.0.5031.1001\lib\net45\Microsoft.SharePoint.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SharePoint.Client.Publishing">
+      <HintPath>..\..\..\PracticeSite-Core\Prod\packages\Microsoft.SharePoint2013.CSOM.15.0.5031.1001\lib\net45\Microsoft.SharePoint.Client.Publishing.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SharePoint.Client.Runtime">
+      <HintPath>..\..\..\PracticeSite-Core\Prod\packages\Microsoft.SharePoint2013.CSOM.15.0.5031.1001\lib\net45\Microsoft.SharePoint.Client.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
@@ -63,6 +69,7 @@
     <Compile Include="SitePermissionUtility.cs" />
     <Compile Include="SitePMData.cs" />
     <Compile Include="SitePublishUtility.cs" />
+    <Compile Include="SiteRootAdminList.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
