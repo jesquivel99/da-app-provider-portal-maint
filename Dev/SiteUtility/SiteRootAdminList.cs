@@ -20,7 +20,7 @@ namespace SiteUtility
             try
             {
                 //createAdminList(sURL);
-                var pageRelativeUrl = "/Pages/AdminHome.aspx";
+                var pageRelativeUrl = "/Pages/Admin.aspx";
                 using (ClientContext clientContext = new ClientContext(sURL))
                 {
                     ListCollection listCol = clientContext.Web.Lists;
@@ -57,11 +57,11 @@ namespace SiteUtility
         {
             SiteFilesUtility objSiteFiles = new SiteFilesUtility();
             createAdminList(sURL);
-            InitializeHomePage(sURL, "AdminHome", "AdminHome");
-            DeleteWebPart(sURL, "AdminHome");
+            InitializeHomePage(sURL, "Admin", "Admin");
+            DeleteWebPart(sURL, "Admin");
             objSiteFiles.DocumentUpload(sURL, @"C:\Projects\Applications\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\cePrac_AdminRootDataTable.html", "Site Assets");
             ConfigureHomePage(sURL);
-            SetWelcomePage(sURL, @"Pages/AdminHome.aspx");
+            SetWelcomePage(sURL, @"Pages/Admin.aspx");
         }
         public void createAdminList(string sURL)
         {
@@ -195,7 +195,7 @@ namespace SiteUtility
                 Web web = clientContext.Web;
                 clientContext.Load(web, w => w.ServerRelativeUrl);
                 clientContext.ExecuteQuery();
-                var file = clientContext.Web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + "/Pages/AdminHome.aspx");
+                var file = clientContext.Web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + "/Pages/Admin.aspx");
                 file.CheckOut();
                 try
                 {

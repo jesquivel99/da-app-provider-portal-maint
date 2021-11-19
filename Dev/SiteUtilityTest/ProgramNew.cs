@@ -19,6 +19,7 @@ namespace SiteUtilityTest
             string sAdminListName = ConfigurationManager.AppSettings["AdminRootListName"];
             string releaseName = "SiteUtilityTest";
             SiteRootAdminList objRootSite = new SiteRootAdminList();
+            SiteDeleteUtility objDeleteSite = new SiteDeleteUtility();
 
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
 
@@ -31,8 +32,11 @@ namespace SiteUtilityTest
 
                 try
                 {
-                    objRootSite.removeAdminRootSiteSetup();
-                    objRootSite.setupAdminRootSiteList();
+                    //objRootSite.removeAdminRootSiteSetup();
+                    //objRootSite.setupAdminRootSiteList();
+
+                    Console.WriteLine("Admin List, Page setup completed successfully");
+                    SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "Admin List, Page setup completed successfully", "Log", siteUrl);
 
                     List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
 
@@ -40,7 +44,11 @@ namespace SiteUtilityTest
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
+                            objDeleteSite.DeleteSite(psite.URL);
+                            Console.WriteLine("===   " + psite.URL + "    Deleted successfully");
                         }
+                        objDeleteSite.DeleteSite(pm.PMURL);
+                        Console.WriteLine("===   " + pm.PMURL + "    Deleted successfully");
                     }
                 }
                 catch (Exception ex)
