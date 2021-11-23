@@ -20,8 +20,8 @@ namespace SiteUtility
                     {
                         // Make sure the site you are deleting is no longer in use.
                         // Once a site is deleted, there's no way you can recover the site.
-                        clientContext.Web.DeleteObject();
-                        clientContext.ExecuteQuery();
+                        //clientContext.Web.DeleteObject();
+                        //clientContext.ExecuteQuery();
                     }
 
                 }
