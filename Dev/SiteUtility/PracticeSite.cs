@@ -8,6 +8,14 @@ namespace SiteUtility
 {
     public class PracticeSite
     {
+        public PracticeSite()
+        {
+
+        }
+        public enum PracticeType { IWH, iCKCC };
+        public enum FolderType { IWH, iCKCC, BOTH };
+        public enum SpServer { DEV, PROD };
+        public PracticeType Type;
         public string URL { get; set; }
         public string Name { get; set; }
         /// <Notes>
@@ -17,11 +25,15 @@ namespace SiteUtility
         public string PracticeName { get; set; }
         public string EncryptedPracticeTIN { get; set; }
         public string PracticeNPI { get; set; }
+        public string SiteId { get; set; }
 
         public string IWNRegion { get; set; }
         public string IWNRegionURL { get; set; }
         public string ProgramManager { get; set; }
         public string ReferralURL { get; set; }
+        public string ExistingSiteUrl { get; set; }
+        public string RelativeExistingSiteUrl { get; set; }
+        public string ExistingSiteNone = "None";
 
         public string PracUserPermission { get; set; }
         public string PracUserPermissionDesc = "Practice Site User Permission Level";

@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Practice.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgramNew.cs" />
     <Compile Include="ProgramNew2.cs" />

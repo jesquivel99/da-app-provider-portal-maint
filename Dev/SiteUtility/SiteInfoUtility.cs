@@ -8,8 +8,27 @@ using Microsoft.SharePoint.Client;
 
 namespace SiteUtility
 {
+    
+    public class Practice
+    {
+        public string PMGroup;
+        public string Name;
+        public string TIN;
+        public string SiteID;
+        public string NewSiteUrl;
+        public string ExistingSiteUrl;
+        public PracticeType Type;
+        public Practice()
+        {
+        }
+    }
+    public enum PracticeType { IWH, iCKCC };
+    public enum FolderType { IWH, iCKCC, BOTH };
+    public enum SpServer { DEV, PROD };
     public class SiteInfoUtility
     {
+        //public List<Practice> practicesIWH = new List<Practice>();
+        //public List<Practice> practicesCKCC = new List<Practice>();
         public static List<ProgramManagerSite> getSubWebs(string path, string rootUrl)
         {
             List<ProgramManagerSite> pmSites = new List<ProgramManagerSite>();
@@ -79,7 +98,7 @@ namespace SiteUtility
             }
         }
 
-        public static List<ProgramManagerSite> GetAllPracticeDetails(ClientContext clientContext)
+        public static List<ProgramManagerSite> GetAllPracticeDetails(ClientContext clientContext, List<Practice> pracIWH=null, List<Practice> pracCKCC = null)
         {
             clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
 
@@ -125,7 +144,23 @@ namespace SiteUtility
                                 practiceSite.PracticeTIN = siteId;
                                 practiceSite.PracUserPermission = $"Prac_{siteId}_User";
                                 practiceSite.PracUserReadOnlyPermission = $"Prac_{siteId}_ReadOnly";
+                                practiceSite.ExistingSiteUrl = MapExistingSite(practiceSite.PracticeTIN, pracIWH, pracCKCC);
+
                                 pmSite.PracticeSiteCollection.Add(practiceSite);
+
+                                /*
+                                Practice practice = new Practice();
+
+                                practice.PMGroup = group;
+                                practice.Name = web0.Title;
+                                practice.NewSiteUrl = web0.Url;
+                                practice.Type = practiceType;
+                                practice.SiteID = practice.NewSiteUrl.Substring(practice.NewSiteUrl.Length - 11); //"9" + Reverse(practice.TIN) + "9";
+                                practice.TIN = Reverse(practice.SiteID.Substring(1, practice.SiteID.Length - 2));
+                                practice.ExistingSiteUrl = MapExistingSite(practice.TIN);
+                          
+                                practices.Add(practice);
+                                 */
 
                                 SiteLogUtility.Log_Entry(practiceSite.Name);
                                 SiteLogUtility.Log_Entry(practiceSite.URL);
@@ -282,6 +317,59 @@ namespace SiteUtility
             }
         }
 
+        public static List<Practice> GetAllPracticeExistingSites(ClientContext clientContext, List<Practice> practices, PracticeType practiceType)
+        {
+            clientContext.Load(clientContext.Web);
+            clientContext.Load(clientContext.Web.Webs);
+            clientContext.ExecuteQuery();
+
+            foreach (Web web in clientContext.Web.Webs)
+            {
+                if (Char.IsDigit(web.Url.Last()))
+                {
+                    using (ClientContext clientContext0 = new ClientContext(web.Url))
+                    {
+                        clientContext0.Load(clientContext0.Web);
+                        clientContext0.Load(clientContext0.Web.Webs);
+                        clientContext0.ExecuteQuery();
+
+                        if (clientContext0.Web.Url.Contains("/ICKCCGroup") || clientContext0.Web.Url.Contains("/iwn"))
+                        {
+                            string group = clientContext0.Web.Url.Substring(clientContext0.Web.Url.Length - 2);
+
+                            if (group.CompareTo("12") < 0)
+                            {
+                                foreach (Web web0 in clientContext0.Web.Webs)
+                                {
+                                    Practice practice = new Practice();
+                                    practice.ExistingSiteUrl = web0.Url;
+                                    practice.Type = practiceType;
+                                    practices.Add(practice);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return practices;
+        }
+
+        private static string MapExistingSite(string TIN, List<Practice> practicesIWH=null, List<Practice> practicesCKCC=null)
+        {
+            Practice practice = practicesIWH.Where(p => p.ExistingSiteUrl.Contains(TIN)).FirstOrDefault();
+            if (practice == null)
+                practice = practicesCKCC.Where(p => p.ExistingSiteUrl.Contains(TIN)).FirstOrDefault();
+
+            if (practice == null)
+            {
+                //Console.WriteLine(TIN);
+                SiteLogUtility.Log_Entry("Mapping Does Not Exist: " + TIN, true);
+                return "";
+            }
+            else
+                return practice.ExistingSiteUrl;
+        }
+
         /// <summary>
         /// Method will receive CSV file input
         /// Utilize existing Classes
@@ -343,5 +431,6 @@ namespace SiteUtility
             //}
             //Console.ReadLine();
         }
+
     }
 }

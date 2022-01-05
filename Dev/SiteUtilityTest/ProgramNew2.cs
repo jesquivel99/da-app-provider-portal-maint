@@ -5,7 +5,9 @@ using System.Text;
 using SiteUtility;
 using System.Configuration;
 using Microsoft.SharePoint.Client;
+using Microsoft.SharePoint.Client.Publishing;
 using System.Net;
+using System.IO;
 
 namespace SiteUtilityTest
 {
@@ -14,25 +16,43 @@ namespace SiteUtilityTest
         // AuditMode = true    will NOT execute code to remove SharePoint Permission Groups
         // AuditMode = false   will execute code to remove SharePoint Permission Groups
         public static bool AuditMode = true;
+        public List<Practice> practicesIWH = new List<Practice>();
+        public List<Practice> practicesCKCC = new List<Practice>();
         public void InitiateProgNew2()
         {
             string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
+            string srcUrlIWH = ConfigurationManager.AppSettings["SP_IWHUrl"];
+            string srcUrlCKCC = ConfigurationManager.AppSettings["SP_CKCCUrl"];
             string siteInfoFile = ConfigurationManager.AppSettings["Csv_File"];
             string releaseName = "SiteUtilityTest";
 
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
+            SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
 
+            // Get all existing IWN and iCKCC Practice Data...
+            SiteLogUtility.Log_Entry("\n\n=============[ Get all Existing Practice Data (IWN-CKCC) ]=============", true);
+            using (ClientContext clientContextIWH = new ClientContext(srcUrlIWH))
+            {
+                clientContextIWH.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                practicesIWH = GetAllPracticeExistingSites(clientContextIWH, practicesIWH, PracticeType.IWH);
+            }
+            using (ClientContext clientContextCKCC = new ClientContext(srcUrlCKCC))
+            {
+                clientContextCKCC.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                practicesCKCC = GetAllPracticeExistingSites(clientContextCKCC, practicesCKCC, PracticeType.iCKCC);
+            }
+
+            // Get Portal Data...
             using (ClientContext clientContext = new ClientContext(siteUrl))
             {
                 clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                SiteLogUtility.Log_Entry("=============Release Starts=============", true);
 
                 try
                 {
-                    //  Get all Practice Data...
-                    SiteLogUtility.Log_Entry("=============[ Get all Practice Data ]=============", true);
-                    List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
+                    //  Get all Portal Practice Data...
+                    SiteLogUtility.Log_Entry("\n\n=============[ Get all Portal Practice Data ]=============", true);
+                    List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext, practicesIWH, practicesCKCC);
 
                     //  Maintenance Tasks...
                     SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks ]=============", true);
@@ -40,16 +60,23 @@ namespace SiteUtilityTest
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
-                            if (psite.URL.Contains("94910221369") || psite.URL.Contains("91101941279"))
+                            if (psite.URL.Contains("PM01"))
                             {
-                                SiteNavigateUtility.NavigationPracticeMnt(psite.URL, pm.PMURL);
-                            }
+                                //SiteLogUtility.Log_Entry("\nPermissions - Test\n\n", true);
+                                //SiteFilesUtility objSiteFiles = new SiteFilesUtility();
+                                //InitializeHomePage(psite.URL, "Home_Backup", "Home_Backup");
+                                //getHomePage(psite); 
+                                SiteLogUtility.Log_Entry("--\n");
+                                SiteLogUtility.Log_Entry($"--Existing Site: {psite.ExistingSiteUrl}");
+                                SiteLogUtility.Log_Entry($"--  Portal Site: {psite.URL}");
+                                SiteLogUtility.Log_Entry($"--        Audit: {psite.URL}/_layouts/user.aspx");
+                                //SiteFilesUtility.CreateRedirectPage(psite.ExistingSiteUrl);
+                                SitePermissionUtility.RoleAssignment_AddPracUser(psite);
+                                SitePermissionUtility.RoleAssignment_AddPracReadOnly(psite);
 
-                            if (psite.URL.Contains("94910221369") || psite.URL.Contains("91101941279"))
-                            {
-                                SiteLogUtility.Log_Entry("Adding RoleAssignments - AddPortalBusinessAdminUserReadOnly, AddRiskAdjustmentUserReadOnly", true);
-                                RoleAssignment_AddPortalBusinessAdminUserReadOnly(psite);
-                                RoleAssignment_AddRiskAdjustmentUserReadOnly(psite);
+                                SitePermissionUtility.GetWebGroups(psite);
+                                //GetPermission(psite.PracUserReadOnlyPermission, psite.PracUserReadOnlyPermissionDesc, psite.URL);
+                                //GetPermission(psite.PracUserPermission, psite.PracUserPermissionDesc, psite.URL);
                             }
                         }
                     }
@@ -65,6 +92,320 @@ namespace SiteUtilityTest
                 SiteLogUtility.Log_Entry("=============Release Ends=============", true);
             }
         }
+
+        //------------------------[ Testing - Views ]------------------------------------------------------------------------------
+
+        public void setView(PracticeSite practiceSite)
+        {
+
+            using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                List docList = clientContext.Web.Lists.GetByTitle("Documentsckcc");
+                View view = docList.DefaultView;
+                view.ViewQuery = CreateOrder("Name", true);
+                clientContext.Load(view, 
+                                      v => v.Id
+                                    , v => v.ViewQuery
+                                    , v => v.Title
+                                    , v => v.ViewFields
+                                    , v => v.ViewType
+                                    , v => v.DefaultView
+                                    , v => v.PersonalView
+                                    , v => v.ListViewXml
+                                    , v => v.RowLimit);
+                view.Update();
+                clientContext.ExecuteQuery();
+            }
+        }
+
+        public static string CreateOrder(string fieldName, bool ascending)
+        {
+            return string.Format("<OrderBy><FieldRef Name=\"{0}\" Ascending=\"{1}\" /></OrderBy>", fieldName, ascending ? "TRUE" : "FALSE");
+        }
+        public void ListViewIfExists(PracticeSite practiceSite)
+        {
+            using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+            {
+                bool contentExists = false;
+                string checkingMessage = "Checking in back";
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                Web w = clientContext.Web;
+                List list = w.Lists.GetByTitle("Documentsckcc");
+                clientContext.Load(list);
+                clientContext.Load(list.Views);
+                clientContext.Load(list.Fields);
+                clientContext.Load(w);
+                clientContext.ExecuteQuery();
+                Microsoft.SharePoint.Client.File pvFile = w.GetFileByServerRelativeUrl("/Documentsiwh/Forms/PageViewer.aspx");
+                try
+                {
+                    pvFile.CheckOut();
+                    clientContext.Load(pvFile);
+                    clientContext.ExecuteQuery();
+                    if (pvFile.Exists)
+                    {
+                        string str1 = @"<SharePoint:RssLink runat=""server"" />";
+                        string str2 = @"<link rel=""stylesheet"" type=""text/css"" href=""/_layouts/15/PageViewerCustom.css"" />";
+
+                        FileInformation oFileInfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(clientContext, pvFile.ServerRelativeUrl);
+
+                        using (System.IO.StreamReader sr = new System.IO.StreamReader(oFileInfo.Stream))
+                        {
+                            string line = sr.ReadToEnd();
+                            if (!line.Contains(str2) && line.Contains(str1))
+                            {
+                                contentExists = true;
+                            }
+                        }
+                        if (contentExists)
+                        {
+                            using (var stream = new MemoryStream())
+                            {
+                                using (var writer = new StreamWriter(stream))
+                                {
+                                    writer.WriteLine(str1 + str2);
+                                    writer.Flush();
+                                    stream.Position = 0;
+                                    Microsoft.SharePoint.Client.File.SaveBinaryDirect(clientContext, pvFile.ServerRelativeUrl, stream, true);
+                                    checkingMessage = "Added PageViewerCustom css link";
+                                }
+                            }
+                        }
+
+                        pvFile.CheckIn(checkingMessage, CheckinType.MajorCheckIn);
+                        pvFile.Publish(checkingMessage);
+                        clientContext.Load(pvFile);
+                        clientContext.ExecuteQuery();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //SpLog.CreateLog("ReturnListViewIfExists", ex.Message, "Error", clientContext.Web.ServerRelativeUrl);
+                    //pvFile.CheckIn(checkingMessage, CheckinType.MajorCheckIn);
+                    //pvFile.Publish(checkingMessage);
+                    //clientContext.Load(pvFile);
+                    //clientContext.ExecuteQuery();
+                    //clientContext.Dispose();
+                    // ignored
+                }
+            }
+            //Microsoft.SharePoint.Client.View v = list.Views[i];
+            //v.Update();
+        }
+
+
+        //------------------------[ Testing - Publishing  ]------------------------------------------------------------------------
+
+        public void getHomePage(PracticeSite practiceSite)
+        {
+            var pageRelativeUrl = "/Pages/Home.aspx";
+
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    
+                    Web web = clientContext.Web;
+                    List list = web.Lists.GetByTitle("Pages");
+                    clientContext.Load(web);
+                    clientContext.Load(list);
+                    clientContext.ExecuteQuery();
+
+                    Microsoft.SharePoint.Client.File fileToDownload = web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + pageRelativeUrl);
+                    fileToDownload.CheckOut();
+                    // OR...
+                    //fileToDownload.CheckIn("Test", CheckinType.MajorCheckIn);
+                    //fileToDownload.Publish("Test");
+                    //clientContext.Load(fileToDownload);
+                    //clientContext.ExecuteQuery();
+
+
+
+                    clientContext.Load(fileToDownload);
+                    clientContext.ExecuteQuery();
+
+                    if (fileToDownload.Exists)
+                    {
+                        String fileRef = fileToDownload.ServerRelativeUrl;
+                        FileInformation fileInfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(clientContext, fileRef);
+
+                        //Test write to log file...
+                        //using (System.IO.StreamReader sr = new System.IO.StreamReader(fileInfo.Stream))
+                        //{
+                        //    string line = sr.ReadToEnd();
+                        //    SiteLogUtility.Log_Entry(line, true);
+                        //}
+
+                        //String fileName = Path.Combine("C:\\Temp", (string)fileToDownload.Name);
+                        String fileName = Path.Combine("C:\\Temp", "Home_Backup.aspx");
+
+                        using (var fileStream = System.IO.File.Create(fileName))
+                        {
+                            fileInfo.Stream.CopyTo(fileStream);
+                        }
+                    }
+
+                    //fileToDownload.CheckIn("Home.aspx stream to Log and saved as Home_Backup.aspx", CheckinType.MajorCheckIn);
+                    //fileToDownload.Publish("Home.aspx stream to Log and saved as Home_Backup.aspx");
+                    //clientContext.Load(fileToDownload);
+                    //clientContext.ExecuteQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("getHomePage", ex.Message, "Error", "");
+            }
+        }
+
+        //public void PublishPage(PracticeSite practiceSite)
+        //{
+        //    using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+        //    {
+        //        clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+        //        Web web = clientContext.Web;
+        //        clientContext.Load(web);
+        //        //clientContext.ExecuteQuery();
+
+        //        // This value is NOT List internal name
+        //        List targetList = clientContext.Web.Lists.GetByTitle("Pages");
+        //        clientContext.Load(targetList);
+        //        clientContext.ExecuteQuery();
+
+        //        Folder folder = targetList.RootFolder;
+        //        FileCollection files = folder.Files;
+        //        clientContext.Load(files);
+        //        clientContext.ExecuteQuery();
+
+        //        SiteLogUtility.Log_Entry(targetList.EntityTypeName + " - " + practiceSite.URL, true);
+        //        foreach (File f in files)
+        //        {
+        //            SiteLogUtility.Log_Entry(f.Name, true);
+        //        }
+        //    }
+        //}
+
+        //public void renamePage(PracticeSite practiceSite)
+        //{
+        //    try
+        //    {
+        //        String filename = pageName + ".aspx";
+        //        String title = pageTitle;
+        //        String list = "Pages";
+
+        //        var pageRelativeUrl = "/Pages/HomeTest.aspx";
+        //        using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+        //        {
+        //            clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+        //            Web web = clientContext.Web;
+        //            clientContext.Load(web);
+        //            clientContext.ExecuteQuery();
+
+        //            // Get Page Layout
+        //            Microsoft.SharePoint.Client.File pageFromDocLayout = clientContext.Site.RootWeb.GetFileByServerRelativeUrl(String.Format("{0}/_catalogs/masterpage/BlankWebPartPage.aspx", clientContext.Site.RootWeb.ServerRelativeUrl.TrimEnd('/')));
+        //            Microsoft.SharePoint.Client.ListItem pageLayoutItem = pageFromDocLayout.ListItemAllFields;
+        //            clientContext.Load(pageLayoutItem);
+        //            clientContext.ExecuteQuery();
+
+        //            // Create Publishing Page
+        //            PublishingWeb publishingWeb = PublishingWeb.GetPublishingWeb(clientContext, web);
+        //            PublishingPage page = publishingWeb.AddPublishingPage(new PublishingPageInformation
+        //            {
+        //                Name = filename,
+        //                PageLayoutListItem = pageLayoutItem
+        //            });
+        //            clientContext.ExecuteQuery();
+
+        //            // Set Page Title and Publish Page
+        //            Microsoft.SharePoint.Client.ListItem pageItem = page.ListItem;
+        //            pageItem["Title"] = title;
+        //            pageItem.Update();
+        //            pageItem.File.CheckIn(String.Empty, CheckinType.MajorCheckIn);
+        //            clientContext.ExecuteQuery();
+        //            return page;
+
+        //            File file = web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + pageRelativeUrl);
+        //            clientContext.Load(file);
+        //            file.CheckOut();
+        //            //file.CheckIn("Delete webpart", CheckinType.MajorCheckIn);
+        //            //file.Publish("Delete webpart");
+        //            clientContext.Load(file);
+        //            clientContext.ExecuteQuery();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        SiteLogUtility.CreateLogEntry("removeAdminRootSiteSetup", ex.Message, "Error", sURL);
+        //    }
+
+        //}
+
+        public PublishingPage InitializeHomePage(string webUrl, string pageName, string pageTitle)
+        {
+            String filename = pageName + ".aspx";
+            String title = pageTitle;
+            String list = "Pages";
+            using (ClientContext clientContext = new ClientContext(webUrl))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web web = clientContext.Web;
+                    clientContext.Load(clientContext.Site.RootWeb, w => w.ServerRelativeUrl);
+                    clientContext.ExecuteQuery();
+
+                    // Get Page Layout
+                    Microsoft.SharePoint.Client.File pageFromDocLayout = clientContext.Site.RootWeb.GetFileByServerRelativeUrl(String.Format("{0}/_catalogs/masterpage/BlankWebPartPage.aspx", clientContext.Site.RootWeb.ServerRelativeUrl.TrimEnd('/')));
+                    Microsoft.SharePoint.Client.ListItem pageLayoutItem = pageFromDocLayout.ListItemAllFields;
+                    clientContext.Load(pageLayoutItem);
+                    clientContext.ExecuteQuery();
+
+                    // Create Publishing Page
+                    PublishingWeb publishingWeb = PublishingWeb.GetPublishingWeb(clientContext, web);
+                    PublishingPage page = publishingWeb.AddPublishingPage(new PublishingPageInformation
+                    {
+                        Name = filename,
+                        PageLayoutListItem = pageLayoutItem
+                    });
+                    clientContext.ExecuteQuery();
+
+                    // Set Page Title and Publish Page
+                    Microsoft.SharePoint.Client.ListItem pageItem = page.ListItem;
+                    pageItem["Title"] = title;
+                    pageItem.Update();
+                    pageItem.File.CheckIn(String.Empty, CheckinType.MajorCheckIn);
+                    clientContext.ExecuteQuery();
+                    return page;
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("InitializeHomePage", ex.Message, "Error", webUrl);
+                    clientContext.Dispose();
+                }
+            }
+            return null;
+        }
+
+        public void SetWelcomePage(string webUrl, string serverRelativeUrl)
+        {
+            using (ClientContext clientContext = new ClientContext(webUrl))
+            {
+                try
+                {
+                    clientContext.Web.RootFolder.WelcomePage = serverRelativeUrl;
+                    clientContext.Web.RootFolder.Update();
+                    clientContext.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("SetWelcomePage", ex.Message, "Error", webUrl);
+                    clientContext.Dispose();
+                }
+            }
+        }
+
+        //------------------------[ Testing - Permissions  ]------------------------------------------------------------------------
 
         public static bool RoleAssignment_AddPortalBusinessAdminUserReadOnly(PracticeSite pracInfo)
         {
@@ -207,6 +548,46 @@ namespace SiteUtilityTest
             return true;
         }
 
+        //------------------------[ Testing - Web ]--------------------------------------------------------------------------------
+        //public bool CheckForSiteExistance(string sUrl)
+        //{
+        //    string webURL = SUrl;   // + @"/" + SiteName;
+        //    using (ClientContext clientContext = new ClientContext(webURL))
+        //    {
+        //        try
+        //        {
+        //            clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+        //            var web = clientContext.Web;
+        //            clientContext.Load(web, w => w.ServerRelativeUrl, w => w.Webs);
+        //            clientContext.ExecuteQuery();
+
+        //            var subWeb = web.Webs.Where(w => w.ServerRelativeUrl.Contains(SiteName)).SingleOrDefault();
+        //            if (subWeb != null)
+        //                return true;
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            clientContext.Dispose();
+        //            SpLog.CreateLog("CheckForSiteExistance", ex.Message, "Error", sUrl);
+        //            // ignored
+        //        }
+        //    }
+        //    return false;
+        //}
+
+        //public void RetrieveWeb()
+        //{
+        //    string webURL = SUrl + @"/" + SiteName;
+        //    using (ClientContext clientContext = new ClientContext(webURL))
+        //    {
+        //        clientContext.Credentials = new NetworkCredential(SpCredential.UserName, SpCredential.Password, SpCredential.Domain);
+        //        var web = clientContext.Web;
+        //        clientContext.Load(web);
+        //        clientContext.ExecuteQuery();
+        //        WUrl = web.ServerRelativeUrl;
+        //        Web = web;
+        //    }
+        //}
 
         //------------------------[ Testing all programs below or pulling code to use for above ]----------------------------------
         public static bool GetSpGroups(ProgramManagerSite pmInfo, PracticeSite pracInfo)
@@ -363,6 +744,7 @@ namespace SiteUtilityTest
                             g => g.Id),
                         web => web.RoleAssignments.Include(
                             assignment => assignment.PrincipalId,
+                            assignment => assignment.Member,
                             assignment => assignment.RoleDefinitionBindings.Include(
                                 defBindings => defBindings.Name)),
                         web => web.RoleDefinitions.Include(
@@ -381,12 +763,12 @@ namespace SiteUtilityTest
                     {
                         if (roleAssignment.PrincipalId == group.Id)
                         {
-                            SiteLogUtility.Log_Entry($"PrincipalId: {roleAssignment.PrincipalId}  - GroupId: {group.Id}");
+                            SiteLogUtility.Log_Entry($"{roleAssignment.Member} - PrincipalId: {roleAssignment.PrincipalId}  - GroupId: {group.Id}", true);
 
                             // If we want to Remove selected Permission
                             //roleAssignment.RoleDefinitionBindings.Remove(readDef);
                         }
-                        SiteLogUtility.Log_Entry($"PrincipalId: {roleAssignment.PrincipalId} - RoleDefBindings Cnt: {roleAssignment.RoleDefinitionBindings.Count}");
+                        SiteLogUtility.Log_Entry($"{roleAssignment.Member} - PrincipalId: {roleAssignment.PrincipalId} - RoleDefBindings Cnt: {roleAssignment.RoleDefinitionBindings.Count}", true);
                         clientContext.ExecuteQuery();
                     }
 
@@ -516,7 +898,63 @@ namespace SiteUtilityTest
             return true;
         }
 
-        
+        private static List<Practice> GetAllPracticeExistingSites(ClientContext clientContext, List<Practice> practices, PracticeType practiceType)
+        {
+            clientContext.Load(clientContext.Web);
+            clientContext.Load(clientContext.Web.Webs);
+            clientContext.ExecuteQuery();
+
+            foreach (Web web in clientContext.Web.Webs)
+            {
+                if (Char.IsDigit(web.Url.Last()))
+                {
+                    using (ClientContext clientContext0 = new ClientContext(web.Url))
+                    {
+                        clientContext0.Load(clientContext0.Web);
+                        clientContext0.Load(clientContext0.Web.Webs);
+                        clientContext0.ExecuteQuery();
+
+                        if (clientContext0.Web.Url.Contains("/ICKCCGroup") || clientContext0.Web.Url.Contains("/iwn"))
+                        {
+                            string group = clientContext0.Web.Url.Substring(clientContext0.Web.Url.Length - 2);
+
+                            if (group.CompareTo("12") < 0)
+                            {
+                                foreach (Web web0 in clientContext0.Web.Webs)
+                                {
+                                    Practice practice = new Practice();
+                                    practice.ExistingSiteUrl = web0.Url;
+                                    practice.Type = practiceType;
+                                    practices.Add(practice);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return practices;
+        }
+
+        private string MapExistingSite(string TIN)
+        {
+            Practice practice = practicesIWH.Where(p => p.ExistingSiteUrl.Contains(TIN)).FirstOrDefault();
+            if (practice == null)
+                practice = practicesCKCC.Where(p => p.ExistingSiteUrl.Contains(TIN)).FirstOrDefault();
+
+            if (practice == null)
+            {
+                Console.WriteLine(TIN);
+                return "";
+            }
+            else
+                return practice.ExistingSiteUrl;
+        }
+        private string Reverse(string s)
+        {
+            char[] charArray = s.ToCharArray();
+            Array.Reverse(charArray);
+            return new string(charArray);
+        }
 
         ///// <summary>
         ///// Set Group SiteManager - Practice Manager Site Permission Level ...

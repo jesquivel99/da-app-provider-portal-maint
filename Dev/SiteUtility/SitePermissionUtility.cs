@@ -94,6 +94,90 @@ namespace SiteUtility
             return true;
         }
 
+        public static bool RoleAssignment_AddPracReadOnly(PracticeSite pracInfo)
+        {
+            string pTin = pracInfo.PracticeTIN;
+
+            //string path = siteUrl + pracInfo.SiteMgrRegionRef + "/" + pracInfo.PracticeTIN;
+            string path = pracInfo.URL;
+
+            try
+            {
+                using (ClientContext ctx = new ClientContext(path))
+                {
+                    ctx.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web w = ctx.Web;
+                    ctx.Load(w);
+                    ctx.ExecuteQuery();
+
+                    //Get by name > RoleDefinition...
+                    RoleDefinition roleReadOnly = w.RoleDefinitions.GetByName("Read");
+
+                    //Get by name > Group...
+                    Group oGroup = w.SiteGroups.GetByName("Prac_" + pTin + "_ReadOnly");
+
+                    RoleDefinitionBindingCollection collRoleDefinitionBinding = new RoleDefinitionBindingCollection(ctx);
+                    collRoleDefinitionBinding.Add(roleReadOnly);
+
+                    // Add Group and RoleDefinitionBinding to RoleAssignments...
+                    w.RoleAssignments.Add(oGroup, collRoleDefinitionBinding);
+
+                    ctx.Load(oGroup, group => group.Title);
+                    ctx.Load(roleReadOnly, role => role.Name);
+                    ctx.ExecuteQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("RoleAssignment_AddPracReadOnly", ex.Message, "Error", "");
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool RoleAssignment_AddPracUser(PracticeSite pracInfo)
+        {
+            string pTin = pracInfo.PracticeTIN;
+
+            //string path = siteUrl + pracInfo.SiteMgrRegionRef + "/" + pracInfo.PracticeTIN;
+            string path = pracInfo.URL;
+
+            try
+            {
+                using (ClientContext ctx = new ClientContext(path))
+                {
+                    ctx.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web w = ctx.Web;
+                    ctx.Load(w);
+                    ctx.ExecuteQuery();
+
+                    //Get by name > RoleDefinition...
+                    RoleDefinition roleReadOnly = w.RoleDefinitions.GetByName("Practice Site User Permission Level");
+
+                    //Get by name > Group...
+                    Group oGroup = w.SiteGroups.GetByName("Prac_" + pTin + "_User");
+
+                    RoleDefinitionBindingCollection collRoleDefinitionBinding = new RoleDefinitionBindingCollection(ctx);
+                    collRoleDefinitionBinding.Add(roleReadOnly);
+
+                    // Add Group and RoleDefinitionBinding to RoleAssignments...
+                    w.RoleAssignments.Add(oGroup, collRoleDefinitionBinding);
+
+                    ctx.Load(oGroup, group => group.Title);
+                    ctx.Load(roleReadOnly, role => role.Name);
+                    ctx.ExecuteQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("RoleAssignment_AddPracUser", ex.Message, "Error", "");
+                return false;
+            }
+
+            return true;
+        }
+
         public static bool GetWebGroups(PracticeSite pracInfo)
         {
             var path = pracInfo.URL;
