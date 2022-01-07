@@ -125,6 +125,8 @@ namespace SiteUtility
                     ctx.Load(oGroup, group => group.Title);
                     ctx.Load(roleReadOnly, role => role.Name);
                     ctx.ExecuteQuery();
+
+                    SiteLogUtility.Log_Entry($"Grant Permissions - Added:  Prac_{pTin}_ReadOnly");
                 }
             }
             catch (Exception ex)
@@ -167,6 +169,8 @@ namespace SiteUtility
                     ctx.Load(oGroup, group => group.Title);
                     ctx.Load(roleReadOnly, role => role.Name);
                     ctx.ExecuteQuery();
+
+                    SiteLogUtility.Log_Entry($"Grant Permissions - Added:  Prac_{pTin}_User");
                 }
             }
             catch (Exception ex)

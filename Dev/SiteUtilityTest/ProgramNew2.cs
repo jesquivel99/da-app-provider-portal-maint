@@ -63,17 +63,20 @@ namespace SiteUtilityTest
                             if (psite.URL.Contains("PM01"))
                             {
                                 //SiteLogUtility.Log_Entry("\nPermissions - Test\n\n", true);
-                                //SiteFilesUtility objSiteFiles = new SiteFilesUtility();
+                                SiteFilesUtility objSiteFiles = new SiteFilesUtility();
                                 //InitializeHomePage(psite.URL, "Home_Backup", "Home_Backup");
                                 //getHomePage(psite); 
                                 SiteLogUtility.Log_Entry("--\n");
                                 SiteLogUtility.Log_Entry($"--Existing Site: {psite.ExistingSiteUrl}");
                                 SiteLogUtility.Log_Entry($"--  Portal Site: {psite.URL}");
                                 SiteLogUtility.Log_Entry($"--        Audit: {psite.URL}/_layouts/user.aspx");
-                                //SiteFilesUtility.CreateRedirectPage(psite.ExistingSiteUrl);
+                                objSiteFiles.DocumentUpload(psite.URL, @"C:\Temp\Home_New.aspx", "Pages");
+
+                                // Add Prac permissions to Practice...
                                 SitePermissionUtility.RoleAssignment_AddPracUser(psite);
                                 SitePermissionUtility.RoleAssignment_AddPracReadOnly(psite);
 
+                                // Audit Prac permissions...
                                 SitePermissionUtility.GetWebGroups(psite);
                                 //GetPermission(psite.PracUserReadOnlyPermission, psite.PracUserReadOnlyPermissionDesc, psite.URL);
                                 //GetPermission(psite.PracUserPermission, psite.PracUserPermissionDesc, psite.URL);

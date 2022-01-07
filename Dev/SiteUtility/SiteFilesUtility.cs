@@ -15,6 +15,8 @@ namespace SiteUtility
         {
             using (ClientContext clientContext = new ClientContext(siteURL))
             {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
                 try
                 {
                     string fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
@@ -28,6 +30,8 @@ namespace SiteUtility
                     List myLibrary = myWeb.Lists.GetByTitle(LibraryName);
                     myLibrary.RootFolder.Files.Add(fcInfo);
                     clientContext.ExecuteQuery();
+
+                    SiteLogUtility.Log_Entry($"--      Pages Audit: {siteURL}/{LibraryName}/{fileName}", true);
                 }
                 catch (Exception ex)
                 {
@@ -93,22 +97,34 @@ namespace SiteUtility
             }
         }
 
-        public static void CreateRedirectPage(string redirUrl)
+        public void CreateRedirectPage(string redirUrl)
         {
-            string path = @"c:\temp\Home_New.aspx";
+            string path = @"c:\temp\Home.aspx";
             List<string> lines = new List<string>();
 
-            lines.Add("<html>");
-            lines.Add("<body>");
-            lines.Add("<script>");
-            lines.Add(@"(function () {");
-            lines.Add($"window.location.replace('{redirUrl}');");
-            lines.Add(@"})();");
-            lines.Add("</script>");
-            lines.Add("</body>");
-            lines.Add("</html>");
+            try
+            {
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.Delete(path);
+                }
 
-            System.IO.File.AppendAllLines(path, lines);
+                lines.Add("<html>");
+                lines.Add("<body>");
+                lines.Add("<script>");
+                lines.Add(@"(function () {");
+                lines.Add($"window.location.replace('{redirUrl}');");
+                lines.Add(@"})();");
+                lines.Add("</script>");
+                lines.Add("</body>");
+                lines.Add("</html>");
+
+                System.IO.File.AppendAllLines(path, lines);
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("CreateRedirectPage", ex.Message, "Error", "");
+            }
         }
     }
 }
