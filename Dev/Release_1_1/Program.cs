@@ -57,7 +57,8 @@ namespace Release_1_1
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
-                            if (psite.URL.Contains("PM01"))
+                            //if (psite.URL.Contains("PM01"))
+                            //if (psite.URL.Contains("94711764549"))
                             {
                                 //SiteLogUtility.Log_Entry("\nPermissionsPracUserAndReadOnly\n\n", true);
 

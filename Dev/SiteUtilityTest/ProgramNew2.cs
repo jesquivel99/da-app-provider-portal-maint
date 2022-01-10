@@ -262,6 +262,79 @@ namespace SiteUtilityTest
             }
         }
 
+        //private static List<string> GetListPageFiles(PracticeSite practiceSite)
+        //{
+        //    List<string> pageFiles = new List<string>();
+
+        //    using (ClientContext clientContext = new ClientContext(practiceSite.ExistingSiteUrl))
+        //    {
+        //        clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+        //        try
+        //        {
+        //            List list = clientContext.Web.Lists.GetByTitle("Pages");
+        //            FolderCollection folderCollection = list.RootFolder.Folders;
+        //            clientContext.Load(folderCollection);
+        //            clientContext.ExecuteQuery();
+
+        //            foreach (var item in folderCollection)
+        //            {
+        //                SiteLogUtility.Log_Entry("files");
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            SiteLogUtility.CreateLogEntry("GetListPageFiles", ex.Message, "Error", "");
+        //        }
+        //        return pageFiles;
+        //    }
+        //}
+
+        //public static void CheckIfPageExists(string webURL, string pageName)
+        //{
+        //    var pageRelativeUrl = "/Pages/Home.aspx";
+
+        //    using (ClientContext clientContext = new ClientContext(webURL))
+        //    {
+        //        clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+        //        try
+        //        {
+
+        //            Web web = clientContext.Web;
+        //            clientContext.Load(web);
+        //            clientContext.ExecuteQuery();
+
+        //            List listPages = web.Lists.GetByTitle("Pages");
+        //            CamlQuery camlQuery = new CamlQuery();
+        //            camlQuery.ViewXml = "<View><Query><Where><Eq><FieldRef Name='FileLeafRef' /><Value Type='Text'>" + pageName + "</Value></Eq></Where></Query></View>";
+
+        //            camlQuery.FolderServerRelativeUrl
+        //            ListItemCollection listItems = listPages.GetItems(camlQuery);
+        //            clientContext.Load(listItems);
+        //            clientContext.ExecuteQuery();
+
+        //            foreach (ListItem file in listItems)
+        //            {
+        //                SiteLogUtility.Log_Entry(($"File Exists: {file.File.Name}"));
+        //            }
+
+        //            //if (file.Exists)
+        //            //{
+        //            //    Console.WriteLine($"File Exists: {file.Name}");
+        //            //}
+
+        //            //file.CheckIn("Delete webpart", CheckinType.MajorCheckIn);
+        //            //file.Publish("Delete webpart");
+        //            //clientContext.Load(file);
+        //            //clientContext.ExecuteQuery();
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            SiteLogUtility.CreateLogEntry("CheckIfPageExists", ex.Message, "Error", "");
+        //        }
+        //    }
+        //}
+
         //public void PublishPage(PracticeSite practiceSite)
         //{
         //    using (ClientContext clientContext = new ClientContext(practiceSite.URL))

@@ -27,6 +27,7 @@ namespace Release_1_2
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
             SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
 
+
             // Get all existing IWN and iCKCC Practice Data...
             SiteLogUtility.Log_Entry("\n\n=============[ Get all Existing Practice Data (IWN-CKCC) ]=============", true);
             using (ClientContext clientContextIWH = new ClientContext(srcUrlIWH))
@@ -39,6 +40,7 @@ namespace Release_1_2
                 clientContextCKCC.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
                 practicesCKCC = GetAllPracticeExistingSites(clientContextCKCC, practicesCKCC, PracticeType.iCKCC);
             }
+
 
             // Get Portal Data...
             using (ClientContext clientContext = new ClientContext(siteUrl))
@@ -57,28 +59,30 @@ namespace Release_1_2
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
-                            if (psite.URL.Contains("90395520569") && psite.ExistingSiteUrl.Length > 0)
+                            //if (psite.URL.Contains("90395520569") && psite.ExistingSiteUrl.Length > 0)
+                            if (psite.ExistingSiteUrl.Length > 0)
                             {
                                 //SiteLogUtility.Log_Entry("\nHome Page Redirect - Test\n\n", true);
 
                                 SiteFilesUtility objSiteFiles = new SiteFilesUtility();
                                 SiteLogUtility.Log_Entry("--\n");
-                                SiteLogUtility.Log_Entry($"--    Existing Site: {psite.ExistingSiteUrl}");
-                                SiteLogUtility.Log_Entry($"--      Portal Site: {psite.URL}");
-                                SiteLogUtility.Log_Entry($"--Permissions Audit: {psite.URL}/_layouts/user.aspx");
-                                SiteLogUtility.Log_Entry($"--      Pages Audit: {psite.URL}/Pages");
+                                SiteLogUtility.Log_Entry($"--       Existing Site: {psite.ExistingSiteUrl}");
+                                SiteLogUtility.Log_Entry($"--Existing Pages Audit: {psite.ExistingSiteUrl}/Pages");
+                                SiteLogUtility.Log_Entry($"--         Portal Site: {psite.URL}");
+                                SiteLogUtility.Log_Entry($"--   Permissions Audit: {psite.URL}/_layouts/user.aspx");
+                                SiteLogUtility.Log_Entry($"--         Pages Audit: {psite.URL}/Pages");
 
                                 //Maintenance...
                                 //SitePublishUtility.DownloadPage(psite, "Home");
                                 //SitePublishUtility.CheckinHomePage(psite);
 
+                                //Deployment...
                                 SitePublishUtility.DownloadBackupHomePage(psite);
                                 objSiteFiles.DocumentUpload(psite.ExistingSiteUrl, @"C:\Temp\Home_Backup.aspx", "Pages");
                                 SitePublishUtility.CheckinPage(psite, "Home_Backup");
                                 objSiteFiles.CreateRedirectPage(psite.URL);
                                 objSiteFiles.DocumentUpload(psite.ExistingSiteUrl, @"C:\Temp\Home.aspx", "Pages");
                                 SitePublishUtility.CheckinPage(psite, "Home");
-
                             }
                         }
                     }
@@ -131,5 +135,6 @@ namespace Release_1_2
             }
             return practices;
         }
+
     }
 }
