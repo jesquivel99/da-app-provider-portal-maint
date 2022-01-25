@@ -17,6 +17,7 @@ namespace SiteUtility
         public string SiteID;
         public string NewSiteUrl;
         public string ExistingSiteUrl;
+        public string ProgramParticipation;
         public PracticeType Type;
         public Practice()
         {
@@ -98,7 +99,7 @@ namespace SiteUtility
             }
         }
 
-        public static List<ProgramManagerSite> GetAllPracticeDetails(ClientContext clientContext, List<Practice> pracIWH=null, List<Practice> pracCKCC = null)
+        public static List<ProgramManagerSite> GetAllPracticeDetails(ClientContext clientContext, List<Practice> pracIWH=null, List<Practice> pracCKCC = null, List<PMData> pmData = null)
         {
             clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
 
@@ -137,30 +138,27 @@ namespace SiteUtility
                             foreach (Web web0 in clientContext0.Web.Webs)
                             {
                                 string siteId = GetPracSiteName(web0.Url);
+                                string siteId0 = siteId;
                                 siteId = DecryptPTIN(siteId);
                                 PracticeSite practiceSite = new PracticeSite();
                                 practiceSite.Name = web0.Title;
                                 practiceSite.URL = web0.Url;
                                 practiceSite.PracticeTIN = siteId;
+                                practiceSite.SiteId = siteId0;
                                 practiceSite.PracUserPermission = $"Prac_{siteId}_User";
                                 practiceSite.PracUserReadOnlyPermission = $"Prac_{siteId}_ReadOnly";
-                                practiceSite.ExistingSiteUrl = MapExistingSite(practiceSite.PracticeTIN, pracIWH, pracCKCC);
+                                //practiceSite.ExistingSiteUrl = MapExistingSite(practiceSite.PracticeTIN, pracIWH, pracCKCC);
+                                //practiceSite.ProgramParticipation = MapProgramParticipation(siteId0, pmData);
+                                
+                                PMData pMData = MapPMData(siteId0, pmData);
+                                practiceSite.ProgramParticipation = pMData == null ? "" : pMData.ProgramParticipation;
+                                practiceSite.IsIWH = pMData == null ? "" : pMData.IsIWH;
+                                practiceSite.IsCKCC = pMData == null ? "" : pMData.IsCKCC;
+                                practiceSite.IsKC365 = pMData == null ? "" : pMData.IsKC365;
+
+                                practiceSite.siteType = GetSiteType(practiceSite.IsIWH, practiceSite.IsCKCC, practiceSite.IsKC365);
 
                                 pmSite.PracticeSiteCollection.Add(practiceSite);
-
-                                /*
-                                Practice practice = new Practice();
-
-                                practice.PMGroup = group;
-                                practice.Name = web0.Title;
-                                practice.NewSiteUrl = web0.Url;
-                                practice.Type = practiceType;
-                                practice.SiteID = practice.NewSiteUrl.Substring(practice.NewSiteUrl.Length - 11); //"9" + Reverse(practice.TIN) + "9";
-                                practice.TIN = Reverse(practice.SiteID.Substring(1, practice.SiteID.Length - 2));
-                                practice.ExistingSiteUrl = MapExistingSite(practice.TIN);
-                          
-                                practices.Add(practice);
-                                 */
 
                                 SiteLogUtility.Log_Entry(practiceSite.Name);
                                 SiteLogUtility.Log_Entry(practiceSite.URL);
@@ -184,6 +182,32 @@ namespace SiteUtility
             
             SiteLogUtility.Log_Entry("1. GetAllPracticeDetails - Complete", true);
             return pmSites;
+        }
+
+        private static string GetSiteType(string isIWH, string isCKCC, string isKC365)
+        {
+            string siteType = "";
+            try
+            {
+                if (isIWH == "true")
+                {
+                    siteType = "iwh";
+                }
+                if (isCKCC == "true")
+                {
+                    siteType = siteType + "ckcc";
+                }
+                if (isKC365 == "true")
+                {
+                    siteType = siteType + "kc365";
+                }
+                return siteType;
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("GetSiteType", ex.Message, "Error", "");
+                return "";
+            }
         }
 
 
@@ -368,6 +392,61 @@ namespace SiteUtility
             }
             else
                 return practice.ExistingSiteUrl;
+        }
+
+        private static string MapProgramParticipation(string TIN, List<PMData> pmd=null)
+        {
+            try
+            {
+                PMData pmData = pmd.Where(p => p.SiteId.Contains(TIN)).FirstOrDefault();
+                if (pmData == null)
+                {
+                    SiteLogUtility.Log_Entry("Program Participation Does Not Exist: " + TIN, true);
+                    return "";
+                }
+                else
+                {
+                    SiteLogUtility.Log_Entry(TIN + " - " + pmData.ProgramParticipation, true);
+                    return pmData.ProgramParticipation;
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("MapProgramParticipation", ex.Message, "Error", "");
+                SiteLogUtility.Log_Entry("Error - Program Participation Does Not Exist: " + TIN, true);
+                return "";
+            }
+        }
+
+        private static PMData MapPMData(string TIN, List<PMData> pmd = null)
+        {
+            try
+            {
+                //var pmDataList = pmd.Where(p => p.SiteId.Contains(TIN)).FirstOrDefault().ToString();
+                //if(pmDataList.Length.Equals(0))
+                //{
+
+                //}
+                PMData pmDataReturn = pmd
+                    .Where(p => p != null)
+                    .Where(p => p.SiteId.Contains(TIN)).FirstOrDefault();
+                if (pmDataReturn == null)
+                {
+                    SiteLogUtility.Log_Entry("Program Participation Does Not Exist: " + TIN, true);
+                    return null;
+                }
+                else
+                {
+                    SiteLogUtility.Log_Entry(TIN + " - " + pmDataReturn.ProgramParticipation, true);
+                    return pmDataReturn;
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("MapProgramParticipation", ex.Message, "Error", "");
+                SiteLogUtility.Log_Entry("Error - Program Participation Does Not Exist: " + TIN, true);
+                return null;
+            }
         }
 
         /// <summary>

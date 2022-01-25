@@ -11,8 +11,35 @@ using System.Xml.Linq;
 
 namespace SiteUtility
 {
+    
+    public class PMData
+    {
+        public int GroupID { get; set; }
+        public string ProgramManager { get; set; }
+        public string SiteId { get; set; }
+        public string PracticeName { get; set; }
+        public string PracticeTIN { get; set; }
+        public string PracticeNPI { get; set; }
+        public string CKCCArea { get; set; }
+        public int IWNRegion { get; set; }
+        public int KC365 { get; set; }
+        public string EncryptedPracticeTIN { get; set; }
+        public string ProgramParticipation { get; set; }
+        public string IsIWH { get; set; }
+        public string IsCKCC { get; set; }
+        public string IsKC365 { get; set; }
+        public string siteType { get; set; }
+        public PMData()
+        {
+
+        }
+    }
+
     public class SitePMData
     {
+        public string programParticipationIWH = "InterWell Health";
+        public string programParticipationCKCC = "KCE Participation";
+        public string programParticipationKC365 = "KC365";
         public static void initialConnect()
         {
             SitePMData objSitePMData = new SitePMData();

@@ -17,76 +17,42 @@ namespace Release_1_3
         static public List<Practice> practicesCKCC = new List<Practice>();
         static void Main(string[] args)
         {
+            string releaseName = "OptimalStartNavigation";
             string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
             string srcUrlIWH = ConfigurationManager.AppSettings["SP_IWHUrl"];
             string srcUrlCKCC = ConfigurationManager.AppSettings["SP_CKCCUrl"];
             string siteInfoFile = ConfigurationManager.AppSettings["Csv_File"];
-            string releaseName = "HomePageRedirect";
 
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
             SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
 
-
-            // Get all existing IWN and iCKCC Practice Data...
-            SiteLogUtility.Log_Entry("\n\n=============[ Get all Existing Practice Data (IWN-CKCC) ]=============", true);
-            using (ClientContext clientContextIWH = new ClientContext(srcUrlIWH))
-            {
-                clientContextIWH.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                practicesIWH = GetAllPracticeExistingSites(clientContextIWH, practicesIWH, PracticeType.IWH);
-            }
-            using (ClientContext clientContextCKCC = new ClientContext(srcUrlCKCC))
-            {
-                clientContextCKCC.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                practicesCKCC = GetAllPracticeExistingSites(clientContextCKCC, practicesCKCC, PracticeType.iCKCC);
-            }
-
-
-            // Get Portal Data...
             using (ClientContext clientContext = new ClientContext(siteUrl))
             {
                 clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
 
                 try
                 {
-                    //  Get all Portal Practice Data...
                     SiteLogUtility.Log_Entry("\n\n=============[ Get all Portal Practice Data ]=============", true);
                     List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext, practicesIWH, practicesCKCC);
 
-                    //  Maintenance Tasks...
-                    SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks ]=============", true);
+                    SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - Start]=============", true);
                     foreach (ProgramManagerSite pm in practicePMSites)
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
-                            //if (psite.URL.Contains("90395520569") && psite.ExistingSiteUrl.Length > 0)
-                            if (psite.ExistingSiteUrl.Length > 0)
+                            if (psite.URL.Contains("91882751659"))
                             {
-                                //SiteLogUtility.Log_Entry("\nHome Page Redirect - Test\n\n", true);
-
-                                SiteFilesUtility objSiteFiles = new SiteFilesUtility();
-                                SiteLogUtility.Log_Entry("--\n");
-                                SiteLogUtility.Log_Entry($"--       Existing Name: {psite.PracticeName}");
-                                SiteLogUtility.Log_Entry($"--       Existing Site: {psite.ExistingSiteUrl}");
-                                SiteLogUtility.Log_Entry($"--Existing Pages Audit: {psite.ExistingSiteUrl}/Pages");
-                                SiteLogUtility.Log_Entry($"--         Portal Site: {psite.URL}");
-                                SiteLogUtility.Log_Entry($"--   Permissions Audit: {psite.URL}/_layouts/user.aspx");
-                                SiteLogUtility.Log_Entry($"--         Pages Audit: {psite.URL}/Pages");
-
-                                //Maintenance...
-                                //SitePublishUtility.DownloadPage(psite, "Home");
-                                //SitePublishUtility.CheckinHomePage(psite);
-
-                                //Deployment...
-                                //SitePublishUtility.DownloadBackupHomePage(psite);
-                                //objSiteFiles.DocumentUpload(psite.ExistingSiteUrl, @"C:\Temp\Home_Backup.aspx", "Pages");
-                                //SitePublishUtility.CheckinPage(psite, "Home_Backup");
-                                //objSiteFiles.CreateRedirectPage(psite.URL);
-                                //objSiteFiles.DocumentUpload(psite.ExistingSiteUrl, @"C:\Temp\Home.aspx", "Pages");
-                                //SitePublishUtility.CheckinPage(psite, "Home");
+                                SiteLogUtility.LogPracDetail(psite);
+                                SiteLogUtility.Log_Entry("MENU BEFORE...");
+                                SiteNavigateUtility.QuickLaunch_Print(psite.URL);
+                                SiteNavigateUtility.NavigationPracticeMnt(psite.URL, pm.PMURL);
+                                SiteLogUtility.Log_Entry("MENU AFTER...");
+                                SiteNavigateUtility.QuickLaunch_Print(psite.URL);
                             }
                         }
                     }
+                    SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - End]=============", true);
                 }
                 catch (Exception ex)
                 {

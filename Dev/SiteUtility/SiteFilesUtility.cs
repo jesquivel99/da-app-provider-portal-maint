@@ -97,6 +97,135 @@ namespace SiteUtility
             }
         }
 
+        public void uploadProgramPracticeSupportFiles(PracticeSite practiceSite)
+        {
+            string siteType = practiceSite.siteType;
+            
+            if (siteType == "")
+            {
+                return;
+            }
+            string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
+            using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    var web = clientContext.Web;
+                    string rootWebUrl = GetRootSite(practiceSite.URL);
+
+                    string LibraryName = "Program Participation";
+                    string fileName0 = "EducationReviewPro.JPG";
+                    string fileName1 = "KCEckcc.JPG";
+                    string fileName2 = "PracticeReferrals.JPG";
+                    string fileName3 = "optimalstarts.jpg";
+
+                    byte[] f0 = System.IO.File.ReadAllBytes(LayoutsFolder + fileName0);
+                    byte[] f1 = System.IO.File.ReadAllBytes(LayoutsFolder + fileName1);
+                    byte[] f2 = System.IO.File.ReadAllBytes(LayoutsFolder + fileName2);
+                    byte[] f3 = System.IO.File.ReadAllBytes(LayoutsFolder + fileName3);
+
+                    FileCreationInformation fc0 = new FileCreationInformation();
+                    fc0.Url = fileName0;
+                    fc0.Overwrite = true;
+                    fc0.Content = f0;
+
+                    FileCreationInformation fc1 = new FileCreationInformation();
+                    fc1.Url = fileName1;
+                    fc1.Overwrite = true;
+                    fc1.Content = f1;
+
+                    FileCreationInformation fc2 = new FileCreationInformation();
+                    fc2.Url = fileName2;
+                    fc2.Overwrite = true;
+                    fc2.Content = f2;
+
+                    FileCreationInformation fc3 = new FileCreationInformation();
+                    fc3.Url = fileName3;
+                    fc3.Overwrite = true;
+                    fc3.Content = f3;
+                    List myLibrary = web.Lists.GetByTitle(LibraryName);
+
+
+                    if (siteType != null && siteType.Contains("kc365"))
+                    {
+                        Microsoft.SharePoint.Client.File newFile2 = myLibrary.RootFolder.Files.Add(fc2);
+                        clientContext.Load(newFile2);
+                        clientContext.ExecuteQuery();
+
+                        ListItem lItem2 = newFile2.ListItemAllFields;
+                        lItem2.File.CheckOut();
+                        clientContext.ExecuteQuery();
+                        lItem2["Title"] = "Payor Enrollment";
+                        lItem2["ProgramNameText"] = rootWebUrl + "/bi/fhppp/iwn/EnrollmentReferrals/SitePages/ReferralSearch.aspx?qsptine=" + practiceSite.EncryptedPracticeTIN;
+                        lItem2["Thumbnail"] = practiceSite.URL + "/Program%20Participation/" + fileName2;
+                        lItem2.Update();
+                        lItem2.File.CheckIn("Z", CheckinType.OverwriteCheckIn);
+                        clientContext.ExecuteQuery();
+                    }
+
+                    if (siteType != null && siteType.Contains("ckcc"))
+                    {
+                        Microsoft.SharePoint.Client.File newFile1 = myLibrary.RootFolder.Files.Add(fc1);
+                        clientContext.Load(newFile1);
+                        clientContext.ExecuteQuery();
+
+                        ListItem lItem1 = newFile1.ListItemAllFields;
+                        lItem1.File.CheckOut();
+                        clientContext.ExecuteQuery();
+                        lItem1["Title"] = "CKCC/KCE Coming Soon!";
+                        lItem1["ProgramNameText"] = practiceSite.URL + "/Pages/ProgramParticipation.aspx";
+                        lItem1["Thumbnail"] = practiceSite.URL + "/Program%20Participation/" + fileName1;
+                        lItem1.Update();
+                        lItem1.File.CheckIn("Z", CheckinType.OverwriteCheckIn);
+                        clientContext.ExecuteQuery();
+
+
+                        Microsoft.SharePoint.Client.File newFile3 = myLibrary.RootFolder.Files.Add(fc3);
+                        clientContext.Load(newFile3);
+                        clientContext.ExecuteQuery();
+
+                        ListItem lItem3 = newFile3.ListItemAllFields;
+                        lItem3.File.CheckOut();
+                        clientContext.ExecuteQuery();
+                        lItem3["Title"] = "Optimal Starts Coming Soon!";
+                        lItem3["ProgramNameText"] = practiceSite.URL + "/Pages/OptimalStart.aspx";
+                        lItem3["Thumbnail"] = practiceSite.URL + "/Program%20Participation/" + fileName3;
+                        lItem3.Update();
+                        lItem3.File.CheckIn("Checkin - Create OptimalStart item", CheckinType.OverwriteCheckIn);
+                        clientContext.ExecuteQuery();
+                    }
+
+                    if (siteType != null && siteType.Contains("iwh"))
+                    {
+                        Microsoft.SharePoint.Client.File newFile0 = myLibrary.RootFolder.Files.Add(fc0);
+                        clientContext.Load(newFile0);
+                        clientContext.ExecuteQuery();
+
+                        ListItem lItem0 = newFile0.ListItemAllFields;
+                        lItem0.File.CheckOut();
+                        clientContext.ExecuteQuery();
+                        lItem0["Title"] = "Payor Program Education Resources Coming Soon!";
+                        lItem0["ProgramNameText"] = practiceSite.URL + "/Pages/ProgramParticipation.aspx";
+                        lItem0["Thumbnail"] = practiceSite.URL + "/Program%20Participation/" + fileName0;
+                        lItem0.Update();
+                        lItem0.File.CheckIn("Z", CheckinType.OverwriteCheckIn);
+                        clientContext.ExecuteQuery();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("uploadProgramPracticeSupportFiles", ex.Message, "Error", practiceSite.URL);
+                }
+            }
+        }
+
+        public string GetRootSite(string url)
+        {
+            Uri uri = new Uri(url.TrimEnd(new[] { '/' }));
+            return $"{uri.Scheme}://{ uri.DnsSafeHost}";
+        }
+
         public void CreateRedirectPage(string redirUrl)
         {
             string path = @"c:\temp\Home.aspx";

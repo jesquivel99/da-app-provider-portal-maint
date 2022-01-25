@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Release_1_1", "Release_1_1\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Release_1_2", "Release_1_2\Release_1_2.csproj", "{DDA47872-3FF5-4002-A5D8-8E0919BA6864}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Release_1_3", "Release_1_3\Release_1_3.csproj", "{B06DAF49-163C-477A-AFCB-541B7E0DC04C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Release_1_4", "Release_1_4\Release_1_4.csproj", "{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{DDA47872-3FF5-4002-A5D8-8E0919BA6864}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDA47872-3FF5-4002-A5D8-8E0919BA6864}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDA47872-3FF5-4002-A5D8-8E0919BA6864}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B06DAF49-163C-477A-AFCB-541B7E0DC04C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B06DAF49-163C-477A-AFCB-541B7E0DC04C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B06DAF49-163C-477A-AFCB-541B7E0DC04C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B06DAF49-163C-477A-AFCB-541B7E0DC04C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,7 +53,7 @@ Global
 		SolutionGuid = {31813A0A-12DA-4840-B68C-846C9614C493}
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 5
+		SccNumberOfProjects = 7
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = http://or-tfs-svr-01:8080/tfs/defaultcollection
 		SccLocalPath0 = .
@@ -57,5 +69,11 @@ Global
 		SccProjectUniqueName4 = Release_1_2\\Release_1_2.csproj
 		SccProjectName4 = Release_1_2
 		SccLocalPath4 = Release_1_2
+		SccProjectUniqueName5 = Release_1_3\\Release_1_3.csproj
+		SccProjectName5 = Release_1_3
+		SccLocalPath5 = Release_1_3
+		SccProjectUniqueName6 = Release_1_4\\Release_1_4.csproj
+		SccProjectName6 = Release_1_4
+		SccLocalPath6 = Release_1_4
 	EndGlobalSection
 EndGlobal

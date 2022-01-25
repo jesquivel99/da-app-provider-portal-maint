@@ -202,6 +202,53 @@ namespace SiteUtility
                 }
             }
 
+            private void Mnt_AddChildNodeToLeftNav(string webUrl, string navName)
+            {
+                try
+                {
+                    using (ClientContext clientContext = new ClientContext(webUrl))
+                    {
+                        clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                        {
+                            Web w = clientContext.Web;
+                            clientContext.Load(w);
+                            NavigationNodeCollection qlNavNodeColl = w.Navigation.QuickLaunch;
+                            clientContext.Load(qlNavNodeColl);
+                            clientContext.ExecuteQuery();
+
+                            NavigationNode parentNode = qlNavNodeColl.Where(n => n.Url.ToString().Contains(navName)).FirstOrDefault();
+
+                            if (parentNode != null)
+                            {
+                                NavigationNodeCreationInformation navCarePlansCreateInfo = new NavigationNodeCreationInformation();
+                                navCarePlansCreateInfo.Title = "Care Plans";
+                                navCarePlansCreateInfo.Url = webUrl + @"/Pages/CarePlans.aspx";
+                                navCarePlansCreateInfo.AsLastNode = true;
+                                parentNode.Children.Add(navCarePlansCreateInfo);
+
+                                NavigationNodeCreationInformation navHospitalCreateInfo = new NavigationNodeCreationInformation();
+                                navHospitalCreateInfo.Title = "Hospitalization Alerts Coming Soon";
+                                navHospitalCreateInfo.Url = webUrl + @"/Pages/HospitalAlerts.aspx";
+                                navHospitalCreateInfo.AsLastNode = true;
+                                parentNode.Children.Add(navHospitalCreateInfo);
+
+                                NavigationNodeCreationInformation navMedicationCreateInfo = new NavigationNodeCreationInformation();
+                                navMedicationCreateInfo.Title = "Medication Alert Coming Soon";
+                                navMedicationCreateInfo.Url = webUrl + @"/Pages/MedicationAlerts.aspx";
+                                navMedicationCreateInfo.AsLastNode = true;
+                                parentNode.Children.Add(navMedicationCreateInfo);
+
+                                clientContext.ExecuteQuery();
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("AddChildNodeToLeftNav", ex.Message, "Error", "");
+                }
+            }
+
         }
 
         public class TopNavigation_InitialAdjustmentPublishing
@@ -531,6 +578,54 @@ namespace SiteUtility
                         clientContext.ExecuteQuery();
                     }
                     catch(Exception ex)
+                    {
+                        SiteLogUtility.CreateLogEntry("QuickLaunch_InitialAdjustment", ex.Message, "Error", "");
+                        clientContext.Dispose();
+                    }
+                }
+            }
+            return true;
+        }
+
+        public static bool QuickLaunch_Print(string pracUrl)
+        {
+            using (ClientContext clientContext = new ClientContext(pracUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                {
+                    try
+                    {
+                        Web w = clientContext.Web;
+                        clientContext.Load(w);
+                        clientContext.ExecuteQuery();
+
+                        NavigationNodeCollection qlNodes = clientContext.Web.Navigation.QuickLaunch;
+                        clientContext.Load(qlNodes);
+                        clientContext.ExecuteQuery();
+
+                        if (qlNodes.Count > 1)
+                        {
+                            foreach (NavigationNode node in qlNodes)
+                            {
+                                SiteLogUtility.Log_Entry($"{node.Title} - {node.Url}", true);
+                            }
+                            
+                            //int icount = qlNodes.Count - 1;
+                            //for (int i = 0; icount >= i; icount--)
+                            //{
+                            //    NavigationNode nav;
+                            //    nav = w.Navigation.QuickLaunch[i];
+                            //    if (nav != null)
+                            //    {
+                            //        //clientContext.ExecuteQuery();
+                            //        SiteLogUtility.Log_Entry($"{nav.Title} - {nav.Url}", true);
+                            //    }
+                            //}
+                        }
+                        w.Update();
+                        clientContext.ExecuteQuery();
+                    }
+                    catch (Exception ex)
                     {
                         SiteLogUtility.CreateLogEntry("QuickLaunch_InitialAdjustment", ex.Message, "Error", "");
                         clientContext.Dispose();

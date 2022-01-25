@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.IO;
 using Microsoft.SharePoint.Client;
+using Microsoft.SharePoint.Client.Publishing;
 
 namespace SiteUtility
 {
@@ -167,6 +168,114 @@ namespace SiteUtility
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("CheckinPage", ex.Message, "Error", "");
+            }
+        }
+
+        public PublishingPage InitializePage(string webUrl, string pageName, string pageTitle)
+        {
+            String filename = pageName + ".aspx";
+            String title = pageTitle;
+            String list = "Pages";
+            using (ClientContext clientContext = new ClientContext(webUrl))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web web = clientContext.Web;
+                    clientContext.Load(clientContext.Site.RootWeb, w => w.ServerRelativeUrl);
+                    clientContext.ExecuteQuery();
+
+                    // Get Page Layout
+                    Microsoft.SharePoint.Client.File pageFromDocLayout = clientContext.Site.RootWeb.GetFileByServerRelativeUrl(String.Format("{0}/_catalogs/masterpage/BlankWebPartPage.aspx", clientContext.Site.RootWeb.ServerRelativeUrl.TrimEnd('/')));
+                    Microsoft.SharePoint.Client.ListItem pageLayoutItem = pageFromDocLayout.ListItemAllFields;
+                    clientContext.Load(pageLayoutItem);
+                    clientContext.ExecuteQuery();
+
+                    // Create Publishing Page
+                    PublishingWeb publishingWeb = PublishingWeb.GetPublishingWeb(clientContext, web);
+                    PublishingPage page = publishingWeb.AddPublishingPage(new PublishingPageInformation
+                    {
+                        Name = filename,
+                        PageLayoutListItem = pageLayoutItem
+                    });
+                    clientContext.ExecuteQuery();
+
+                    // Set Page Title and Publish Page
+                    Microsoft.SharePoint.Client.ListItem pageItem = page.ListItem;
+                    pageItem["Title"] = title;
+                    pageItem.Update();
+                    pageItem.File.CheckIn(String.Empty, CheckinType.MajorCheckIn);
+                    clientContext.ExecuteQuery();
+                    return page;
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("InitializeHomePage", ex.Message, "Error", webUrl);
+                    clientContext.Dispose();
+                }
+            }
+            return null;
+        }
+
+        public void SetWelcomePage(string webUrl, string serverRelativeUrl)
+        {
+            using (ClientContext clientContext = new ClientContext(webUrl))
+            {
+                try
+                {
+                    clientContext.Web.RootFolder.WelcomePage = serverRelativeUrl;
+                    clientContext.Web.RootFolder.Update();
+                    clientContext.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("SetWelcomePage", ex.Message, "Error", webUrl);
+                    clientContext.Dispose();
+                }
+            }
+        }
+
+        public void DeleteWebPart(string webURL, string pageName)
+        {
+            //var pageRelativeUrl = "/Pages/Home.aspx";
+            var pageRelativeUrl = "/Pages/" + pageName + ".aspx";
+            using (ClientContext clientContext = new ClientContext(webURL))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web web = clientContext.Web;
+                    clientContext.Load(web);
+                    clientContext.ExecuteQuery();
+
+                    var file = clientContext.Web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + pageRelativeUrl);
+                    file.CheckOut();
+                    clientContext.Load(file);
+                    clientContext.ExecuteQuery();
+
+                    var wpManager = file.GetLimitedWebPartManager(Microsoft.SharePoint.Client.WebParts.PersonalizationScope.Shared);
+                    var webParts = wpManager.WebParts;
+                    clientContext.Load(webParts);
+                    clientContext.ExecuteQuery();
+
+                    if (wpManager.WebParts.Count > 0)
+                    {
+                        foreach (var oWebPart in wpManager.WebParts)
+                        {
+                            oWebPart.DeleteWebPart();
+                            clientContext.ExecuteQuery();
+                        }
+                    }
+                    file.CheckIn("Delete webpart", CheckinType.MajorCheckIn);
+                    file.Publish("Delete webpart");
+                    clientContext.Load(file);
+                    clientContext.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("DeleteWebPart", ex.Message, "Error", webURL);
+                    clientContext.Dispose();
+                }
             }
         }
         public static void PublishFunction1()

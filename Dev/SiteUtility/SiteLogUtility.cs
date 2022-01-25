@@ -61,6 +61,20 @@ namespace SiteUtility
             Log_Entry(textLine, true);
         }
 
+        public static void LogPracDetail(PracticeSite psite)
+        {
+            SiteLogUtility.Log_Entry("--\n");
+            SiteLogUtility.Log_Entry($"--          Portal Site: {psite.Name}");
+            SiteLogUtility.Log_Entry($"--          Portal Site: {psite.URL}");
+            SiteLogUtility.Log_Entry($"--    Permissions Audit: {psite.URL}/_layouts/user.aspx");
+            SiteLogUtility.Log_Entry($"--        Site Contents: {psite.URL}/_layouts/viewlsts.aspx");
+            SiteLogUtility.Log_Entry($"--          Pages Audit: {psite.URL}/Pages");
+            SiteLogUtility.Log_Entry($"--Program Participation: {psite.ProgramParticipation}");
+            SiteLogUtility.Log_Entry($"--               IsCKCC: {psite.IsCKCC}");
+            SiteLogUtility.Log_Entry($"--                IsIWH: {psite.IsIWH}");
+            SiteLogUtility.Log_Entry($"--              IsKC365: {psite.IsKC365}");
+        }
+
         public static void CreateLogEntry(string strMethod, string strMessage, string strType, string strURL)
         {
             if (strURL == "")

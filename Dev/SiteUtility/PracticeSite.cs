@@ -34,7 +34,11 @@ namespace SiteUtility
         public string ExistingSiteUrl { get; set; }
         public string RelativeExistingSiteUrl { get; set; }
         public string ExistingSiteNone = "None";
-
+        public string ProgramParticipation { get; set; }
+        public string IsIWH { get; set; }
+        public string IsCKCC { get; set; }
+        public string IsKC365 { get; set; }
+        public string siteType { get; set; }
         public string PracUserPermission { get; set; }
         public string PracUserPermissionDesc = "Practice Site User Permission Level";
         public string PracUserReadOnlyPermission { get; set; }
