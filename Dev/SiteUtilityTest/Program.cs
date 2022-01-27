@@ -13,11 +13,12 @@ namespace SiteUtilityTest
     {
         static void Main(string[] args)
         {
-            //ProgramNew objProgramNew = new ProgramNew();
+            ProgramNew objProgramNew = new ProgramNew();
             //objProgramNew.InitiateProg();
+            objProgramNew.ReferralSetup();
 
-            ProgramNew2 objProgramNew2 = new ProgramNew2();
-            objProgramNew2.InitiateProgNew2();
+            //ProgramNew2 objProgramNew2 = new ProgramNew2();
+            //objProgramNew2.InitiateProgNew2();
         }
     }
 }

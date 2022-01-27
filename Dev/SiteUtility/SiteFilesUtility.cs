@@ -21,15 +21,26 @@ namespace SiteUtility
                 {
                     string fileName = filePath.Substring(filePath.LastIndexOf("\\") + 1);
 
-                    FileCreationInformation fcInfo = new FileCreationInformation();
-                    fcInfo.Url = fileName;
-                    fcInfo.Overwrite = true;
-                    fcInfo.Content = System.IO.File.ReadAllBytes(filePath);
-
-                    Web myWeb = clientContext.Web;
-                    List myLibrary = myWeb.Lists.GetByTitle(LibraryName);
-                    myLibrary.RootFolder.Files.Add(fcInfo);
+                    var fileCreationInfo = new FileCreationInformation
+                    {
+                        Content = System.IO.File.ReadAllBytes(filePath),
+                        Overwrite = true,
+                        Url = Path.GetFileName(filePath)
+                    };
+                    var targetFolder = clientContext.Web.GetFolderByServerRelativeUrl(LibraryName);
+                    var uploadFile = targetFolder.Files.Add(fileCreationInfo);
+                    clientContext.Load(uploadFile);
                     clientContext.ExecuteQuery();
+
+                    //FileCreationInformation fcInfo = new FileCreationInformation();
+                    //fcInfo.Url = fileName;
+                    //fcInfo.Overwrite = true;
+                    //fcInfo.Content = System.IO.File.ReadAllBytes(filePath);
+
+                    //Web myWeb = clientContext.Web;
+                    //List myLibrary = myWeb.Lists.GetByTitle(LibraryName);
+                    //myLibrary.RootFolder.Files.Add(fcInfo);
+                    //clientContext.ExecuteQuery();
 
                     SiteLogUtility.Log_Entry($"--      Pages Audit: {siteURL}/{LibraryName}/{fileName}", true);
                 }
