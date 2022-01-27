@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Release_1_2", "Release_1_2\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Release_1_3", "Release_1_3\Release_1_3.csproj", "{B06DAF49-163C-477A-AFCB-541B7E0DC04C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Release_1_4", "Release_1_4\Release_1_4.csproj", "{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_4_OptimalStart", "Release_1_4\R_1_4_OptimalStart.csproj", "{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,7 +72,7 @@ Global
 		SccProjectUniqueName5 = Release_1_3\\Release_1_3.csproj
 		SccProjectName5 = Release_1_3
 		SccLocalPath5 = Release_1_3
-		SccProjectUniqueName6 = Release_1_4\\Release_1_4.csproj
+		SccProjectUniqueName6 = Release_1_4\\R_1_4_OptimalStart.csproj
 		SccProjectName6 = Release_1_4
 		SccLocalPath6 = Release_1_4
 	EndGlobalSection

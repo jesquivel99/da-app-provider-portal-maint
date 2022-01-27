@@ -76,6 +76,11 @@ namespace SiteUtilityTest
 
             ConfigureReferralPage(sitrUrl, "ReferralPage", "Referral Page", "900px", "900px", strReferralURL + "/SiteAssets/cePrac_SWReferralPage.html");
             ConfigureReferralPage(sitrUrl, "Referrals", "Referrals", "1400px", "1100px", strReferralURL + "/SiteAssets/formExs2.html");
+
+            //break inheritance for new pages Referrals.aspx and ReferralPage.aspx
+            //add new security to Referrals.aspx and ReferralPage.aspx
+            //break inheritance for referralMembers and referralRequest
+            //give prac_123123 to referralMembers and referralRequest list in referral subsite and give contribute permission
         }
 
         public void ConfigureReferralPage(string webUrl, string strPageName, string strTitle, string strWPHeight, string strWPWidth, string strContentWPLink)
