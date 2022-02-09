@@ -113,7 +113,7 @@ namespace SiteUtility
             {
                 foreach (Web web in clientContext.Web.Webs)
                 {
-                    if (web.Url.Contains("admingroup01") == false)
+                    if (web.Url.Contains("admingroup01") == false && Char.IsDigit(web.Url.Last()))
                     {
                         PmAssignment pmAssignments = GetPM(web.Url);
                         ProgramManagerSite pmSite = new ProgramManagerSite();
@@ -148,7 +148,7 @@ namespace SiteUtility
                                 practiceSite.PracUserPermission = $"Prac_{siteId}_User";
                                 practiceSite.PracUserReadOnlyPermission = $"Prac_{siteId}_ReadOnly";
                                 //practiceSite.ExistingSiteUrl = MapExistingSite(practiceSite.PracticeTIN, pracIWH, pracCKCC);
-                                //practiceSite.ProgramParticipation = MapProgramParticipation(siteId0, pmData);
+                                practiceSite.ProgramParticipation = MapProgramParticipation(siteId0, pmData);
                                 
                                 PMData pMData = MapPMData(siteId0, pmData);
                                 practiceSite.ProgramParticipation = pMData == null ? "" : pMData.ProgramParticipation;
@@ -401,7 +401,7 @@ namespace SiteUtility
                 PMData pmData = pmd.Where(p => p.SiteId.Contains(TIN)).FirstOrDefault();
                 if (pmData == null)
                 {
-                    SiteLogUtility.Log_Entry("Program Participation Does Not Exist: " + TIN, true);
+                    //SiteLogUtility.Log_Entry("Program Participation Does Not Exist: " + TIN, true);
                     return "";
                 }
                 else
@@ -432,7 +432,7 @@ namespace SiteUtility
                     .Where(p => p.SiteId.Contains(TIN)).FirstOrDefault();
                 if (pmDataReturn == null)
                 {
-                    SiteLogUtility.Log_Entry("Program Participation Does Not Exist: " + TIN, true);
+                    //SiteLogUtility.Log_Entry("Program Participation Does Not Exist: " + TIN, true);
                     return null;
                 }
                 else

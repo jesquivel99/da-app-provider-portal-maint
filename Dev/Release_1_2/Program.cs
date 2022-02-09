@@ -11,7 +11,7 @@ using System.IO;
 
 namespace Release_1_3
 {
-    class Program
+    public class Program
     {
         static public List<Practice> practicesIWH = new List<Practice>();
         static public List<Practice> practicesCKCC = new List<Practice>();

@@ -88,7 +88,8 @@ namespace SiteUtility
                 clientContext.Load(w);
                 clientContext.ExecuteQuery();
 
-                User theUser = clientContext.Web.EnsureUser("Medspring\\ssaleh");
+                //User theUser = clientContext.Web.EnsureUser("Medspring\\ssaleh");
+                User theUser = clientContext.Web.EnsureUser("Medspring\\jesquivel");
                 clientContext.Load(theUser);
                 clientContext.ExecuteQuery();
 

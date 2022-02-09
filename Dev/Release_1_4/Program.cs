@@ -14,7 +14,7 @@ using System.IO;
 
 namespace Release_1_4
 {
-    class Program
+    public class Program
     {
         static public List<Practice> practicesIWH = new List<Practice>();
         static public List<Practice> practicesCKCC = new List<Practice>();
@@ -128,6 +128,105 @@ namespace Release_1_4
             return practices;
         }
 
+        public static void modifyView(string webUrl, string strPageName = "Home.aspx", string strWebPartTitle = "Practice Documents")
+        {
+            using (ClientContext clientContext = new ClientContext(webUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                {
+                    Web w = clientContext.Web;
+                    bool blnWebPartExists = false;
+                    List list = w.Lists.GetByTitle("Documents");
+                    if (strWebPartTitle == "Practice Documents IWH")
+                    {
+                        list = w.Lists.GetByTitle("Documentsiwh");
+                    }
+                    else if (strWebPartTitle == "Practice Documents CKCC")
+                    {
+                        list = w.Lists.GetByTitle("Documentsckcc");
+                    }
+                    else if (strWebPartTitle == "CKCC/KCE Program")        // Risk Adjustment tab
+                    {
+                        list = w.Lists.GetByTitle("RiskAdjustment_ckcc");
+                    }
+                    else if (strWebPartTitle == "Private Payor Program")   // Risk Adjustment tab
+                    {
+                        list = w.Lists.GetByTitle("RiskAdjustment_iwh");
+                    }
+                    
+
+                    SiteLogUtility.Log_Entry("Webpart Title: " + strWebPartTitle, true);
+
+                    clientContext.Load(w);
+                    clientContext.Load(list);
+                    clientContext.ExecuteQuery();
+
+                    var file = w.GetFileByServerRelativeUrl(w.ServerRelativeUrl + "/Pages/" + strPageName);
+                    file.CheckOut();
+                    clientContext.Load(file);
+                    clientContext.ExecuteQuery();
+
+                    try
+                    {
+                        var wpManager = file.GetLimitedWebPartManager(Microsoft.SharePoint.Client.WebParts.PersonalizationScope.Shared);
+                        var webparts = wpManager.WebParts;
+                        clientContext.Load(webparts);
+                        clientContext.ExecuteQuery();
+
+                        string[] viewFields = { "Type", "LinkFilename", "Modified" };
+
+                        if (webparts.Count > 0)
+                        {
+                            foreach (var webpart in webparts)
+                            {
+                                clientContext.Load(webpart.WebPart.Properties);
+                                clientContext.ExecuteQuery();
+                                var propValues = webpart.WebPart.Properties.FieldValues;
+                                if (propValues["Title"].Equals(strWebPartTitle))
+                                {
+                                    blnWebPartExists = true;
+                                    var listView = list.Views.GetById(webpart.Id);
+                                    clientContext.Load(listView);
+                                    clientContext.ExecuteQuery();
+
+                                    listView.ViewFields.RemoveAll();
+                                    foreach (var viewField in viewFields)
+                                    {
+                                        listView.ViewFields.Add(viewField);
+                                    }
+
+                                    listView.ViewQuery = "<OrderBy><FieldRef Name='ID' /></OrderBy><Where><IsNotNull><FieldRef Name='ID' /></IsNotNull></Where>";
+                                    listView.Update();
+                                    clientContext.ExecuteQuery();
+                                    file.CheckIn("Adding Modified to view in Document library", CheckinType.MajorCheckIn);
+                                    file.Publish("Adding Modified to view in Document library");
+                                    clientContext.Load(file);
+                                    w.Update();
+                                    clientContext.ExecuteQuery();
+                                    break;
+                                }
+                            }
+                        }
+                        if (!blnWebPartExists)
+                        {
+                            file.CheckIn("Adding Modified to view in Document library", CheckinType.MajorCheckIn);
+                            file.Publish("Adding Modified to view in Document library");
+                            clientContext.Load(file);
+                            w.Update();
+                            clientContext.ExecuteQuery();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SiteLogUtility.CreateLogEntry("CreatePracticeHomePage - modifyView", ex.Message, "Error", webUrl);
+                        file.UndoCheckOut();
+                        clientContext.Load(file);
+                        clientContext.ExecuteQuery();
+                        clientContext.Dispose();
+                    }
+                }
+            }
+        }
         public static bool ConfigureOptimalStartPage(string webUrl, string siteAssetUrl)
         {
             bool outcome = false;
@@ -248,7 +347,8 @@ namespace Release_1_4
                         clientContext.Load(limitedWebPartManager.WebParts,
                             wps => wps.Include(
                                 wp => wp.WebPart.Title,
-                                wp => wp.WebPart.Tag));
+                                wp => wp.WebPart.Properties));
+                        //clientContext.Load(limitedWebPartManager.WebParts);
                         clientContext.ExecuteQuery();
 
                         if(limitedWebPartManager.WebParts.Count == 0)
@@ -256,12 +356,25 @@ namespace Release_1_4
                             throw new Exception("No Webparts on this page.");
                         }
 
-                        WebPartDefinition webPartDefinition = limitedWebPartManager.WebParts[0];
-                        WebPart webPart = webPartDefinition.WebPart;
-                        webPart.Title = "Program Participation";
-                        webPart.Tag = webPart.Properties["Height"] + "; " + webPart.Properties["Width"];
-                        webPartDefinition.SaveWebPartChanges();
-                        clientContext.ExecuteQuery();
+                        foreach(WebPartDefinition webPartDefinition1 in limitedWebPartManager.WebParts)
+                        {
+                            clientContext.Load(webPartDefinition1.WebPart.Properties,
+                                wp => wp.FieldValues);
+                            clientContext.ExecuteQuery();
+
+                            if(webPartDefinition1.WebPart.Title.Equals("Content Editor"))
+                            {
+                                webPartDefinition1.WebPart.Properties["Title"] = "ProgramParticipation";
+                                webPartDefinition1.WebPart.Properties["Height"] = "600";
+                                webPartDefinition1.SaveWebPartChanges();
+                            }
+                        }
+                        
+                        //WebPartDefinition webPartDefinition = limitedWebPartManager.WebParts[0];
+                        //WebPart webPart = webPartDefinition.WebPart;
+                        //webPart.Title = "Program Participation";
+                        //webPartDefinition.SaveWebPartChanges();
+                        //clientContext.ExecuteQuery();
 
                         file.CheckIn("Updating webparts", CheckinType.MajorCheckIn);
                         file.Publish("Updating webparts");
@@ -512,5 +625,87 @@ namespace Release_1_4
 
         //    }
         //}
+
+        public static View ReturnListViewIfExists(List list, Guid _listGuid, string ViewName, bool justCreated = false, string wURL = "")
+        {
+            for (int i = 0; i < list.Views.Count; i++)
+            {
+                if (list.Views[i].Title.Equals(ViewName))
+                {
+                    if (justCreated && list.Views[i].Title == "PageViewer")
+                    {
+                        using (ClientContext clientContext = new ClientContext(wURL))
+                        {
+                            bool contentExists = false;
+                            string checkingMessage = "Checking in back";
+                            clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                            Web w = clientContext.Web;
+                            list = w.Lists.GetById(_listGuid);
+                            clientContext.Load(list);
+                            clientContext.Load(list.Views);
+                            clientContext.Load(list.Fields);
+                            clientContext.Load(w);
+                            clientContext.ExecuteQuery();
+                            Microsoft.SharePoint.Client.File pvFile = w.GetFileByServerRelativeUrl(list.Views[i].ServerRelativeUrl);
+                            try
+                            {
+                                pvFile.CheckOut();
+                                clientContext.Load(pvFile);
+                                clientContext.ExecuteQuery();
+                                if (pvFile.Exists)
+                                {
+                                    string str1 = @"<SharePoint:RssLink runat=""server"" />";
+                                    string str2 = @"<link rel=""stylesheet"" type=""text/css"" href=""/_layouts/15/PageViewerCustom.css"" />";
+
+                                    FileInformation oFileInfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(clientContext, pvFile.ServerRelativeUrl);
+
+                                    using (System.IO.StreamReader sr = new System.IO.StreamReader(oFileInfo.Stream))
+                                    {
+                                        string line = sr.ReadToEnd();
+                                        if (!line.Contains(str2) && line.Contains(str1))
+                                        {
+                                            contentExists = true;
+                                        }
+                                    }
+                                    if (contentExists)
+                                    {
+                                        using (var stream = new MemoryStream())
+                                        {
+                                            using (var writer = new StreamWriter(stream))
+                                            {
+                                                writer.WriteLine(str1 + str2);
+                                                writer.Flush();
+                                                stream.Position = 0;
+                                                Microsoft.SharePoint.Client.File.SaveBinaryDirect(clientContext, pvFile.ServerRelativeUrl, stream, true);
+                                                checkingMessage = "Added PageViewerCustom css link";
+                                            }
+                                        }
+                                    }
+
+                                    pvFile.CheckIn(checkingMessage, CheckinType.MajorCheckIn);
+                                    pvFile.Publish(checkingMessage);
+                                    clientContext.Load(pvFile);
+                                    clientContext.ExecuteQuery();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                //SpLog.CreateLog("ReturnListViewIfExists", ex.Message, "Error", clientContext.Web.ServerRelativeUrl);
+                                //pvFile.CheckIn(checkingMessage, CheckinType.MajorCheckIn);
+                                //pvFile.Publish(checkingMessage);
+                                //clientContext.Load(pvFile);
+                                //clientContext.ExecuteQuery();
+                                //clientContext.Dispose();
+                                // ignored
+                            }
+                        }
+                        Microsoft.SharePoint.Client.View v = list.Views[i];
+                        v.Update();
+                    }
+                    return list.Views[i];
+                }
+            }
+            return null;
+        }
     }
 }

@@ -55,6 +55,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientPortalNavigation.cs" />
+    <Compile Include="PracticeCView.cs" />
+    <Compile Include="PracticeCViewField.cs" />
+    <Compile Include="PracticeCViewFields.cs" />
+    <Compile Include="PracticeCViewOrderBy.cs" />
+    <Compile Include="PracticeCViews.cs" />
     <Compile Include="PracticeRoot.cs" />
     <Compile Include="PracticeSite.cs" />
     <Compile Include="ProgramManagerSite.cs" />

@@ -10,6 +10,24 @@ namespace SiteUtility
 {
     public class SiteListUtility
     {
+        public string listNameBenefitEnhancement = "BenefitEnhancement";
+        public string listTitleBenefitEnhancement = "Benefit Enhancement";
+        public string listFolder1BenefitEnhancement = "Benefit Enhancement Training";
+        public string pageNameBenefitEnhancement = "BenefitEnhancement";
+        public string pageTitleBenefitEnhancement = "Benefit Enhancement";
+
+        public string listNameQuality = "Quality";
+        public string listTitleQuality = "Quality";
+        public string listFolder1Quality = "Quality Reports";
+        public string pageNameQuality = "Quality";
+        public string pageTitleQuality = "Quality";
+
+        public string listNamePayorEducation = "PayorEdResources";
+        public string listTitlePayorEducation = "Payor Education Resources";
+        public string listFolder1PayorEducation = "Education";
+        public string pageNamePayorEducation = "PayorEdResources";
+        public string pageTitlePayorEducation = "Payor Education Resources";
+
         public static void ListFunction1()
         {
             Console.WriteLine("ListFunction 1");
@@ -60,8 +78,9 @@ namespace SiteUtility
             }
         }
 
-        public void CreateDocumentLibrary(string strListName, string strWebURL)
+        public Guid CreateDocumentLibrary(string strListName, string strWebURL)
         {
+            Guid _listGuid = Guid.Empty;
             try
             {
                 using (ClientContext clientContext = new ClientContext(strWebURL))
@@ -72,13 +91,17 @@ namespace SiteUtility
                     creationInfo.TemplateType = (int)ListTemplateType.DocumentLibrary;
 
                     List newList = clientContext.Web.Lists.Add(creationInfo);
-                    clientContext.Load(newList);
+                    clientContext.Load(newList, o => o.Id);
                     clientContext.ExecuteQuery();
+                    _listGuid = newList.Id;
+
+                    return _listGuid;
                 }
             }
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("CreateDocumentLibrary", ex.Message, "Error", strWebURL);
+                return Guid.Empty;
             }
         }
 
