@@ -99,7 +99,7 @@ namespace R_1_5_ModifyView
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("Init_ModifyView_CKCC", ex.Message, "Error", "");
+                SiteLogUtility.CreateLogEntry("Init_ModifyView_CKCC", ex.Message, "Error", wUrl);
             }
         }
 

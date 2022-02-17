@@ -7,15 +7,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiteUtility", "SiteUtility\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiteUtilityTest", "SiteUtilityTest\SiteUtilityTest.csproj", "{E42AAF4C-78F8-45DD-9D96-4B0F7BAAE664}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Release_1_1", "Release_1_1\Release_1_1.csproj", "{32A8CF59-354D-4865-AF44-53C7B9B83CE3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_1_PermissionsPracUserAndReadOnly", "Release_1_1\R_1_1_PermissionsPracUserAndReadOnly.csproj", "{32A8CF59-354D-4865-AF44-53C7B9B83CE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Release_1_2", "Release_1_2\Release_1_2.csproj", "{DDA47872-3FF5-4002-A5D8-8E0919BA6864}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_2_HomePageRedirect", "Release_1_2\R_1_2_HomePageRedirect.csproj", "{DDA47872-3FF5-4002-A5D8-8E0919BA6864}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Release_1_3", "Release_1_3\Release_1_3.csproj", "{B06DAF49-163C-477A-AFCB-541B7E0DC04C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_3_OptimalStartNavigation", "Release_1_3\R_1_3_OptimalStartNavigation.csproj", "{B06DAF49-163C-477A-AFCB-541B7E0DC04C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_4_OptimalStart", "Release_1_4\R_1_4_OptimalStart.csproj", "{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_4_DialysisStart", "Release_1_4\R_1_4_DialysisStart.csproj", "{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_5_ModifyView", "R_1_5_ModifyView\R_1_5_ModifyView.csproj", "{587FE1CD-E3CD-4F8F-83CB-0334877C8B56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_6_Benefit-Quality-Payor", "R_1_6_Benefit-Quality-Payor\R_1_6_Benefit-Quality-Payor.csproj", "{AAE4797E-8CF1-4425-9252-6375A81F72A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{587FE1CD-E3CD-4F8F-83CB-0334877C8B56}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{587FE1CD-E3CD-4F8F-83CB-0334877C8B56}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{587FE1CD-E3CD-4F8F-83CB-0334877C8B56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -59,7 +65,7 @@ Global
 		SolutionGuid = {31813A0A-12DA-4840-B68C-846C9614C493}
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 8
+		SccNumberOfProjects = 9
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = http://or-tfs-svr-01:8080/tfs/defaultcollection
 		SccLocalPath0 = .
@@ -69,20 +75,23 @@ Global
 		SccProjectUniqueName2 = SiteUtilityTest\\SiteUtilityTest.csproj
 		SccProjectName2 = SiteUtilityTest
 		SccLocalPath2 = SiteUtilityTest
-		SccProjectUniqueName3 = Release_1_1\\Release_1_1.csproj
-		SccProjectName3 = Release_1_1
-		SccLocalPath3 = Release_1_1
-		SccProjectUniqueName4 = Release_1_2\\Release_1_2.csproj
-		SccProjectName4 = Release_1_2
-		SccLocalPath4 = Release_1_2
-		SccProjectUniqueName5 = Release_1_3\\Release_1_3.csproj
-		SccProjectName5 = Release_1_3
-		SccLocalPath5 = Release_1_3
-		SccProjectUniqueName6 = Release_1_4\\R_1_4_OptimalStart.csproj
-		SccProjectName6 = Release_1_4
-		SccLocalPath6 = Release_1_4
-		SccProjectUniqueName7 = R_1_5_ModifyView\\R_1_5_ModifyView.csproj
-		SccProjectName7 = R_1_5_ModifyView
-		SccLocalPath7 = R_1_5_ModifyView
+		SccProjectUniqueName3 = R_1_5_ModifyView\\R_1_5_ModifyView.csproj
+		SccProjectName3 = R_1_5_ModifyView
+		SccLocalPath3 = R_1_5_ModifyView
+		SccProjectUniqueName4 = Release_1_1\\R_1_1_PermissionsPracUserAndReadOnly.csproj
+		SccProjectName4 = Release_1_1
+		SccLocalPath4 = Release_1_1
+		SccProjectUniqueName5 = Release_1_2\\R_1_2_HomePageRedirect.csproj
+		SccProjectName5 = Release_1_2
+		SccLocalPath5 = Release_1_2
+		SccProjectUniqueName6 = Release_1_3\\R_1_3_OptimalStartNavigation.csproj
+		SccProjectName6 = Release_1_3
+		SccLocalPath6 = Release_1_3
+		SccProjectUniqueName7 = Release_1_4\\R_1_4_DialysisStart.csproj
+		SccProjectName7 = Release_1_4
+		SccLocalPath7 = Release_1_4
+		SccProjectUniqueName8 = R_1_6_Benefit-Quality-Payor\\R_1_6_Benefit-Quality-Payor.csproj
+		SccProjectName8 = R_1_6_Benefit-Quality-Payor
+		SccLocalPath8 = R_1_6_Benefit-Quality-Payor
 	EndGlobalSection
 EndGlobal

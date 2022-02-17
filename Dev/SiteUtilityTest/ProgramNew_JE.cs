@@ -19,6 +19,7 @@ namespace SiteUtilityTest
 {
     public class ProgramNew_JE
     {
+        string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
         static public List<Practice> practicesIWH = new List<Practice>();
         static public List<Practice> practicesCKCC = new List<Practice>();
         static Guid _listGuid = Guid.Empty;
@@ -31,7 +32,7 @@ namespace SiteUtilityTest
             string srcUrlCKCC = ConfigurationManager.AppSettings["SP_CKCCUrl"];
             string siteInfoFile = ConfigurationManager.AppSettings["Csv_File"];
 
-            string urlAdminGroup = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/PM02";
+            string urlAdminGroup = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/PM08";
 
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
             SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
@@ -52,23 +53,23 @@ namespace SiteUtilityTest
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
-                            if (psite.URL.Contains("97168941379") && psite.IsCKCC.Equals("true"))
+                            if (psite.URL.Contains("90566631579"))
                             {
-                                /* BENEFIT ENHANCEMENT...
-                                 * 1. create list
-                                 * 2. create page
-                                 * 3. delete web parts
-                                 * 4. upload js file for hb tabs
-                                 * 5. configure page with content editor
-                                 * 6. add link to Program Participation OR
-                                 * 7. update link to page
-                                 */
-                                
                                 SiteLogUtility.LogPracDetail(psite);
 
-                                //Init_Benefit(psite);
+                                SiteFilesUtility sfu = new SiteFilesUtility();
+                                sfu.uploadProgramPracticeSupportFilesWoDialysisStarts(psite);
+                                modifyWebPartProgramParticipation(psite.URL, psite);
+
+                                uploadMultiPartSupportingFiles(psite.URL, psite);
+
+                                Init_Benefit(psite);
+
                                 Init_Quality(psite);
-                                //Init_Payor();
+
+                                Init_Payor(psite);
+
+                                SiteNavigateUtility.ClearQuickNavigationRecent(psite.URL);
                             }
                         }
                     }
@@ -86,16 +87,12 @@ namespace SiteUtilityTest
             }
         }
 
-        private void Init_Payor()
+        private void Init_Payor(PracticeSite practiceSite)
         {
-            throw new NotImplementedException();
-        }
-
-        private void Init_Quality(PracticeSite practiceSite)
-        {
+            SiteLogUtility.Log_Entry("Init_Payor - In Progress...");
             bool ConfigSuccess = false;
-            PublishingPage PPage = null; 
-            
+            PublishingPage PPage = null;
+
             SiteFilesUtility sfUtility = new SiteFilesUtility();
             SitePublishUtility spUtility = new SitePublishUtility();
             SiteListUtility slUtility = new SiteListUtility();
@@ -103,19 +100,78 @@ namespace SiteUtilityTest
 
             try
             {
-                ProvisionList(practiceSite, slUtility, slUtility.listNameQuality, practiceCView);
-                     //spUtility.InitializePage(practiceSite.URL, slUtility.pageNameQuality, slUtility.pageTitleQuality);
+                ProvisionList(practiceSite, slUtility, slUtility.listNamePayorEducationIwh, practiceCView);
+                CreateFolder(practiceSite, slUtility.listNamePayorEducationIwh, slUtility.listFolder1PayorEducationIwh);
+                //ProvisionList(practiceSite, slUtility, slUtility.listNamePayorEducationCkcc, practiceCView);
+                //CreateFolder(practiceSite, slUtility.listNamePayorEducationCkcc, slUtility.listFolder1PayorEducationCkcc);
+
+                spUtility.InitializePage(practiceSite.URL, slUtility.pageNamePayorEducation, slUtility.pageTitlePayorEducation);
+                spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNamePayorEducation);
+                sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "PayorEducation_MultiTab.js", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                ConfigSuccess = ConfigurePayorEducationPage(practiceSite.URL, practiceSite);
+                if (ConfigSuccess)
+                {
+                    if(practiceSite.IsIWH == "true")
+                    {
+                        modifyView(practiceSite.URL, slUtility.pageNamePayorEducation + ".aspx", slUtility.webpartPayorEducationIwh);
+                    }
+                    //if (practiceSite.IsCKCC == "true")
+                    //{
+                    //    modifyView(practiceSite.URL, slUtility.pageNamePayorEducation + ".aspx", slUtility.webpartPayorEducationCkcc);
+                    //}
+                }
+                SP_Update_ProgramParticipation(practiceSite.URL, slUtility.pageNamePayorEducation, "Payor Program Education Resources Coming Soon", "Payor Program Education Resources", "EducationReviewPro.JPG");
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("Init_Payor", ex.Message, "Error", practiceSite.URL);
+            }
+        }
+
+        private void Init_Quality(PracticeSite practiceSite)
+        {
+            SiteLogUtility.Log_Entry("Init_Quality - In Progress...");
+            bool ConfigSuccess = false;
+            PublishingPage PPage = null; 
+            
+            SiteFilesUtility sfu = new SiteFilesUtility();
+            SitePublishUtility spUtility = new SitePublishUtility();
+            SiteListUtility slUtility = new SiteListUtility();
+            PracticeCView practiceCView = new PracticeCView();
+
+            try
+            {
+                ProvisionList(practiceSite, slUtility, slUtility.listNameQualityIwh, practiceCView);
+                CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder1QualityIwh);
+                //CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder2QualityIwh);
+                //CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder3QualityIwh);
+
+                ProvisionList(practiceSite, slUtility, slUtility.listNameQualityCkcc, practiceCView);
+                CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder1QualityCkcc);
+                //CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder2QualityCkcc);
+                //CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder3QualityCkcc);
+
                 spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNameQuality);
-                sfUtility.DocumentUpload(practiceSite.URL, @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\Quality_MultiTab.js", "SiteAssets");
+                sfu.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "Quality_MultiTab.js", "SiteAssets");
+                sfu.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                sfu.uploadImageSupportingFilesSingleImage(practiceSite.URL, "Quality.jpg");
+                sfu.uploadHtmlSupportingFilesSingleFile(practiceSite.URL, "cePrac_Quality.html");
                 ConfigSuccess = ConfigureQualityPage(practiceSite.URL, practiceSite);
                 if (ConfigSuccess)
                 {
+                    if(practiceSite.IsIWH == "true")
                     {
-                        modifyView(practiceSite.URL, "Quality.aspx", "Quality");
+                        modifyView(practiceSite.URL, slUtility.pageNameQuality + ".aspx", slUtility.webpartQualityIwh);
+                    }
+                    if (practiceSite.IsCKCC == "true")
+                    {
+                        modifyView(practiceSite.URL, slUtility.pageNameQuality + ".aspx", slUtility.webpartQualityCkcc);
                     }
                 }
-                CreateFolder(practiceSite, slUtility.listNameQuality, slUtility.listFolder1Quality);
-                //sfUtility.uploadProgramPracticeSupportFiles(psite);
+
+                // ONLY UNCOMMENT IF PERFORMING ROLLBACK ON QUALITY PAGE...
+                //ConfigureQualityRollbackPage(practiceSite.URL, practiceSite);
             }
             catch (Exception ex)
             {
@@ -125,6 +181,10 @@ namespace SiteUtilityTest
 
         private void Init_Benefit(PracticeSite practiceSite)
         {
+            SiteLogUtility.Log_Entry("Init_Benefit - In Progress...");
+            bool ConfigSuccess = false;
+            PublishingPage PPage = null;
+
             SiteFilesUtility sfUtility = new SiteFilesUtility();
             SitePublishUtility spUtility = new SitePublishUtility();
             SiteListUtility slUtility = new SiteListUtility();
@@ -132,12 +192,21 @@ namespace SiteUtilityTest
 
             try
             {
-                ProvisionList(practiceSite, slUtility, slUtility.listNameBenefitEnhancement, practiceCView);
-                spUtility.InitializePage(practiceSite.URL, slUtility.listNameBenefitEnhancement, "Benefit Enhancement");
-                spUtility.DeleteWebPart(practiceSite.URL, slUtility.listNameBenefitEnhancement);
-                sfUtility.DocumentUpload(practiceSite.URL, @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\BenefitEnhancement_MultiTab.js", "SiteAssets");
-                ConfigureBenefitEnhancementPage(practiceSite.URL, practiceSite);
-                //sfUtility.uploadProgramPracticeSupportFiles(psite);
+                ProvisionList(practiceSite, slUtility, slUtility.listNameBenefitEnhancementCkcc, practiceCView);
+                CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder1BenefitEnhancementCkcc);
+                spUtility.InitializePage(practiceSite.URL, slUtility.pageNameBenefitEnhancement, "Benefit Enhancement");
+                spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNameBenefitEnhancement);
+                sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "BenefitEnhancement_MultiTab.js", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                ConfigSuccess = ConfigureBenefitEnhancementPage(practiceSite.URL, practiceSite);
+                if (ConfigSuccess)
+                {
+                    if(practiceSite.IsCKCC == "true")
+                    {
+                        modifyView(practiceSite.URL, slUtility.pageNameBenefitEnhancement + ".aspx", slUtility.webpartBenefitEnhancementCkcc);
+                    }
+                }
+                SP_Update_ProgramParticipation(practiceSite.URL, slUtility.pageNameBenefitEnhancement, "CKCC/KCE Coming Soon", "CKCC/KCE", "KCEckcc.JPG");
             }
             catch (Exception ex)
             {
@@ -147,6 +216,8 @@ namespace SiteUtilityTest
 
         public void modifyView(string webUrl, string strPageName = "Home.aspx", string strWebPartTitle = "Practice Documents")
         {
+            SiteLogUtility.Log_Entry("modifyView - In Progress...");
+            SiteListUtility slu = new SiteListUtility();
             using (ClientContext clientContext = new ClientContext(webUrl))
             {
                 clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
@@ -154,17 +225,25 @@ namespace SiteUtilityTest
                     Web w = clientContext.Web;
                     bool blnWebPartExists = false;
                     List list = w.Lists.GetByTitle("Documents");
-                    if (strWebPartTitle == "BenefitEnhancement")
+                    if (strWebPartTitle == slu.webpartBenefitEnhancementCkcc)
                     {
-                        list = w.Lists.GetByTitle("BenefitEnhancement");
+                        list = w.Lists.GetByTitle(slu.listNameBenefitEnhancementCkcc);
                     }
-                    else if (strWebPartTitle == "Payor")
+                    else if (strWebPartTitle == slu.webpartPayorEducationIwh)
                     {
-                        list = w.Lists.GetByTitle("Payor");
+                        list = w.Lists.GetByTitle(slu.listNamePayorEducationIwh);
                     }
-                    else if (strWebPartTitle == "Quality")   // Quality
+                    //else if (strWebPartTitle == slu.webpartPayorEducationCkcc)
+                    //{
+                    //    list = w.Lists.GetByTitle(slu.listNamePayorEducationCkcc);
+                    //}
+                    else if (strWebPartTitle == slu.webpartQualityIwh)   // Quality
                     {
-                        list = w.Lists.GetByTitle("Quality");
+                        list = w.Lists.GetByTitle(slu.listNameQualityIwh);
+                    }
+                    else if (strWebPartTitle == slu.webpartQualityCkcc)   // Quality
+                    {
+                        list = w.Lists.GetByTitle(slu.listNameQualityCkcc);
                     }
 
                     clientContext.Load(w);
@@ -277,6 +356,7 @@ namespace SiteUtilityTest
 
         public static void ProvisionList(PracticeSite psite, SiteListUtility siUtility, string listName, PracticeCView pracCView)
         {
+            SiteLogUtility.Log_Entry("ProvisionList - In Progress...");
             if (!DoesListExist(psite.URL, listName))
             {
                 _listGuid = siUtility.CreateDocumentLibrary(listName, psite.URL);
@@ -346,6 +426,8 @@ namespace SiteUtilityTest
         }
         public static bool ConfigureBenefitEnhancementPage(string webUrl, PracticeSite pracSite)
         {
+            SiteLogUtility.Log_Entry("ConfigureBenefitEnhancement - In Progress...");
+            SiteListUtility slu = new SiteListUtility();
             bool outcome = false;
             string clink = string.Empty;
             string scntPx = "666";
@@ -356,7 +438,7 @@ namespace SiteUtilityTest
                 Web web = clientContext.Web;
                 clientContext.Load(web, w => w.ServerRelativeUrl);
                 clientContext.ExecuteQuery();
-                var file = clientContext.Web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + "/Pages/BenefitEnhancement.aspx");
+                var file = clientContext.Web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + "/Pages/" + slu.pageNameBenefitEnhancement + ".aspx");
                 file.CheckOut();
                 try
                 {
@@ -379,8 +461,8 @@ namespace SiteUtilityTest
                         //}
                         if (pracSite.IsCKCC == "true")
                         {
-                            WebPartDefinition wpd6 = olimitedwebpartmanager.ImportWebPart(webPartXML(web.Url + "/BenefitEnhancement/Forms/PageViewer.aspx"));
-                            wpd6.WebPart.Title = "BenefitEnhancement";
+                            WebPartDefinition wpd6 = olimitedwebpartmanager.ImportWebPart(webPartXML(web.Url + "/" + slu.listNameBenefitEnhancementCkcc + "/Forms/PageViewer.aspx"));
+                            wpd6.WebPart.Title = slu.webpartBenefitEnhancementCkcc;
                             olimitedwebpartmanager.AddWebPart(wpd6.WebPart, "CenterColumn", 1);
                         }
 
@@ -416,6 +498,8 @@ namespace SiteUtilityTest
 
         public static bool ConfigureQualityPage(string webUrl, PracticeSite pracSite)
         {
+            SiteLogUtility.Log_Entry("ConfigureQualityPage - In Progress...");
+            SiteListUtility slu = new SiteListUtility();
             bool outcome = false;
             string clink = string.Empty;
             string scntPx = "666";
@@ -426,7 +510,7 @@ namespace SiteUtilityTest
                 Web web = clientContext.Web;
                 clientContext.Load(web, w => w.ServerRelativeUrl);
                 clientContext.ExecuteQuery();
-                var file = clientContext.Web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + "/Pages/Quality.aspx");
+                var file = clientContext.Web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + "/Pages/" + slu.pageNameQuality + ".aspx");
                 file.CheckOut();
                 try
                 {
@@ -441,16 +525,16 @@ namespace SiteUtilityTest
                         wpd1.WebPart.Title = "Multi Tab";
                         olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "CenterLeftColumn", 1);
 
-                        //if (pracSite.IsIWH == "true")
-                        //{
-                        //    WebPartDefinition wpd5 = olimitedwebpartmanager.ImportWebPart(webPartXML(web.Url + "/Documentsiwh/Forms/PageViewer.aspx"));
-                        //    wpd5.WebPart.Title = "Practice Documents IWH";
-                        //    olimitedwebpartmanager.AddWebPart(wpd5.WebPart, "CenterColumn", 1);
-                        //}
+                        if (pracSite.IsIWH == "true")
+                        {
+                            WebPartDefinition wpd5 = olimitedwebpartmanager.ImportWebPart(webPartXML(web.Url + "/" + slu.listNameQualityIwh + "/Forms/PageViewer.aspx"));
+                            wpd5.WebPart.Title = slu.webpartQualityIwh;
+                            olimitedwebpartmanager.AddWebPart(wpd5.WebPart, "CenterColumn", 1);
+                        }
                         if (pracSite.IsCKCC == "true")
                         {
-                            WebPartDefinition wpd6 = olimitedwebpartmanager.ImportWebPart(webPartXML(web.Url + "/Quality/Forms/PageViewer.aspx"));
-                            wpd6.WebPart.Title = "Quality";
+                            WebPartDefinition wpd6 = olimitedwebpartmanager.ImportWebPart(webPartXML(web.Url + "/" + slu.listNameQualityCkcc + "/Forms/PageViewer.aspx"));
+                            wpd6.WebPart.Title = slu.webpartQualityCkcc;
                             olimitedwebpartmanager.AddWebPart(wpd6.WebPart, "CenterColumn", 1);
                         }
 
@@ -474,6 +558,138 @@ namespace SiteUtilityTest
                 catch (Exception ex)
                 {
                     SiteLogUtility.CreateLogEntry("ConfigureQualityPage", ex.Message, "Error", webUrl);
+                    outcome = false;
+                    file.UndoCheckOut();
+                    clientContext.Load(file);
+                    clientContext.ExecuteQuery();
+                    clientContext.Dispose();
+                }
+            }
+            return outcome;
+        }
+        public static bool ConfigureQualityRollbackPage(string webUrl, PracticeSite pracSite)
+        {
+            bool outcome = false;
+            string clink = string.Empty;
+            string scntPx = "666";
+
+            using (ClientContext clientContext = new ClientContext(webUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                Web web = clientContext.Web;
+                clientContext.Load(web, w => w.ServerRelativeUrl);
+                clientContext.ExecuteQuery();
+                var file = clientContext.Web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + "/Pages/Quality.aspx");
+                file.CheckOut();
+                try
+                {
+                    clientContext.Load(file);
+                    clientContext.Load(web);
+                    clientContext.ExecuteQuery();
+                    try
+                    {
+                        LimitedWebPartManager olimitedwebpartmanager = file.GetLimitedWebPartManager(Microsoft.SharePoint.Client.WebParts.PersonalizationScope.Shared);
+
+                        WebPartDefinition wpd20 = olimitedwebpartmanager.ImportWebPart(contentEditorXML("Coming Soon...", "300px", "400px", web.Url + "/SiteAssets/cePrac_Quality.html"));
+                        wpd20.WebPart.Title = "Coming Soon...";
+                        olimitedwebpartmanager.AddWebPart(wpd20.WebPart, "CenterLeftColumn", 1);
+
+                        WebPartDefinition wpd6 = olimitedwebpartmanager.ImportWebPart(contentEditorXML("SupportStyles", "0px", "0px", web.Url + "/SiteAssets/smlcal.js"));
+                        wpd6.WebPart.Title = "SupportStyles";
+                        olimitedwebpartmanager.AddWebPart(wpd6.WebPart, "Footer", 1);
+
+                        file.CheckIn("Adding ConfigureHomePage webparts", CheckinType.MajorCheckIn);
+                        file.Publish("Adding ConfigureHomePage webparts");
+                        clientContext.Load(file);
+                        web.Update();
+                        clientContext.ExecuteQuery();
+                        outcome = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        SiteLogUtility.CreateLogEntry("ConfigureQualityPage Update", ex.Message, "Error", webUrl);
+                        outcome = false;
+                        file.UndoCheckOut();
+                        clientContext.Load(file);
+                        clientContext.ExecuteQuery();
+                        clientContext.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("ConfigureQualityPage", ex.Message, "Error", webUrl);
+                    outcome = false;
+                    file.UndoCheckOut();
+                    clientContext.Load(file);
+                    clientContext.ExecuteQuery();
+                    clientContext.Dispose();
+                }
+            }
+            return outcome;
+        }
+
+        public static bool ConfigurePayorEducationPage(string webUrl, PracticeSite pracSite)
+        {
+            SiteLogUtility.Log_Entry("ConfigurePayorEducationPage - In Progress...");
+            SiteListUtility slu = new SiteListUtility();
+            bool outcome = false;
+            string clink = string.Empty;
+            string scntPx = "666";
+
+            using (ClientContext clientContext = new ClientContext(webUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                Web web = clientContext.Web;
+                clientContext.Load(web, w => w.ServerRelativeUrl);
+                clientContext.ExecuteQuery();
+                var file = clientContext.Web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + "/Pages/" + slu.pageNamePayorEducation + ".aspx");
+                file.CheckOut();
+                try
+                {
+                    clientContext.Load(file);
+                    clientContext.Load(web);
+                    clientContext.ExecuteQuery();
+                    try
+                    {
+                        LimitedWebPartManager olimitedwebpartmanager = file.GetLimitedWebPartManager(Microsoft.SharePoint.Client.WebParts.PersonalizationScope.Shared);
+
+                        WebPartDefinition wpd1 = olimitedwebpartmanager.ImportWebPart(contentEditorXML("Multi Tab", "600px", "700px", web.Url + "/SiteAssets/PayorEducation_MultiTab.js"));
+                        wpd1.WebPart.Title = "Multi Tab";
+                        olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "CenterLeftColumn", 1);
+
+                        if (pracSite.IsIWH == "true")
+                        {
+                            WebPartDefinition wpd5 = olimitedwebpartmanager.ImportWebPart(webPartXML(web.Url + "/" + slu.listNamePayorEducationIwh + "/Forms/PageViewer.aspx"));
+                            wpd5.WebPart.Title = slu.webpartPayorEducationIwh;
+                            olimitedwebpartmanager.AddWebPart(wpd5.WebPart, "CenterColumn", 1);
+                        }
+                        //if (pracSite.IsCKCC == "true")
+                        //{
+                        //    WebPartDefinition wpd6 = olimitedwebpartmanager.ImportWebPart(webPartXML(web.Url + "/" + slu.listNamePayorEducationCkcc + "/Forms/PageViewer.aspx"));
+                        //    wpd6.WebPart.Title = slu.webpartPayorEducationCkcc;
+                        //    olimitedwebpartmanager.AddWebPart(wpd6.WebPart, "CenterColumn", 1);
+                        //}
+
+                        file.CheckIn("Adding ConfigureHomePage webparts", CheckinType.MajorCheckIn);
+                        file.Publish("Adding ConfigureHomePage webparts");
+                        clientContext.Load(file);
+                        web.Update();
+                        clientContext.ExecuteQuery();
+                        outcome = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        SiteLogUtility.CreateLogEntry("ConfigurePayorEducationPage Update", ex.Message, "Error", webUrl);
+                        outcome = false;
+                        file.UndoCheckOut();
+                        clientContext.Load(file);
+                        clientContext.ExecuteQuery();
+                        clientContext.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("ConfigurePayorEducationPage", ex.Message, "Error", webUrl);
                     outcome = false;
                     file.UndoCheckOut();
                     clientContext.Load(file);
@@ -958,11 +1174,11 @@ namespace SiteUtilityTest
             }
         }
 
-        public static bool modifyWebPart(string webUrl)
+        public static bool modifyWebPartProgramParticipation(string webUrl, PracticeSite practiceSite)
         {
             bool outcome = false;
             string clink = string.Empty;
-            string scntPx = "666";
+            int webPartHeight = gridHeight(webUrl, practiceSite);
 
             using (ClientContext clientContext = new ClientContext(webUrl))
             {
@@ -994,14 +1210,14 @@ namespace SiteUtilityTest
 
                         foreach (WebPartDefinition webPartDefinition1 in limitedWebPartManager.WebParts)
                         {
-                            clientContext.Load(webPartDefinition1.WebPart.Properties,
-                                wp => wp.FieldValues);
+                            clientContext.Load(webPartDefinition1.WebPart.Properties);
                             clientContext.ExecuteQuery();
 
-                            if (webPartDefinition1.WebPart.Title.Equals("Content Editor"))
+                            if (webPartDefinition1.WebPart.Title.Equals("Data Exchange"))
                             {
-                                webPartDefinition1.WebPart.Properties["Title"] = "ProgramParticipation";
-                                webPartDefinition1.WebPart.Properties["Height"] = "600";
+                                //webPartDefinition1.WebPart.Properties["Title"] = "ProgramParticipation";
+                                webPartDefinition1.WebPart.Properties["Height"] = webPartHeight.ToString();
+                                //webPartDefinition1.WebPart.Properties["ChromeType"] = 2;
                                 webPartDefinition1.SaveWebPartChanges();
                             }
                         }
@@ -1041,7 +1257,32 @@ namespace SiteUtilityTest
             }
             return outcome;
         }
-
+        public static int gridHeight(string webUrl, PracticeSite site)
+        {
+            int intCount = -1;
+            int[] intHeight = new int[4] { 156, 253, 350, 447 };
+            try
+            {
+                if (site.IsIWH == "true")
+                {
+                    intCount++;
+                }
+                if (site.IsCKCC == "true")
+                {
+                    intCount++;
+                    intCount++;  // For Dialysis Starts...
+                }
+                if (site.IsKC365 == "true")
+                {
+                    intCount++;
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("gridHeight", ex.Message, "Error", webUrl);
+            }
+            return intHeight[intCount];
+        }
         public static void UpdateWebPartSize(string webURL)
         {
             var pageRelativeUrl = "/Pages/ProgramParticipation.aspx";
@@ -1404,6 +1645,7 @@ namespace SiteUtilityTest
 
         public static void CreateFolder(PracticeSite practiceSite, string docListName, string folderName)
         {
+            SiteLogUtility.Log_Entry("CreateFolder - In Progress...");
             try
             {
                 using (ClientContext clientContext = new ClientContext(practiceSite.URL))
@@ -1429,5 +1671,150 @@ namespace SiteUtilityTest
                 SiteLogUtility.CreateLogEntry("CreateFolder", ex.Message, "Error", practiceSite.URL);
             }
         }
+        public static bool SP_Update_ProgramParticipation(string wUrl, string pageName, string searchTitle, string newTitle, string newThumbnail)
+        {
+            SiteLogUtility.Log_Entry("SP_Update_ProgramParticipation - In Progress...");
+            string pageNameAspx = pageName + ".aspx";
+
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                try
+                {
+                    SiteFilesUtility siteFilesUtility = new SiteFilesUtility();
+                    string rootWebUrl = siteFilesUtility.GetRootSite(wUrl);
+                    string fileName1 = newThumbnail;
+
+                    Web web = clientContext.Web;
+                    List list = web.Lists.GetByTitle("Program Participation");
+                    clientContext.Load(web);
+                    clientContext.Load(list);
+                    clientContext.ExecuteQuery();
+                    View view = list.Views.GetByTitle("All Documents");
+
+                    clientContext.Load(view);
+                    clientContext.ExecuteQuery();
+                    CamlQuery query = new CamlQuery();
+                    query.ViewXml = view.ViewQuery;
+
+                    ListItemCollection items = list.GetItems(query);
+                    clientContext.Load(items);
+                    clientContext.ExecuteQuery();
+
+                    foreach (var item in items)
+                    {
+
+                        if (item["Title"].ToString().Contains(searchTitle))
+                        {
+                            SiteLogUtility.Log_Entry("BEFORE - ProgramNameText", true);
+                            SiteLogUtility.Log_Entry(item["ProgramNameText"].ToString(), true);
+
+                            item.File.CheckOut();
+                            clientContext.ExecuteQuery();
+                            item["Title"] = newTitle;
+                            item["ProgramNameText"] = web.Url + "/Pages/" + pageNameAspx;
+                            item["Thumbnail"] = wUrl + "/Program%20Participation/" + fileName1;
+                            item.Update();
+                            item.File.CheckIn("Z", CheckinType.OverwriteCheckIn);
+                            clientContext.ExecuteQuery();
+
+                            SiteLogUtility.Log_Entry("AFTER - ProgramNameText", true);
+                            SiteLogUtility.Log_Entry(item["ProgramNameText"].ToString(), true);
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("SP_Update_ProgramParticipation", ex.Message, "Error", wUrl);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        
+        public static object lockObjBenefitEnhancement = new object();
+        public static object lockObjQuality = new object();
+        public static object lockObjPayorEducation = new object();
+        public void uploadMultiPartSupportingFiles(string wUrl, PracticeSite practiceSite)
+        {
+            try
+            {
+                SiteListUtility slu = new SiteListUtility();
+                string strJSContentBenefitEnhancement = "";
+                string strJSContentQuality = "";
+                string strJSContentPayorEducation = "";
+                /*
+                 * BenefitEnhancement_MultiTab.js
+                 * Quality_MultiTab.js
+                 * PayorEducation_MultiTab.js
+                 */
+                string strJSFileServerPathBenefitEnhancement = LayoutsFolderMnt + "BenefitEnhancement_MultiTab.js";
+                string strJSFileServerPathQuality = LayoutsFolderMnt + "Quality_MultiTab.js";
+                string strJSFileServerPathPayorEducation = LayoutsFolderMnt + "PayorEducation_MultiTab.js";
+
+                if (practiceSite.IsIWH.Equals("true"))
+                {
+                    strJSContentQuality = @"var thisTab2 = {title: '" + slu.tabTitleQualityIwh + "',webParts: ['" + slu.webpartQualityIwh + "']};tabConfiguration.push(thisTab2);";
+                    strJSContentPayorEducation = @"var thisTab2 = {title: '" + slu.tabTitlePayorEducationIwh + "',webParts: ['" + slu.webpartPayorEducationIwh + "']};tabConfiguration.push(thisTab2);";
+                }
+                if (practiceSite.IsCKCC.Equals("true"))
+                {
+                    strJSContentBenefitEnhancement = @"var thisTab2 = {title: '" + slu.tabTitleBenefitEnhancementCkcc + "',webParts: ['" + slu.webpartBenefitEnhancementCkcc + "']};tabConfiguration.push(thisTab2);";
+                    
+                    strJSContentQuality = strJSContentQuality + @"var thisTab3 = {title: '" + slu.tabTitleQualityCkcc + "',webParts: ['" + slu.webpartQualityCkcc + "']};tabConfiguration.push(thisTab3);";
+                    //strJSContentPayorEducation = strJSContentPayorEducation + @"var thisTab3 = {title: '" + slu.tabTitlePayorEducationCkcc + "',webParts: ['" + slu.webpartPayorEducationCkcc + "']};tabConfiguration.push(thisTab3);";
+                }
+
+                strJSContentBenefitEnhancement = strJSContentBenefitEnhancement + "//*#funXXXX#*";
+                strJSContentQuality = strJSContentQuality + "//*#funXXXX#*";
+                strJSContentPayorEducation = strJSContentPayorEducation + "//*#funXXXX#*";
+
+                lock (lockObjBenefitEnhancement)
+                {
+                    List<string> lines = System.IO.File.ReadAllLines(strJSFileServerPathBenefitEnhancement).ToList<string>();
+                    for (var i = 0; i < lines.Count; i++)
+                    {
+                        if (lines[i].Contains("//*#funXXXX#*"))
+                        {
+                            lines[i] = strJSContentBenefitEnhancement;
+                        }
+                    }
+                    System.IO.File.WriteAllLines(strJSFileServerPathBenefitEnhancement, lines);
+                }
+
+                lock (lockObjQuality)
+                {
+                    List<string> lines = System.IO.File.ReadAllLines(strJSFileServerPathQuality).ToList<string>();
+                    for (var i = 0; i < lines.Count; i++)
+                    {
+                        if (lines[i].Contains("//*#funXXXX#*"))
+                        {
+                            lines[i] = strJSContentQuality;
+                        }
+                    }
+                    System.IO.File.WriteAllLines(strJSFileServerPathQuality, lines);
+                }
+
+                lock (lockObjPayorEducation)
+                {
+                    List<string> lines = System.IO.File.ReadAllLines(strJSFileServerPathPayorEducation).ToList<string>();
+                    for (var i = 0; i < lines.Count; i++)
+                    {
+                        if (lines[i].Contains("//*#funXXXX#*"))
+                        {
+                            lines[i] = strJSContentPayorEducation;
+                        }
+                    }
+                    System.IO.File.WriteAllLines(strJSFileServerPathPayorEducation, lines);
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("uploadMultiPartSupportingFiles", ex.Message, "Error", wUrl);
+            }
+        }
+        
     }
 }

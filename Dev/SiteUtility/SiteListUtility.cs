@@ -10,23 +10,52 @@ namespace SiteUtility
 {
     public class SiteListUtility
     {
-        public string listNameBenefitEnhancement = "BenefitEnhancement";
-        public string listTitleBenefitEnhancement = "Benefit Enhancement";
-        public string listFolder1BenefitEnhancement = "Benefit Enhancement Training";
+        // Benefit Enhancement...
         public string pageNameBenefitEnhancement = "BenefitEnhancement";
         public string pageTitleBenefitEnhancement = "Benefit Enhancement";
 
-        public string listNameQuality = "Quality";
-        public string listTitleQuality = "Quality";
-        public string listFolder1Quality = "Quality Reports";
+        public string listNameBenefitEnhancementCkcc = "BenefitEnhancementCkcc";
+        public string listTitleBenefitEnhancementCkcc = "Benefit Enhancement Ckcc";
+        public string listFolder1BenefitEnhancementCkcc = "Benefit Enhancement Training";
+        public string tabTitleBenefitEnhancementCkcc = "CKCC/KCE";
+        public string webpartBenefitEnhancementCkcc = "BenefitEnhancement_Ckcc";
+
+        // Quality...
         public string pageNameQuality = "Quality";
         public string pageTitleQuality = "Quality";
 
-        public string listNamePayorEducation = "PayorEdResources";
-        public string listTitlePayorEducation = "Payor Education Resources";
-        public string listFolder1PayorEducation = "Education";
+        public string listNameQualityIwh = "QualityIwh";
+        public string listTitleQualityIwh = "QualityIwh";
+        public string listFolder1QualityIwh = "Quality Reporting";
+        public string listFolder2QualityIwh = @"Education-Training-Resources";
+        public string listFolder3QualityIwh = "Supporting Documentation from Practices";
+        public string tabTitleQualityIwh = "Payor Programs";
+        public string webpartQualityIwh = "Quality_Iwh";
+
+        public string listNameQualityCkcc = "QualityCkcc";
+        public string listTitleQualityCkcc = "QualityCkcc";
+        public string listFolder1QualityCkcc = "Quality Reporting";
+        public string listFolder2QualityCkcc = @"Education-Training-Resources";
+        public string listFolder3QualityCkcc = "Supporting Documentation from Practices";
+        public string tabTitleQualityCkcc = "CKCC/KCE";
+        public string webpartQualityCkcc = "Quality_Ckcc";
+
+        // Payor Education...
         public string pageNamePayorEducation = "PayorEdResources";
         public string pageTitlePayorEducation = "Payor Education Resources";
+
+        public string listNamePayorEducationIwh = "PayorEdResourcesIwh";
+        public string listTitlePayorEducationIwh = "Payor Education Resources Iwh";
+        public string listFolder1PayorEducationIwh = "Education";
+        public string tabTitlePayorEducationIwh = "Payor Programs";
+        public string webpartPayorEducationIwh = "PayorEducation_Iwh";
+
+        public string listNamePayorEducationCkcc = "PayorEdResourcesCkcc";
+        public string listTitlePayorEducationCkcc = "Payor Education Resources Ckcc";
+        public string listFolder1PayorEducationCkcc = "Education";
+        public string tabTitlePayorEducationCkcc = "CKCC/KCE";
+        public string webpartPayorEducationCkcc = "PayorEducation_Ckcc";
+
 
         public static void ListFunction1()
         {

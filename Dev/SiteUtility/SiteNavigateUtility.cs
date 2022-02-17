@@ -519,6 +519,89 @@ namespace SiteUtility
             }
         }
 
+        public static void ClearQuickNavigationRecent(string wUrl)
+        {
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                {
+                    Web w = clientContext.Web;
+
+                    try
+                    {
+                        PublishingWeb pweb = PublishingWeb.GetPublishingWeb(clientContext, w);
+                        SPNavPub.WebNavigationSettings wnavs = new SPNavPub.WebNavigationSettings(clientContext, w);
+                        NavigationNodeCollection collQuickLaunchNode = pweb.Web.Navigation.QuickLaunch;
+                        clientContext.Load(collQuickLaunchNode);
+                        clientContext.ExecuteQuery();
+
+                        if (collQuickLaunchNode.Count > 0)
+                        {
+                            ClearNavigationRecent(wUrl, collQuickLaunchNode);
+                            //wnavs.Update();
+                            //pweb.Update();
+                            //w.Update();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SiteLogUtility.CreateLogEntry("ClearQuickNavigationRecent", ex.Message, "Error", wUrl);
+                    }
+                }
+            }
+        }
+
+        private static void ClearNavigationRecent(string webUrl, NavigationNodeCollection nodes)
+        {
+            try
+            {
+                string strNodeToRemove = "Recent";
+                using (ClientContext clientContext = new ClientContext(webUrl))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    {
+                        var w = clientContext.Web;
+                        clientContext.Load(w);
+                        clientContext.ExecuteQuery();
+
+                        NavigationNodeCollection qlNodes = clientContext.Web.Navigation.QuickLaunch;
+                        clientContext.Load(qlNodes);
+                        clientContext.ExecuteQuery();
+
+                        List<NavigationNode> qlNodesToDelete = new List<NavigationNode>();
+
+                        foreach (var node in qlNodes)
+                        {
+                            if (node.Title.Contains(strNodeToRemove))
+                            {
+                                // Delete child nodes...
+                                clientContext.Load(node.Children);
+                                clientContext.ExecuteQuery();
+                                node.Children.ToList().ForEach(nodeChild => nodeChild.DeleteObject());
+                                clientContext.ExecuteQuery();
+
+                                // Add node to List to delete...
+                                qlNodesToDelete.Add(node);
+                            }
+                        }
+
+                        // Delete nodes from quick launch...
+                        foreach (NavigationNode nodeItem in qlNodesToDelete)
+                        {
+                            clientContext.Load(nodeItem);
+                            clientContext.ExecuteQuery();
+                            nodeItem.DeleteObject();
+                            clientContext.ExecuteQuery();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("ClearNavigationRecent", ex.Message, "Error", "");
+            }
+        }
+
         public static void QuickLaunch_InitialAdjustmentPublishing(string sUrl)
         {
             using (ClientContext clientContext = new ClientContext(sUrl))

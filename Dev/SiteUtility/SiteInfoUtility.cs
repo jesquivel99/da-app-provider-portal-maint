@@ -406,7 +406,7 @@ namespace SiteUtility
                 }
                 else
                 {
-                    SiteLogUtility.Log_Entry(TIN + " - " + pmData.ProgramParticipation, true);
+                    SiteLogUtility.Log_Entry(TIN + " - " + pmData.ProgramParticipation);
                     return pmData.ProgramParticipation;
                 }
             }
