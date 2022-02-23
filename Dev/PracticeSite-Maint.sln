@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_5_ModifyView", "R_1_5_M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_6_Benefit-Quality-Payor", "R_1_6_Benefit-Quality-Payor\R_1_6_Benefit-Quality-Payor.csproj", "{AAE4797E-8CF1-4425-9252-6375A81F72A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_7_Referrall", "R_1_7_Referrall\R_1_7_Referrall.csproj", "{E6CBEF2B-EECC-441E-9DE2-9BC6BBC0C48A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6CBEF2B-EECC-441E-9DE2-9BC6BBC0C48A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6CBEF2B-EECC-441E-9DE2-9BC6BBC0C48A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6CBEF2B-EECC-441E-9DE2-9BC6BBC0C48A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6CBEF2B-EECC-441E-9DE2-9BC6BBC0C48A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -65,7 +71,7 @@ Global
 		SolutionGuid = {31813A0A-12DA-4840-B68C-846C9614C493}
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 9
+		SccNumberOfProjects = 10
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = http://or-tfs-svr-01:8080/tfs/defaultcollection
 		SccLocalPath0 = .
@@ -93,5 +99,8 @@ Global
 		SccProjectUniqueName8 = R_1_6_Benefit-Quality-Payor\\R_1_6_Benefit-Quality-Payor.csproj
 		SccProjectName8 = R_1_6_Benefit-Quality-Payor
 		SccLocalPath8 = R_1_6_Benefit-Quality-Payor
+		SccProjectUniqueName9 = R_1_7_Referrall\\R_1_7_Referrall.csproj
+		SccProjectName9 = R_1_7_Referrall
+		SccLocalPath9 = R_1_7_Referrall
 	EndGlobalSection
 EndGlobal

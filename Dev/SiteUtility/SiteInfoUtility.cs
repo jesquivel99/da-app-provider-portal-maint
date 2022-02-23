@@ -99,6 +99,53 @@ namespace SiteUtility
             }
         }
 
+        public static List<PMData> SP_GetAll_PMData(string urlAdminGrp, string strSiteID)
+        {
+            List<PMData> pmData = new List<PMData>();
+            SitePMData sitePMData = new SitePMData();
+
+            using (ClientContext clientContext = new ClientContext(urlAdminGrp))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+                List list = clientContext.Web.Lists.GetByTitle("AdminGroup");
+                clientContext.Load(list);
+                clientContext.ExecuteQuery();
+                View view = list.Views.GetByTitle("All Links");
+
+                clientContext.Load(view);
+                clientContext.ExecuteQuery();
+                CamlQuery camlQuery = new CamlQuery();
+                camlQuery.ViewXml = "<View><Query><Where><Eq><FieldRef Name='PracticeTIN' /><Value Type='Text'>" + strSiteID + "</Value></Eq></Where></Query></View>";
+
+                ListItemCollection items = list.GetItems(camlQuery);
+                clientContext.Load(items);
+                clientContext.ExecuteQuery();
+                //   SiteLogUtility.Log_Entry("Total Count: " + items.Count, true);
+
+                foreach (var item in items)
+                {
+                    PMData pmd = new PMData();
+
+
+                    //   SiteLogUtility.Log_Entry(item["PracticeTIN"] + " - " + item["PracticeName"] + " - " + item["ProgramParticipation"], true);
+
+                    pmd.PracticeName = item["PracticeName"].ToString();
+                    pmd.PracticeTIN = item["PracticeTIN"].ToString();
+                    pmd.SiteId = item["PracticeTIN"].ToString();
+                    pmd.ProgramParticipation = item["ProgramParticipation"].ToString();
+
+                    pmd.IsKC365 = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationKC365) ? "true" : "false";
+                    pmd.IsCKCC = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationCKCC) ? "true" : "false";
+                    pmd.IsIWH = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationIWH) ? "true" : "false";
+
+                    pmData.Add(pmd);
+                }
+            }
+
+            return pmData;
+        }
+
         public static List<ProgramManagerSite> GetAllPracticeDetails(ClientContext clientContext, List<Practice> pracIWH=null, List<Practice> pracCKCC = null, List<PMData> pmData = null)
         {
             clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);

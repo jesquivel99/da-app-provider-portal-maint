@@ -9,13 +9,16 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SiteUtilityTest
+namespace R_1_7_Referrall
 {
-    public class ProgramNew
+    public class Program
     {
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
-        public void InitiateProg()
+
+        static void Main(string[] args)
+        { }
+            public void InitiateProg()
         {
             string sAdminListName = ConfigurationManager.AppSettings["AdminRootListName"];
             string releaseName = "SiteUtilityTest";
@@ -36,23 +39,23 @@ namespace SiteUtilityTest
                     List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
                     foreach (ProgramManagerSite pm in practicePMSites)
                     {
-                       // if (pm.ProgramManager == "01")
-                       // {
-                            foreach (PracticeSite psite in pm.PracticeSiteCollection)
+                        // if (pm.ProgramManager == "01")
+                        // {
+                        foreach (PracticeSite psite in pm.PracticeSiteCollection)
+                        {
+                            List<PMData> pmd = SiteInfoUtility.SP_GetAll_PMData(pm.URL, psite.SiteId);
+                            if (pmd.Count > 0)
                             {
-                                List<PMData> pmd = SiteInfoUtility.SP_GetAll_PMData(pm.URL, psite.SiteId);
-                                if (pmd.Count > 0)
+                                if (pmd[0].IsCKCC == "true")
                                 {
-                                    if (pmd[0].IsCKCC == "true")
-                                    {
-                                        ReferralSetup(psite.URL + "/");
-                                    }
-                                    Console.WriteLine(psite.URL);
-                                    Console.WriteLine(psite.Name + " setup is completed");
-                                    Console.WriteLine("=======================================");
+                                    ReferralSetup(psite.URL + "/");
                                 }
+                                Console.WriteLine(psite.URL);
+                                Console.WriteLine(psite.Name + " setup is completed");
+                                Console.WriteLine("=======================================");
                             }
-                      //  }
+                        }
+                        //  }
                     }
                 }
                 catch (Exception ex)
@@ -96,7 +99,7 @@ namespace SiteUtilityTest
 
 
                 addSWReferralNavigationNode(sitrUrl);
-                
+
 
                 //break inheritance for new pages Referrals.aspx and ReferralPage.aspx
                 //add new security to Referrals.aspx and ReferralPage.aspx
@@ -197,7 +200,7 @@ namespace SiteUtilityTest
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("ConfigureReferralPage", ex.Message, "Error", strPortalSiteURL);
-            }            
+            }
         }
 
         public string contentEditorXML(string webPartTitle, string webPartHeight, string webPartWidth, string webPartContentLink)
@@ -260,12 +263,12 @@ namespace SiteUtilityTest
                     clientContext.Load(webParts);
                     clientContext.ExecuteQuery();
 
-                    for(int intLoop = 0; intLoop < wpManager.WebParts.Count; intLoop++)
+                    for (int intLoop = 0; intLoop < wpManager.WebParts.Count; intLoop++)
                     {
                         WebPartDefinition obj = wpManager.WebParts[intLoop];
                         clientContext.Load(obj.WebPart);
                         clientContext.ExecuteQuery();
-                        if(obj.WebPart.Title == "Care Plans")
+                        if (obj.WebPart.Title == "Care Plans")
                         {
                             obj.WebPart.Properties["Height"] = "475px";
                             obj.SaveWebPartChanges();
@@ -343,7 +346,7 @@ namespace SiteUtilityTest
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("addSecurityGroupToList", ex.Message, "Error", strPortalSiteURL);
-            }            
+            }
         }
 
         public void addSecurityGroupToASPXPage(string strURL, string strSecurityGroupName, string strListName, string strPermissionType, string strPageName)
@@ -362,7 +365,8 @@ namespace SiteUtilityTest
                     ListItemCollection items = targetList.GetItems(camlQuery);
                     clientContext.Load(items);
                     clientContext.ExecuteQuery();
-                    foreach (var item in items) {
+                    foreach (var item in items)
+                    {
                         Group group = clientContext.Web.SiteGroups.GetByName(strSecurityGroupName);
                         RoleDefinitionBindingCollection roleDefCollection = new RoleDefinitionBindingCollection(clientContext);
 
@@ -399,9 +403,8 @@ namespace SiteUtilityTest
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("getSiteID", ex.Message, "Error", strPortalSiteURL);
-            }            
+            }
             return strRealSiteID;
         }
-
     }
 }

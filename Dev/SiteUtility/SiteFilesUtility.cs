@@ -32,18 +32,6 @@ namespace SiteUtility
                     var uploadFile = targetFolder.Files.Add(fileCreationInfo);
                     clientContext.Load(uploadFile);
                     clientContext.ExecuteQuery();
-
-                    //FileCreationInformation fcInfo = new FileCreationInformation();
-                    //fcInfo.Url = fileName;
-                    //fcInfo.Overwrite = true;
-                    //fcInfo.Content = System.IO.File.ReadAllBytes(filePath);
-
-                    //Web myWeb = clientContext.Web;
-                    //List myLibrary = myWeb.Lists.GetByTitle(LibraryName);
-                    //myLibrary.RootFolder.Files.Add(fcInfo);
-                    //clientContext.ExecuteQuery();
-
-                    SiteLogUtility.Log_Entry($"--      Pages Audit: {siteURL}/{LibraryName}/{fileName}", true);
                 }
                 catch (Exception ex)
                 {
