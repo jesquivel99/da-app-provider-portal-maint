@@ -13,8 +13,18 @@ namespace SiteUtilityTest
 {
     public class ProgramNew_Vignesh
     {
-        string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
-        string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
+        //dev
+        string rootUrl = "https://sharepointdev.fmc-na-icg.com";
+        string strPortalSiteURL = "https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal";
+        string strReferralURL = "https://sharepointdev.fmc-na-icg.com/bi/fhppp/interimckcc/referral"; //NO SLASH AT THE END
+
+        /*
+        //PROD
+        string rootUrl = "http://vh2-sp-01/";
+        string strPortalSiteURL = "http://vh2-sp-01/bi/fhppp/portal";
+        string strReferralURL = "http://vh2-sp-01/bi/fhppp/portal/referral"; //NO SLASH AT THE END
+        */
+
         public void InitiateProg()
         {
             string sAdminListName = ConfigurationManager.AppSettings["AdminRootListName"];
@@ -69,7 +79,6 @@ namespace SiteUtilityTest
         {
             try
             {
-                string strReferralURL = "https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/referral";//NO SLASH AT THE END
                 string strSiteID = getSiteID(sitrUrl);
 
                 addSecurityGroupToList(strReferralURL, "Prac_" + strSiteID + "_User", "DialysisStarts", "Contribute");
