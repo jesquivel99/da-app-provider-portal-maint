@@ -2,6 +2,7 @@
 using Microsoft.SharePoint.Client.WebParts;
 using SiteUtility;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -25,6 +26,9 @@ namespace SiteUtilityTest
         string strReferralURL = "http://vh2-sp-01/bi/fhppp/portal/referral"; //NO SLASH AT THE END
         */
 
+        string ResultLog = "=============Release Starts=============\r\n";
+        string textLine = "\r\n=======================================\r\n";
+
         public void InitiateProg()
         {
             string sAdminListName = ConfigurationManager.AppSettings["AdminRootListName"];
@@ -38,14 +42,13 @@ namespace SiteUtilityTest
             using (ClientContext clientContext = new ClientContext(strPortalSiteURL))
             {
                 clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                Console.WriteLine("=============Release Starts=============");
 
                 try
                 {
                     List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
                     foreach (ProgramManagerSite pm in practicePMSites)
                     {
-                        // if (pm.ProgramManager == "01") {
+                        if (pm.ProgramManager == "01") {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
                             List<PMData> pmd = SiteInfoUtility.SP_GetAll_PMData(pm.URL, psite.SiteId);
@@ -53,14 +56,17 @@ namespace SiteUtilityTest
                             {
                                 if (pmd[0].IsCKCC == "true")
                                 {
-                                    ReferralSetup(psite.URL + "/");
+                                    //ReferralSetup(psite.URL + "/");
+
+                                    ResultLog += textLine + psite.Name + "\r\n" + psite.URL + "\r\nSite is CKCC - Setup is Complete;" + textLine;
                                 }
-                                Console.WriteLine(psite.URL);
-                                Console.WriteLine(psite.Name + " setup is completed");
-                                Console.WriteLine("=======================================");
+                                else
+                                {
+                                    ResultLog += textLine + psite.Name + "\r\n" + psite.URL + "\r\nSite is NOT CKCC; No changes made;" + textLine;
+                                }
                             }
                         }
-                        // }
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -68,10 +74,11 @@ namespace SiteUtilityTest
                     SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", strPortalSiteURL);
                 }
 
-                Console.WriteLine("=======================================");
-                Console.WriteLine("3. Maintenance Tasks Complete - Complete");
-                Console.WriteLine("=============Release Ends=============");
-                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "=============Release Ends=============", "Log", strPortalSiteURL);
+                ResultLog += textLine + "=============Release Ends=============";
+                string fileName = "ResultLog_" + DateTime.Now.ToString("yyyyMMdd") + "_" + DateTime.Now.ToString("HHmmss") + ".txt";
+                string filePath = Path.Combine(@"C:\SVK\OptStart", fileName);
+                using (StreamWriter sw = new StreamWriter(filePath))
+                    sw.WriteLine(ResultLog);
             }
         }
 
