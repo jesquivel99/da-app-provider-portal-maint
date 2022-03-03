@@ -48,25 +48,26 @@ namespace SiteUtilityTest
                     List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
                     foreach (ProgramManagerSite pm in practicePMSites)
                     {
-                        if (pm.ProgramManager == "01") {
-                        foreach (PracticeSite psite in pm.PracticeSiteCollection)
-                        {
-                            List<PMData> pmd = SiteInfoUtility.SP_GetAll_PMData(pm.URL, psite.SiteId);
-                            if (pmd.Count > 0)
+                        //if (pm.ProgramManager == "08")
+                        //{
+                            foreach (PracticeSite psite in pm.PracticeSiteCollection)
                             {
-                                if (pmd[0].IsCKCC == "true")
+                                List<PMData> pmd = SiteInfoUtility.SP_GetAll_PMData(pm.URL, psite.SiteId);
+                                if (pmd.Count > 0)
                                 {
-                                    //ReferralSetup(psite.URL + "/");
+                                    if (pmd[0].IsCKCC == "true")
+                                    {
+                                        ReferralSetup(psite.URL + "/");
 
-                                    ResultLog += textLine + psite.Name + "\r\n" + psite.URL + "\r\nSite is CKCC - Setup is Complete;" + textLine;
-                                }
-                                else
-                                {
-                                    ResultLog += textLine + psite.Name + "\r\n" + psite.URL + "\r\nSite is NOT CKCC; No changes made;" + textLine;
+                                        ResultLog += textLine + psite.Name + "\r\n" + psite.URL + "\r\nSite is CKCC - Setup is Complete;" + textLine;
+                                    }
+                                    else
+                                    {
+                                        ResultLog += textLine + psite.Name + "\r\n" + psite.URL + "\r\nSite is NOT CKCC; No changes made;" + textLine;
+                                    }
                                 }
                             }
-                        }
-                        }
+                        //}
                     }
                 }
                 catch (Exception ex)
@@ -87,9 +88,7 @@ namespace SiteUtilityTest
             try
             {
                 string strSiteID = getSiteID(sitrUrl);
-
                 addSecurityGroupToList(strReferralURL, "Prac_" + strSiteID + "_User", "DialysisStarts", "Contribute");
-                addSecurityGroupToList(strReferralURL, "Prac_" + strSiteID + "_User", "Site Assets", "Contribute");
             }
             catch (Exception ex)
             {
@@ -142,6 +141,8 @@ namespace SiteUtilityTest
                         roleAssign.Update();
                         clientContext.ExecuteQuery();
                     }
+                    else
+                        ResultLog += "\r\nCannot add permissions - does NOT HasUniqueRoleAssignments;" + textLine;
                 }
             }
             catch (Exception ex)
