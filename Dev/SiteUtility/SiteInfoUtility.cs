@@ -99,6 +99,13 @@ namespace SiteUtility
             }
         }
 
+        /// <summary>
+        /// SP_GetAll_PMData will read the AdminGroup SharePoint List for a given Program Manager site and a single Practice site
+        ///     and return a List of Type PMData
+        /// </summary>
+        /// <param name="urlAdminGrp"></param>
+        /// <param name="strSiteID"></param>
+        /// <returns>List of Type PMData</returns>
         public static List<PMData> SP_GetAll_PMData(string urlAdminGrp, string strSiteID)
         {
             List<PMData> pmData = new List<PMData>();
@@ -146,6 +153,88 @@ namespace SiteUtility
             return pmData;
         }
 
+        /// <summary>
+        /// SP_GetAll_PMData will read the AdminGroup SharePoint List for a given Program Manager site and the PM's Practice sites
+        ///     and return a List of Type PMData
+        /// </summary>
+        /// <param name="urlAdminGrp"></param>
+        /// <returns>List of Type PMData</returns>
+        public static List<PMData> SP_GetAll_PMData_All(string urlAdminGrp)
+        {
+            List<PMData> pmData = new List<PMData>();
+            SitePMData sitePMData = new SitePMData();
+            int cntRunAdminGroup = 0;
+
+            using (ClientContext clientContext = new ClientContext(urlAdminGrp))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+                List list = clientContext.Web.Lists.GetByTitle("AdminGroup");
+                clientContext.Load(list);
+                clientContext.ExecuteQuery();
+                View view = list.Views.GetByTitle("All Links");
+
+                clientContext.Load(view);
+                clientContext.ExecuteQuery();
+                CamlQuery query = new CamlQuery();
+                query.ViewXml = view.ViewQuery;
+
+                ListItemCollection items = list.GetItems(query);
+                clientContext.Load(items);
+                clientContext.ExecuteQuery();
+                SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
+                SiteLogUtility.Log_Entry("Total Count: " + items.Count, true);
+                cntRunAdminGroup = items.Count;
+
+                foreach (var item in items)
+                {
+                    PMData pmd = new PMData();
+
+
+                    SiteLogUtility.Log_Entry(item["PracticeTIN"] + " - " + item["PracticeName"] + " - " + item["ProgramParticipation"], true);
+
+                    pmd.PracticeName = item["PracticeName"].ToString();
+                    pmd.PracticeTIN = item["PracticeTIN"].ToString();
+                    pmd.SiteId = item["PracticeTIN"].ToString();
+                    pmd.ProgramParticipation = item["ProgramParticipation"].ToString();
+
+                    pmd.IsKC365 = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationKC365) ? "true" : "false";
+                    pmd.IsCKCC = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationCKCC) ? "true" : "false";
+                    pmd.IsIWH = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationIWH) ? "true" : "false";
+
+                    pmData.Add(pmd);
+                }
+            }
+
+            return pmData;
+        }
+        public static List<PMData> initPMDataToList(string adminGroupUrl)
+        {
+            List<PMData> pmData = new List<PMData>();
+            try
+            {
+                pmData = SP_GetPortalData_PMData(adminGroupUrl);
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("initPMDataToList", ex.Message, "Error", "");
+            }
+            return pmData;
+        }
+        public static List<PMData> SP_GetPortalData_PMData(string adminGroupUrl)
+        {
+            List<PMData> All_PortalData = new List<PMData>();
+            try
+            {
+                All_PortalData = SP_GetAll_PMData_All(adminGroupUrl);
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("SP_GetPortalData_PMData", ex.Message, "Error", "");
+            }
+
+            return All_PortalData;
+        }
         public static List<ProgramManagerSite> GetAllPracticeDetails(ClientContext clientContext, List<Practice> pracIWH=null, List<Practice> pracCKCC = null, List<PMData> pmData = null)
         {
             clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
@@ -172,9 +261,9 @@ namespace SiteUtility
                         pmSite.IWNSiteMgrReadOnlyPermission = pmAssignments.PMGroup + "_ReadOnly";
                         pmSite.PracticeSiteCollection = new List<PracticeSite>();
 
-                        SiteLogUtility.Log_Entry(SiteLogUtility.textLine);
-                        SiteLogUtility.Log_Entry($"{pmSite.ProgramManagerName} - {pmSite.ProgramManager}");
-                        SiteLogUtility.Log_Entry(pmSite.PMURL);
+                        //SiteLogUtility.Log_Entry(SiteLogUtility.textLine);
+                        //SiteLogUtility.Log_Entry($"{pmSite.ProgramManagerName} - {pmSite.ProgramManager}");
+                        //SiteLogUtility.Log_Entry(pmSite.PMURL);
 
                         using (ClientContext clientContext0 = new ClientContext(web.Url))
                         {
@@ -207,15 +296,15 @@ namespace SiteUtility
 
                                 pmSite.PracticeSiteCollection.Add(practiceSite);
 
-                                SiteLogUtility.Log_Entry(practiceSite.Name);
-                                SiteLogUtility.Log_Entry(practiceSite.URL);
+                                //SiteLogUtility.Log_Entry(practiceSite.Name);
+                                //SiteLogUtility.Log_Entry(practiceSite.URL);
                             }
                         }
 
                         if (pmSite.PMURL.Contains("admingroup01") == false)
                         {
                             pmSites.Add(pmSite);
-                            SiteLogUtility.Log_Entry($"Total Practices:  {pmSite.PracticeSiteCollection.Count}");
+                            //SiteLogUtility.Log_Entry($"Total Practices:  {pmSite.PracticeSiteCollection.Count}");
                         } 
                     }
                     
@@ -453,14 +542,15 @@ namespace SiteUtility
                 }
                 else
                 {
-                    SiteLogUtility.Log_Entry(TIN + " - " + pmData.ProgramParticipation);
+                    SiteLogUtility.Log_Entry(SiteLogUtility.textLine0);
+                    SiteLogUtility.Log_Entry(TIN + " - " + pmData.ProgramParticipation, true);
                     return pmData.ProgramParticipation;
                 }
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("MapProgramParticipation", ex.Message, "Error", "");
-                SiteLogUtility.Log_Entry("Error - Program Participation Does Not Exist: " + TIN, true);
+                //SiteLogUtility.CreateLogEntry("MapProgramParticipation", ex.Message, "Error", "");
+                //SiteLogUtility.Log_Entry("Error - Program Participation Does Not Exist: " + TIN, true);
                 return "";
             }
         }
@@ -469,11 +559,6 @@ namespace SiteUtility
         {
             try
             {
-                //var pmDataList = pmd.Where(p => p.SiteId.Contains(TIN)).FirstOrDefault().ToString();
-                //if(pmDataList.Length.Equals(0))
-                //{
-
-                //}
                 PMData pmDataReturn = pmd
                     .Where(p => p != null)
                     .Where(p => p.SiteId.Contains(TIN)).FirstOrDefault();
@@ -484,14 +569,14 @@ namespace SiteUtility
                 }
                 else
                 {
-                    SiteLogUtility.Log_Entry(TIN + " - " + pmDataReturn.ProgramParticipation, true);
+                    //SiteLogUtility.Log_Entry(TIN + " - " + pmDataReturn.ProgramParticipation, true);
                     return pmDataReturn;
                 }
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("MapProgramParticipation", ex.Message, "Error", "");
-                SiteLogUtility.Log_Entry("Error - Program Participation Does Not Exist: " + TIN, true);
+                //SiteLogUtility.CreateLogEntry("MapProgramParticipation", ex.Message, "Error", "");
+                //SiteLogUtility.Log_Entry("Error - Program Participation Does Not Exist: " + TIN, true);
                 return null;
             }
         }

@@ -11,14 +11,24 @@ namespace SiteUtility
     public class SiteListUtility
     {
         // Benefit Enhancement...
-        public string pageNameBenefitEnhancement = "BenefitEnhancement";
-        public string pageTitleBenefitEnhancement = "Benefit Enhancement";
+        public string pageNameBenefitEnhancement = "CkccKceResources";
+        public string pageTitleBenefitEnhancement = "CKCC/KCE Resources";
 
         public string listNameBenefitEnhancementCkcc = "BenefitEnhancementCkcc";
         public string listTitleBenefitEnhancementCkcc = "Benefit Enhancement Ckcc";
         public string listFolder1BenefitEnhancementCkcc = "Benefit Enhancement Training";
+        public string listFolder2BenefitEnhancementCkcc = "Operating Guides and Documents";
         public string tabTitleBenefitEnhancementCkcc = "CKCC/KCE";
         public string webpartBenefitEnhancementCkcc = "BenefitEnhancement_Ckcc";
+
+        //public string pageNameBenefitEnhancement = "BenefitEnhancement";
+        //public string pageTitleBenefitEnhancement = "Benefit Enhancement";
+
+        //public string listNameBenefitEnhancementCkcc = "BenefitEnhancementCkcc";
+        //public string listTitleBenefitEnhancementCkcc = "Benefit Enhancement Ckcc";
+        //public string listFolder1BenefitEnhancementCkcc = "Benefit Enhancement Training";
+        //public string tabTitleBenefitEnhancementCkcc = "CKCC/KCE";
+        //public string webpartBenefitEnhancementCkcc = "BenefitEnhancement_Ckcc";
 
         // Quality...
         public string pageNameQuality = "Quality";
@@ -107,30 +117,75 @@ namespace SiteUtility
             }
         }
 
-        public Guid CreateDocumentLibrary(string strListName, string strWebURL)
+        public Guid CreateDocumentLibrary(string strListName, string strWebURL, PracticeSite practiceSite)
         {
             Guid _listGuid = Guid.Empty;
-            try
+            bool createList = true;
+
+            using (ClientContext clientContext = new ClientContext(strWebURL))
             {
-                using (ClientContext clientContext = new ClientContext(strWebURL))
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
                 {
-                    // The properties of the new custom list
-                    ListCreationInformation creationInfo = new ListCreationInformation();
-                    creationInfo.Title = strListName;
-                    creationInfo.TemplateType = (int)ListTemplateType.DocumentLibrary;
+                    Web w = clientContext.Web;
+                    try
+                    {
+                        if (strListName.Contains("iwh"))
+                        {
+                            if (practiceSite.siteType != null && practiceSite.siteType.Contains("iwh"))
+                            {
+                                createList = true;
+                            }
+                            else
+                            {
+                                createList = false;
+                            }
+                        }
 
-                    List newList = clientContext.Web.Lists.Add(creationInfo);
-                    clientContext.Load(newList, o => o.Id);
-                    clientContext.ExecuteQuery();
-                    _listGuid = newList.Id;
+                        if (strListName.Contains("ckcc"))
+                        {
+                            if (practiceSite.siteType != null && practiceSite.siteType.Contains("ckcc"))
+                            {
+                                createList = true;
+                            }
+                            else
+                            {
+                                createList = false;
+                            }
+                        }
 
-                    return _listGuid;
+                        if (strListName.Contains("kc365"))
+                        {
+                            if (practiceSite.siteType != null && practiceSite.siteType.Contains("kc365"))
+                            {
+                                createList = true;
+                            }
+                            else
+                            {
+                                createList = false;
+                            }
+                        }
+                        if (createList)
+                        {
+                            // The properties of the new document library...
+                            ListCreationInformation creationInfo = new ListCreationInformation();
+                            creationInfo.Title = strListName;
+                            creationInfo.TemplateType = (int)ListTemplateType.DocumentLibrary;
+
+                            List newList = clientContext.Web.Lists.Add(creationInfo);
+                            clientContext.Load(newList, o => o.Id);
+                            clientContext.ExecuteQuery();
+                            _listGuid = newList.Id; 
+                        }
+
+                        return _listGuid;
+
+                    }
+                    catch (Exception ex)
+                    {
+                        SiteLogUtility.CreateLogEntry("CreateDocumentLibrary", ex.Message, "Error", strWebURL);
+                        return Guid.Empty;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                SiteLogUtility.CreateLogEntry("CreateDocumentLibrary", ex.Message, "Error", strWebURL);
-                return Guid.Empty;
             }
         }
 

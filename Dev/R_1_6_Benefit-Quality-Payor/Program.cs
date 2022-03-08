@@ -19,26 +19,36 @@ namespace R_1_6_Benefit_Quality_Payor
 {
     class Program
     {
+        /// <summary>
+        /// NOTES:
+        /// Update LayoutsFolderMnt (if needed)
+        /// Update runPM variable - variable will be used to determine PM site execution
+        /// Update urlAdminGroup - this url will point to the AdminGroup list for a given PM
+        /// Update rootUrl and siteUrl in the App.config file
+        /// </summary>
         static string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
         static public List<Practice> practicesIWH = new List<Practice>();
         static public List<Practice> practicesCKCC = new List<Practice>();
         static Guid _listGuid = Guid.Empty;
+        static int cntRun = 0;
+        static int cntRunAdminGroup = 0;
+        static int cntIsCkcc = 0;
+        static int cntIsIwh = 0;
+        static int cntIsKc365 = 0;
 
         static void Main(string[] args)
         {
             string releaseName = "Benefit-Quality-Payor";
             string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
-            string srcUrlIWH = ConfigurationManager.AppSettings["SP_IWHUrl"];
-            string srcUrlCKCC = ConfigurationManager.AppSettings["SP_CKCCUrl"];
-            string siteInfoFile = ConfigurationManager.AppSettings["Csv_File"];
 
-            string urlAdminGroup = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/PM08";
+            string runPM = "PM04";
+            string urlAdminGroup = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/" + runPM;
 
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
             SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
-
-            List<PMData> pmData = initPMDataToList(urlAdminGroup);
+            
+            
 
             using (ClientContext clientContext = new ClientContext(siteUrl))
             {
@@ -46,6 +56,10 @@ namespace R_1_6_Benefit_Quality_Payor
 
                 try
                 {
+                    SiteLogUtility.Log_Entry("Processing AdminGroup: " + urlAdminGroup, true);
+                    SiteLogUtility.Log_Entry(SiteLogUtility.textLine0);
+                    List<PMData> pmData = initPMDataToList(urlAdminGroup);
+
                     SiteLogUtility.Log_Entry("\n\n=============[ Get all Portal Practice Data ]=============", true);
                     List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext, practicesIWH, practicesCKCC, pmData);
 
@@ -54,27 +68,52 @@ namespace R_1_6_Benefit_Quality_Payor
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
-                            if (psite.URL.Contains("90566631579"))
+                            if (psite.URL.Contains(runPM) && psite.URL.Contains("97878082189"))
                             {
+                                cntRun++;
+                                SiteLogUtility.Log_Entry("RUN COUNT = " + cntRun.ToString() + " OF " + cntRunAdminGroup.ToString(), true);
                                 SiteLogUtility.LogPracDetail(psite);
 
-                                SiteFilesUtility sfu = new SiteFilesUtility();
-                                sfu.uploadProgramPracticeSupportFilesWoDialysisStarts(psite);
-                                modifyWebPartProgramParticipation(psite.URL, psite);
+                                // Deploy 3-11
+                                //SiteFilesUtility sfu = new SiteFilesUtility();
+                                //sfu.uploadProgramPracticeSupportFilesWoDialysisStarts(psite);
+                                //modifyWebPartProgramParticipation(psite.URL, psite);
+                                //uploadMultiPartSupportingFiles(psite.URL, psite);
 
-                                uploadMultiPartSupportingFiles(psite.URL, psite);
+                                // Deploy 3-04
+                                //if (psite.IsCKCC == "true")
+                                //{
+                                //    Init_Benefit(psite);
+                                //}
 
-                                Init_Benefit(psite);
+                                // Deploy 3-25
+                                //if (psite.IsIWH == "true")
+                                //{
+                                //    Init_Payor(psite);
+                                //}
 
+                                // Deploy 3-04
                                 Init_Quality(psite);
 
-                                Init_Payor(psite);
+                                // Deploy 3-04
+                                //SiteNavigateUtility.ClearQuickNavigationRecent(psite.URL);
 
-                                SiteNavigateUtility.ClearQuickNavigationRecent(psite.URL);
+                                // Deploy 3-11
+                                //SiteNavigateUtility.RenameQuickNavigationNode(psite.URL, "Quality Coming Soon", "Quality");
                             }
                         }
                     }
                     SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - End]=============", true);
+
+                    SiteLogUtility.Log_Entry("\n\n--Program Participation Totals for " + runPM + "--", true);
+                    PMData progPart = new PMData();
+                    progPart.PrintProgramParticipationGroupTotal(pmData);
+
+                    SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
+                    progPart.PrintProgramParticipationGroupSubTotal(pmData, "KCE Participation");
+
+                    SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
+                    progPart.PrintProgramParticipationGroupSubTotal(pmData, "InterWell Health");
                 }
                 catch (Exception ex)
                 {
@@ -82,6 +121,9 @@ namespace R_1_6_Benefit_Quality_Payor
                 }
                 finally
                 {
+                    SiteLogUtility.Log_Entry("  Total cntIsIwh = " + cntIsIwh.ToString(), true);
+                    SiteLogUtility.Log_Entry("Total cntIsKc365 = " + cntIsKc365.ToString(), true);
+                    SiteLogUtility.Log_Entry(" Total cntIsCkcc = " + cntIsCkcc.ToString(), true);
                     SiteLogUtility.finalLog(releaseName);
                 }
                 SiteLogUtility.Log_Entry("=============Release Ends=============", true);
@@ -103,8 +145,6 @@ namespace R_1_6_Benefit_Quality_Payor
             {
                 ProvisionList(practiceSite, slUtility, slUtility.listNamePayorEducationIwh, practiceCView);
                 CreateFolder(practiceSite, slUtility.listNamePayorEducationIwh, slUtility.listFolder1PayorEducationIwh);
-                //ProvisionList(practiceSite, slUtility, slUtility.listNamePayorEducationCkcc, practiceCView);
-                //CreateFolder(practiceSite, slUtility.listNamePayorEducationCkcc, slUtility.listFolder1PayorEducationCkcc);
 
                 spUtility.InitializePage(practiceSite.URL, slUtility.pageNamePayorEducation, slUtility.pageTitlePayorEducation);
                 spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNamePayorEducation);
@@ -117,10 +157,6 @@ namespace R_1_6_Benefit_Quality_Payor
                     {
                         modifyView(practiceSite.URL, slUtility.pageNamePayorEducation + ".aspx", slUtility.webpartPayorEducationIwh);
                     }
-                    //if (practiceSite.IsCKCC == "true")
-                    //{
-                    //    modifyView(practiceSite.URL, slUtility.pageNamePayorEducation + ".aspx", slUtility.webpartPayorEducationCkcc);
-                    //}
                 }
                 SP_Update_ProgramParticipation(practiceSite.URL, slUtility.pageNamePayorEducation, "Payor Program Education Resources Coming Soon", "Payor Program Education Resources", "EducationReviewPro.JPG");
             }
@@ -128,6 +164,7 @@ namespace R_1_6_Benefit_Quality_Payor
             {
                 SiteLogUtility.CreateLogEntry("Init_Payor", ex.Message, "Error", practiceSite.URL);
             }
+            cntIsIwh++;
         }
         private static void Init_Quality(PracticeSite practiceSite)
         {
@@ -140,18 +177,28 @@ namespace R_1_6_Benefit_Quality_Payor
             SiteListUtility slUtility = new SiteListUtility();
             PracticeCView practiceCView = new PracticeCView();
 
+            //Deploy 3-04
             try
             {
-                ProvisionList(practiceSite, slUtility, slUtility.listNameQualityIwh, practiceCView);
-                CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder1QualityIwh);
-                //CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder2QualityIwh);
-                //CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder3QualityIwh);
+                if (practiceSite.IsIWH == "true")
+                {
+                    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityIwh, practiceCView);
+                    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder1QualityIwh);
+                    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder2QualityIwh);
+                    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder3QualityIwh);
+                    cntIsIwh++;
+                }
 
-                ProvisionList(practiceSite, slUtility, slUtility.listNameQualityCkcc, practiceCView);
-                CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder1QualityCkcc);
-                //CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder2QualityCkcc);
-                //CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder3QualityCkcc);
+                if (practiceSite.IsCKCC == "true")
+                {
+                    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityCkcc, practiceCView);
+                    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder1QualityCkcc);
+                    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder2QualityCkcc);
+                    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder3QualityCkcc);
+                    cntIsCkcc++;
+                }
 
+                //Deploy 3-11
                 spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNameQuality);
                 sfu.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "Quality_MultiTab.js", "SiteAssets");
                 sfu.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
@@ -172,6 +219,9 @@ namespace R_1_6_Benefit_Quality_Payor
 
                 // ONLY UNCOMMENT IF PERFORMING ROLLBACK ON QUALITY PAGE...
                 //ConfigureQualityRollbackPage(practiceSite.URL, practiceSite);
+
+                // Update Quality Menu...
+                //
             }
             catch (Exception ex)
             {
@@ -191,26 +241,31 @@ namespace R_1_6_Benefit_Quality_Payor
 
             try
             {
+                // Deploy 3-04
                 ProvisionList(practiceSite, slUtility, slUtility.listNameBenefitEnhancementCkcc, practiceCView);
                 CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder1BenefitEnhancementCkcc);
-                spUtility.InitializePage(practiceSite.URL, slUtility.pageNameBenefitEnhancement, "Benefit Enhancement");
-                spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNameBenefitEnhancement);
-                sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "BenefitEnhancement_MultiTab.js", "SiteAssets");
-                sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
-                ConfigSuccess = ConfigureBenefitEnhancementPage(practiceSite.URL, practiceSite);
-                if (ConfigSuccess)
-                {
-                    if (practiceSite.IsCKCC == "true")
-                    {
-                        modifyView(practiceSite.URL, slUtility.pageNameBenefitEnhancement + ".aspx", slUtility.webpartBenefitEnhancementCkcc);
-                    }
-                }
-                SP_Update_ProgramParticipation(practiceSite.URL, slUtility.pageNameBenefitEnhancement, "CKCC/KCE Coming Soon", "CKCC/KCE", "KCEckcc.JPG");
+                CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder2BenefitEnhancementCkcc);
+
+                // Deploy 3-11
+                //spUtility.InitializePage(practiceSite.URL, slUtility.pageNameBenefitEnhancement, slUtility.pageTitleBenefitEnhancement);
+                //spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNameBenefitEnhancement);
+                //sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "BenefitEnhancement_MultiTab.js", "SiteAssets");
+                //sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                //ConfigSuccess = ConfigureBenefitEnhancementPage(practiceSite.URL, practiceSite);
+                //if (ConfigSuccess)
+                //{
+                //    if (practiceSite.IsCKCC == "true")
+                //    {
+                //        modifyView(practiceSite.URL, slUtility.pageNameBenefitEnhancement + ".aspx", slUtility.webpartBenefitEnhancementCkcc);
+                //    }
+                //}
+                //SP_Update_ProgramParticipation(practiceSite.URL, slUtility.pageNameBenefitEnhancement, "CKCC/KCE Coming Soon", "CKCC/KCE Resources", "KCEckcc.JPG");
             }
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("Init_Benefit", ex.Message, "Error", practiceSite.URL);
             }
+            cntIsCkcc++;
         }
         public static void modifyView(string webUrl, string strPageName = "Home.aspx", string strWebPartTitle = "Practice Documents")
         {
@@ -319,7 +374,7 @@ namespace R_1_6_Benefit_Quality_Payor
             SiteLogUtility.Log_Entry("ProvisionList - In Progress...");
             if (!DoesListExist(psite.URL, listName))
             {
-                _listGuid = siUtility.CreateDocumentLibrary(listName, psite.URL);
+                _listGuid = siUtility.CreateDocumentLibrary(listName, psite.URL, psite);
             }
             if (_listGuid != Guid.Empty)
             {
@@ -1274,9 +1329,15 @@ namespace R_1_6_Benefit_Quality_Payor
         }
         public static List<PMData> initPMDataToList(string adminGroupUrl)
         {
-            //SitePMData objSitePMData = new SitePMData();
             List<PMData> pmData = new List<PMData>();
-            pmData = SP_GetPortalData_PMData(adminGroupUrl);
+            try
+            {
+                pmData = SP_GetPortalData_PMData(adminGroupUrl);
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("initPMDataToList", ex.Message, "Error", "");
+            }
             return pmData;
         }
         public static DataTable readPMSiteData()
@@ -1308,14 +1369,30 @@ namespace R_1_6_Benefit_Quality_Payor
         public static List<PMData> SP_GetPortalData_PMData(string adminGroupUrl)
         {
             List<PMData> All_PortalData = new List<PMData>();
+            //List<PMData> CKCC_PMData = new List<PMData>();
+            try
+            {
+                All_PortalData = SP_GetAll_PMData(adminGroupUrl);
+                //CKCC_PMData = All_PortalData.Where
+                //    (x => x.ProgramParticipation.Contains("KCE Participation")).ToList();
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("SP_GetPortalData_PMData", ex.Message, "Error", "");
+            }
+
+            //return CKCC_PMData;
+            return All_PortalData;
+        }
+        public static List<PMData> SP_GetPortalData_CKCC_PMData(string adminGroupUrl)
+        {
+            List<PMData> All_PortalData = new List<PMData>();
             List<PMData> CKCC_PMData = new List<PMData>();
             try
             {
                 All_PortalData = SP_GetAll_PMData(adminGroupUrl);
                 CKCC_PMData = All_PortalData.Where
                     (x => x.ProgramParticipation.Contains("KCE Participation")).ToList();
-
-                //ResultDescription += "[" + Answers_NewReferrals.Count + "] items found in SP => Visible and have answers." + textLine;
             }
             catch (Exception ex)
             {
@@ -1346,7 +1423,9 @@ namespace R_1_6_Benefit_Quality_Payor
                 ListItemCollection items = list.GetItems(query);
                 clientContext.Load(items);
                 clientContext.ExecuteQuery();
+                SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
                 SiteLogUtility.Log_Entry("Total Count: " + items.Count, true);
+                cntRunAdminGroup = items.Count;
 
                 foreach (var item in items)
                 {
@@ -1354,9 +1433,6 @@ namespace R_1_6_Benefit_Quality_Payor
 
 
                     SiteLogUtility.Log_Entry(item["PracticeTIN"] + " - " + item["PracticeName"] + " - " + item["ProgramParticipation"], true);
-                    //SiteLogUtility.Log_Entry("PracticeName: " + item["PracticeName"], true);
-                    //SiteLogUtility.Log_Entry("PracticeTIN: " + item["PracticeTIN"], true);
-                    //SiteLogUtility.Log_Entry("ProgramParticipation: " + item["ProgramParticipation"], true);
 
                     pmd.PracticeName = item["PracticeName"].ToString();
                     pmd.PracticeTIN = item["PracticeTIN"].ToString();
@@ -1366,10 +1442,6 @@ namespace R_1_6_Benefit_Quality_Payor
                     pmd.IsKC365 = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationKC365) ? "true" : "false";
                     pmd.IsCKCC = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationCKCC) ? "true" : "false";
                     pmd.IsIWH = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationIWH) ? "true" : "false";
-                    //sourceSite.SetAttributeValue("IsKC365", Convert.ToInt32(dr["KC365"]) == 0 ? "false" : "true");
-                    //sourceSite.SetAttributeValue("kceArea", dr["CKCCArea"]);
-                    //sourceSite.SetAttributeValue("IsCKCC", dr["CKCCArea"].ToString() == "" ? "false" : "true");
-                    //sourceSite.SetAttributeValue("IsIWH", dr["IWNRegion"].ToString() == "" ? "false" : "true");
 
                     pmData.Add(pmd);
                 }
@@ -1595,10 +1667,11 @@ namespace R_1_6_Benefit_Quality_Payor
                     clientContext.Load(folderCollection);
                     clientContext.ExecuteQuery();
 
-                    if (practiceSite.IsCKCC == "true")
-                    {
-                        Folder parentFolder = docList.RootFolder.Folders.Add(folderName);
-                    }
+                    Folder parentFolder = docList.RootFolder.Folders.Add(folderName);
+                    //if (practiceSite.IsCKCC == "true")
+                    //{
+                    //    Folder parentFolder = docList.RootFolder.Folders.Add(folderName);
+                    //}
 
                     clientContext.Load(folderCollection);
                     clientContext.ExecuteQuery();

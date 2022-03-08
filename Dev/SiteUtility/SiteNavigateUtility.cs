@@ -602,6 +602,70 @@ namespace SiteUtility
             }
         }
 
+        public static void RenameQuickNavigationNode(string wUrl, string nodeSearchName, string nodeNewName)
+        {
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                {
+                    Web w = clientContext.Web;
+
+                    try
+                    {
+                        PublishingWeb pweb = PublishingWeb.GetPublishingWeb(clientContext, w);
+                        SPNavPub.WebNavigationSettings wnavs = new SPNavPub.WebNavigationSettings(clientContext, w);
+                        NavigationNodeCollection collQuickLaunchNode = pweb.Web.Navigation.QuickLaunch;
+                        clientContext.Load(collQuickLaunchNode);
+                        clientContext.ExecuteQuery();
+
+                        if (collQuickLaunchNode.Count > 0)
+                        {
+                            RenameNavigationNode(wUrl, collQuickLaunchNode, nodeSearchName, nodeNewName);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SiteLogUtility.CreateLogEntry("RenameQuickNavigationNode", ex.Message, "Error", wUrl);
+                    }
+                }
+            }
+        }
+
+        private static void RenameNavigationNode(string webUrl, NavigationNodeCollection nodes, string nodeSearch, string nodeNewName)
+        {
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(webUrl))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    {
+                        var w = clientContext.Web;
+                        clientContext.Load(w);
+                        clientContext.ExecuteQuery();
+
+                        NavigationNodeCollection qlNodes = clientContext.Web.Navigation.QuickLaunch;
+                        clientContext.Load(qlNodes);
+                        clientContext.ExecuteQuery();
+
+                        foreach (var node in qlNodes)
+                        {
+                            if (node.Title.Contains(nodeSearch))
+                            {
+                                // Rename child nodes...
+                                node.Title = nodeNewName;
+                                node.Update();
+                                clientContext.ExecuteQuery();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("RenameNavigationNode", ex.Message, "Error", "");
+            }
+        }
+
         public static void QuickLaunch_InitialAdjustmentPublishing(string sUrl)
         {
             using (ClientContext clientContext = new ClientContext(sUrl))

@@ -33,6 +33,89 @@ namespace SiteUtility
         {
 
         }
+
+        public bool PrintProgramParticipationGroupTotal(List<PMData> pMData)
+        {
+            try
+            {
+                var groupPerProgram = pMData
+                                .GroupBy(u => u.ProgramParticipation)
+                                .Select(grp => new
+                                {
+                                    Program = grp.Key,
+                                    Count = grp.Count(),
+                                    pmData = grp.ToList()
+                                })
+                                .OrderBy(pp => pp.Program)
+                                .ToList();
+
+                foreach (var item in groupPerProgram)
+                {
+                    SiteLogUtility.Log_Entry(item.Program + " = " + item.pmData.Count().ToString(), true);
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("PrintParticipationGroupTotal", ex.Message, "Error", "");
+                return false;
+            }
+
+            return true;
+        }
+        public bool PrintProgramParticipationGroupTotal2(List<PMData> pMData)
+        {
+            try
+            {
+                var groupPerProgram = pMData
+                                .Where(u => u.ProgramParticipation == "KCE Participation")
+                                .Select(grp => new
+                                {
+                                    Program = grp.ProgramParticipation,
+                                    pmData = pMData.Count()
+                                });
+
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("PrintParticipationGroupTotal", ex.Message, "Error", "");
+                return false;
+            }
+
+            return true;
+        }
+        public bool PrintProgramParticipationGroupSubTotal(List<PMData> pMData, string pGroup)
+        {
+            try
+            {
+                int grpTotal = 0;
+                var groupPerProgram1 = pMData
+                        .GroupBy(g => g.ProgramParticipation)
+                        .Where(fl => fl.Key.Contains(pGroup))
+                        .Select(grp => new {
+                            Program = grp.Key,
+                            Count = grp.Count(), 
+                            pmData = grp.ToList()
+                        })
+                        .OrderBy(pp => pp.Program)
+                        .ToList();
+
+                SiteLogUtility.Log_Entry("Group Contains [ " + pGroup + " ]");
+                foreach (var item in groupPerProgram1)
+                {
+                    SiteLogUtility.Log_Entry(item.Program + " = " + item.pmData.Count().ToString(), true);
+                    grpTotal = grpTotal + item.Count;
+                }
+                SiteLogUtility.Log_Entry("GROUP TOTAL: " + grpTotal.ToString(), true);
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("PrintParticipationGroupTotal", ex.Message, "Error", "");
+                return false;
+            }
+
+            return true;
+        }
+
     }
 
     public class SitePMData

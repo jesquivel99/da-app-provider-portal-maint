@@ -359,7 +359,7 @@ namespace SiteUtilityTest
             SiteLogUtility.Log_Entry("ProvisionList - In Progress...");
             if (!DoesListExist(psite.URL, listName))
             {
-                _listGuid = siUtility.CreateDocumentLibrary(listName, psite.URL);
+                _listGuid = siUtility.CreateDocumentLibrary(listName, psite.URL, psite);
             }
             if (_listGuid != Guid.Empty)
             {
