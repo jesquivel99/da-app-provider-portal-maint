@@ -542,8 +542,8 @@ namespace SiteUtility
                 }
                 else
                 {
-                    SiteLogUtility.Log_Entry(SiteLogUtility.textLine0);
-                    SiteLogUtility.Log_Entry(TIN + " - " + pmData.ProgramParticipation, true);
+                    //SiteLogUtility.Log_Entry(SiteLogUtility.textLine0);
+                    //SiteLogUtility.Log_Entry(TIN + " - " + pmData.ProgramParticipation, true);
                     return pmData.ProgramParticipation;
                 }
             }

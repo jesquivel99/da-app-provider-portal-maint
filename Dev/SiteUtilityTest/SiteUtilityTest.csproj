@@ -61,6 +61,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="ProgramNew.cs" />
     <Compile Include="ProgramNew2.cs" />
+    <Compile Include="ProgramNew_AA.cs" />
     <Compile Include="ProgramNew_JE.cs" />
     <Compile Include="ProgramNew_Vignesh.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -23,8 +23,10 @@ namespace R_1_6_Benefit_Quality_Payor
         /// NOTES:
         /// Update LayoutsFolderMnt (if needed)
         /// Update runPM variable - variable will be used to determine PM site execution
+        /// Update runPractice variable - variable will be used to determine Practice site execution
         /// Update urlAdminGroup - this url will point to the AdminGroup list for a given PM
         /// Update rootUrl and siteUrl in the App.config file
+        /// Update Credentials in SiteCredentialUtility.cs
         /// </summary>
         static string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
         static public List<Practice> practicesIWH = new List<Practice>();
@@ -42,8 +44,9 @@ namespace R_1_6_Benefit_Quality_Payor
             string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
 
-            string runPM = "PM04";
-            string urlAdminGroup = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/" + runPM;
+            string runPM = "PM10";
+            string runPractice = "94711764549";
+            string urlAdminGroup = @"https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/" + runPM;
 
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
             SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
@@ -68,23 +71,24 @@ namespace R_1_6_Benefit_Quality_Payor
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
-                            if (psite.URL.Contains(runPM) && psite.URL.Contains("97878082189"))
+                            if (psite.URL.Contains(runPM))
                             {
                                 cntRun++;
-                                SiteLogUtility.Log_Entry("RUN COUNT = " + cntRun.ToString() + " OF " + cntRunAdminGroup.ToString(), true);
+                                SiteLogUtility.Log_Entry("--");
+                                SiteLogUtility.Log_Entry("\nRUN COUNT = " + cntRun.ToString() + " OF " + cntRunAdminGroup.ToString(), true);
                                 SiteLogUtility.LogPracDetail(psite);
 
                                 // Deploy 3-11
-                                //SiteFilesUtility sfu = new SiteFilesUtility();
-                                //sfu.uploadProgramPracticeSupportFilesWoDialysisStarts(psite);
-                                //modifyWebPartProgramParticipation(psite.URL, psite);
-                                //uploadMultiPartSupportingFiles(psite.URL, psite);
+                                SiteFilesUtility sfu = new SiteFilesUtility();
+                                uploadProgramPracticeSupportFilesCkcc(psite);
+                                modifyWebPartProgramParticipation(psite.URL, psite);
+                                uploadMultiPartSupportingFiles(psite.URL, psite);
 
-                                // Deploy 3-04
-                                //if (psite.IsCKCC == "true")
-                                //{
-                                //    Init_Benefit(psite);
-                                //}
+                                // Deploy 3-04 AND 3-11
+                                if (psite.IsCKCC == "true")
+                                {
+                                    Init_Benefit(psite);
+                                }
 
                                 // Deploy 3-25
                                 //if (psite.IsIWH == "true")
@@ -92,14 +96,14 @@ namespace R_1_6_Benefit_Quality_Payor
                                 //    Init_Payor(psite);
                                 //}
 
-                                // Deploy 3-04
+                                // Deploy 3-04 AND 3-11
                                 Init_Quality(psite);
 
-                                // Deploy 3-04
-                                //SiteNavigateUtility.ClearQuickNavigationRecent(psite.URL);
+                                // Deploy 3-04 AND 3-11
+                                SiteNavigateUtility.ClearQuickNavigationRecent(psite.URL);
 
                                 // Deploy 3-11
-                                //SiteNavigateUtility.RenameQuickNavigationNode(psite.URL, "Quality Coming Soon", "Quality");
+                                SiteNavigateUtility.RenameQuickNavigationNode(psite.URL, "Quality Coming Soon", "Quality");
                             }
                         }
                     }
@@ -117,13 +121,14 @@ namespace R_1_6_Benefit_Quality_Payor
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", siteUrl);
+                    SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", "");
                 }
                 finally
                 {
-                    SiteLogUtility.Log_Entry("  Total cntIsIwh = " + cntIsIwh.ToString(), true);
-                    SiteLogUtility.Log_Entry("Total cntIsKc365 = " + cntIsKc365.ToString(), true);
+                    SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
                     SiteLogUtility.Log_Entry(" Total cntIsCkcc = " + cntIsCkcc.ToString(), true);
+                    SiteLogUtility.Log_Entry("Total cntIsKc365 = " + cntIsKc365.ToString(), true);
+                    SiteLogUtility.Log_Entry("  Total cntIsIwh = " + cntIsIwh.ToString(), true);
                     SiteLogUtility.finalLog(releaseName);
                 }
                 SiteLogUtility.Log_Entry("=============Release Ends=============", true);
@@ -162,7 +167,7 @@ namespace R_1_6_Benefit_Quality_Payor
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("Init_Payor", ex.Message, "Error", practiceSite.URL);
+                SiteLogUtility.CreateLogEntry("Init_Payor", ex.Message, "Error", "");
             }
             cntIsIwh++;
         }
@@ -180,23 +185,23 @@ namespace R_1_6_Benefit_Quality_Payor
             //Deploy 3-04
             try
             {
-                if (practiceSite.IsIWH == "true")
-                {
-                    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityIwh, practiceCView);
-                    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder1QualityIwh);
-                    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder2QualityIwh);
-                    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder3QualityIwh);
-                    cntIsIwh++;
-                }
+                //if (practiceSite.IsIWH == "true")
+                //{
+                //    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityIwh, practiceCView);
+                //    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder1QualityIwh);
+                //    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder2QualityIwh);
+                //    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder3QualityIwh);
+                //    cntIsIwh++;
+                //}
 
-                if (practiceSite.IsCKCC == "true")
-                {
-                    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityCkcc, practiceCView);
-                    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder1QualityCkcc);
-                    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder2QualityCkcc);
-                    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder3QualityCkcc);
-                    cntIsCkcc++;
-                }
+                //if (practiceSite.IsCKCC == "true")
+                //{
+                //    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityCkcc, practiceCView);
+                //    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder1QualityCkcc);
+                //    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder2QualityCkcc);
+                //    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder3QualityCkcc);
+                //    cntIsCkcc++;
+                //}
 
                 //Deploy 3-11
                 spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNameQuality);
@@ -210,6 +215,7 @@ namespace R_1_6_Benefit_Quality_Payor
                     if (practiceSite.IsIWH == "true")
                     {
                         modifyView(practiceSite.URL, slUtility.pageNameQuality + ".aspx", slUtility.webpartQualityIwh);
+                        cntIsIwh++;
                     }
                     if (practiceSite.IsCKCC == "true")
                     {
@@ -225,7 +231,7 @@ namespace R_1_6_Benefit_Quality_Payor
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("Init_Quality", ex.Message, "Error", practiceSite.URL);
+                SiteLogUtility.CreateLogEntry("Init_Quality", ex.Message, "Error", "");
             }
         }
         private static void Init_Benefit(PracticeSite practiceSite)
@@ -242,34 +248,34 @@ namespace R_1_6_Benefit_Quality_Payor
             try
             {
                 // Deploy 3-04
-                ProvisionList(practiceSite, slUtility, slUtility.listNameBenefitEnhancementCkcc, practiceCView);
-                CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder1BenefitEnhancementCkcc);
-                CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder2BenefitEnhancementCkcc);
+                //ProvisionList(practiceSite, slUtility, slUtility.listNameBenefitEnhancementCkcc, practiceCView);
+                //CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder1BenefitEnhancementCkcc);
+                //CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder2BenefitEnhancementCkcc);
 
                 // Deploy 3-11
-                //spUtility.InitializePage(practiceSite.URL, slUtility.pageNameBenefitEnhancement, slUtility.pageTitleBenefitEnhancement);
-                //spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNameBenefitEnhancement);
-                //sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "BenefitEnhancement_MultiTab.js", "SiteAssets");
-                //sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
-                //ConfigSuccess = ConfigureBenefitEnhancementPage(practiceSite.URL, practiceSite);
-                //if (ConfigSuccess)
-                //{
-                //    if (practiceSite.IsCKCC == "true")
-                //    {
-                //        modifyView(practiceSite.URL, slUtility.pageNameBenefitEnhancement + ".aspx", slUtility.webpartBenefitEnhancementCkcc);
-                //    }
-                //}
-                //SP_Update_ProgramParticipation(practiceSite.URL, slUtility.pageNameBenefitEnhancement, "CKCC/KCE Coming Soon", "CKCC/KCE Resources", "KCEckcc.JPG");
+                spUtility.InitializePage(practiceSite.URL, slUtility.pageNameBenefitEnhancement, slUtility.pageTitleBenefitEnhancement);
+                spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNameBenefitEnhancement);
+                sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "BenefitEnhancement_MultiTab.js", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                ConfigSuccess = ConfigureBenefitEnhancementPage(practiceSite.URL, practiceSite);
+                if (ConfigSuccess)
+                {
+                    if (practiceSite.IsCKCC == "true")
+                    {
+                        modifyView(practiceSite.URL, slUtility.pageNameBenefitEnhancement + ".aspx", slUtility.webpartBenefitEnhancementCkcc);
+                    }
+                }
+                SP_Update_ProgramParticipation(practiceSite.URL, slUtility.pageNameBenefitEnhancement, "CKCC/KCE Coming Soon", "CKCC/KCE Resources", "KCEckcc.JPG");
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("Init_Benefit", ex.Message, "Error", practiceSite.URL);
+                SiteLogUtility.CreateLogEntry("Init_Benefit", ex.Message, "Error", "");
             }
             cntIsCkcc++;
         }
         public static void modifyView(string webUrl, string strPageName = "Home.aspx", string strWebPartTitle = "Practice Documents")
         {
-            SiteLogUtility.Log_Entry("modifyView - In Progress...");
+            SiteLogUtility.Log_Entry("   modifyView - In Progress...");
             SiteListUtility slu = new SiteListUtility();
             using (ClientContext clientContext = new ClientContext(webUrl))
             {
@@ -360,7 +366,7 @@ namespace R_1_6_Benefit_Quality_Payor
                     }
                     catch (Exception ex)
                     {
-                        SiteLogUtility.CreateLogEntry("Quality - modifyView", ex.Message, "Error", webUrl);
+                        SiteLogUtility.CreateLogEntry("Quality - modifyView", ex.Message, "Error", "");
                         file.UndoCheckOut();
                         clientContext.Load(file);
                         clientContext.ExecuteQuery();
@@ -441,7 +447,7 @@ namespace R_1_6_Benefit_Quality_Payor
         }
         public static bool ConfigureBenefitEnhancementPage(string webUrl, PracticeSite pracSite)
         {
-            SiteLogUtility.Log_Entry("ConfigureBenefitEnhancement - In Progress...");
+            SiteLogUtility.Log_Entry("   ConfigureBenefitEnhancement - In Progress...");
             SiteListUtility slu = new SiteListUtility();
             bool outcome = false;
             string clink = string.Empty;
@@ -490,7 +496,7 @@ namespace R_1_6_Benefit_Quality_Payor
                     }
                     catch (Exception ex)
                     {
-                        SiteLogUtility.CreateLogEntry("ConfigureBenefitEnhancementPage Update", ex.Message, "Error", webUrl);
+                        SiteLogUtility.CreateLogEntry("ConfigureBenefitEnhancementPage Update", ex.Message, "Error", "");
                         outcome = false;
                         file.UndoCheckOut();
                         clientContext.Load(file);
@@ -500,7 +506,7 @@ namespace R_1_6_Benefit_Quality_Payor
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("ConfigureBenefitEnhancementPage", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("ConfigureBenefitEnhancementPage", ex.Message, "Error", "");
                     outcome = false;
                     file.UndoCheckOut();
                     clientContext.Load(file);
@@ -512,7 +518,7 @@ namespace R_1_6_Benefit_Quality_Payor
         }
         public static bool ConfigureQualityPage(string webUrl, PracticeSite pracSite)
         {
-            SiteLogUtility.Log_Entry("ConfigureQualityPage - In Progress...");
+            SiteLogUtility.Log_Entry("   ConfigureQualityPage - In Progress...");
             SiteListUtility slu = new SiteListUtility();
             bool outcome = false;
             string clink = string.Empty;
@@ -561,7 +567,7 @@ namespace R_1_6_Benefit_Quality_Payor
                     }
                     catch (Exception ex)
                     {
-                        SiteLogUtility.CreateLogEntry("ConfigureQualityPage Update", ex.Message, "Error", webUrl);
+                        SiteLogUtility.CreateLogEntry("ConfigureQualityPage Update", ex.Message, "Error", "");
                         outcome = false;
                         file.UndoCheckOut();
                         clientContext.Load(file);
@@ -571,7 +577,7 @@ namespace R_1_6_Benefit_Quality_Payor
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("ConfigureQualityPage", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("ConfigureQualityPage", ex.Message, "Error", "");
                     outcome = false;
                     file.UndoCheckOut();
                     clientContext.Load(file);
@@ -621,7 +627,7 @@ namespace R_1_6_Benefit_Quality_Payor
                     }
                     catch (Exception ex)
                     {
-                        SiteLogUtility.CreateLogEntry("ConfigureQualityPage Update", ex.Message, "Error", webUrl);
+                        SiteLogUtility.CreateLogEntry("ConfigureQualityPage Update", ex.Message, "Error", "");
                         outcome = false;
                         file.UndoCheckOut();
                         clientContext.Load(file);
@@ -631,7 +637,7 @@ namespace R_1_6_Benefit_Quality_Payor
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("ConfigureQualityPage", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("ConfigureQualityPage", ex.Message, "Error", "");
                     outcome = false;
                     file.UndoCheckOut();
                     clientContext.Load(file);
@@ -692,7 +698,7 @@ namespace R_1_6_Benefit_Quality_Payor
                     }
                     catch (Exception ex)
                     {
-                        SiteLogUtility.CreateLogEntry("ConfigurePayorEducationPage Update", ex.Message, "Error", webUrl);
+                        SiteLogUtility.CreateLogEntry("ConfigurePayorEducationPage Update", ex.Message, "Error", "");
                         outcome = false;
                         file.UndoCheckOut();
                         clientContext.Load(file);
@@ -702,7 +708,7 @@ namespace R_1_6_Benefit_Quality_Payor
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("ConfigurePayorEducationPage", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("ConfigurePayorEducationPage", ex.Message, "Error", "");
                     outcome = false;
                     file.UndoCheckOut();
                     clientContext.Load(file);
@@ -883,7 +889,7 @@ namespace R_1_6_Benefit_Quality_Payor
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("cViews-Init", ex.Message, "Error", wUrl);
+                    SiteLogUtility.CreateLogEntry("cViews-Init", ex.Message, "Error", "");
                 }
             }
         }
@@ -1078,7 +1084,7 @@ namespace R_1_6_Benefit_Quality_Payor
                             }
                             catch (Exception ex)
                             {
-                                SiteLogUtility.CreateLogEntry("ReturnListViewIfExists", ex.Message, "Error", clientContext.Web.ServerRelativeUrl);
+                                SiteLogUtility.CreateLogEntry("ReturnListViewIfExists", ex.Message, "Error", "");
                                 pvFile.CheckIn(checkingMessage, CheckinType.MajorCheckIn);
                                 pvFile.Publish(checkingMessage);
                                 clientContext.Load(pvFile);
@@ -1172,7 +1178,7 @@ namespace R_1_6_Benefit_Quality_Payor
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("cViews-SetToolbarType", ex.Message, "Error", list.ParentWebUrl);
+                SiteLogUtility.CreateLogEntry("cViews-SetToolbarType", ex.Message, "Error", "");
             }
         }
         public static bool modifyWebPartProgramParticipation(string webUrl, PracticeSite practiceSite)
@@ -1238,7 +1244,7 @@ namespace R_1_6_Benefit_Quality_Payor
                     }
                     catch (Exception ex)
                     {
-                        SiteLogUtility.CreateLogEntry("modifyWebPart", ex.Message, "Error", webUrl);
+                        SiteLogUtility.CreateLogEntry("modifyWebPart", ex.Message, "Error", "");
                         outcome = false;
                         file.UndoCheckOut();
                         clientContext.Load(file);
@@ -1248,7 +1254,7 @@ namespace R_1_6_Benefit_Quality_Payor
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("modifyWebPart", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("modifyWebPart", ex.Message, "Error", "");
                     outcome = false;
                     file.UndoCheckOut();
                     clientContext.Load(file);
@@ -1280,7 +1286,7 @@ namespace R_1_6_Benefit_Quality_Payor
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("gridHeight", ex.Message, "Error", webUrl);
+                SiteLogUtility.CreateLogEntry("gridHeight", ex.Message, "Error", "");
             }
             return intHeight[intCount];
         }
@@ -1642,7 +1648,7 @@ namespace R_1_6_Benefit_Quality_Payor
                             }
                             catch (Exception ex)
                             {
-                                SiteLogUtility.CreateLogEntry("UndoPageViewerCheckout", ex.Message, "Error", clientContext.Web.ServerRelativeUrl);
+                                SiteLogUtility.CreateLogEntry("UndoPageViewerCheckout", ex.Message, "Error", "");
                             }
                         }
                         Microsoft.SharePoint.Client.View v = list.Views[i];
@@ -1679,12 +1685,12 @@ namespace R_1_6_Benefit_Quality_Payor
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("CreateFolder", ex.Message, "Error", practiceSite.URL);
+                SiteLogUtility.CreateLogEntry("CreateFolder", ex.Message, "Error", "");
             }
         }
         public static bool SP_Update_ProgramParticipation(string wUrl, string pageName, string searchTitle, string newTitle, string newThumbnail)
         {
-            SiteLogUtility.Log_Entry("SP_Update_ProgramParticipation - In Progress...");
+            SiteLogUtility.Log_Entry("   SP_Update_ProgramParticipation - In Progress...");
             string pageNameAspx = pageName + ".aspx";
 
             using (ClientContext clientContext = new ClientContext(wUrl))
@@ -1737,7 +1743,7 @@ namespace R_1_6_Benefit_Quality_Payor
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("SP_Update_ProgramParticipation", ex.Message, "Error", wUrl);
+                    SiteLogUtility.CreateLogEntry("SP_Update_ProgramParticipation", ex.Message, "Error", "");
                     return false;
                 }
             }
@@ -1823,9 +1829,66 @@ namespace R_1_6_Benefit_Quality_Payor
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("uploadMultiPartSupportingFiles", ex.Message, "Error", wUrl);
+                SiteLogUtility.CreateLogEntry("uploadMultiPartSupportingFiles", ex.Message, "Error", "");
             }
         }
+        public static void uploadProgramPracticeSupportFilesCkcc(PracticeSite practiceSite)
+        {
+            string siteType = practiceSite.siteType;
 
+            if (siteType == "")
+            {
+                return;
+            }
+            string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
+            using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    var web = clientContext.Web;
+                    string rootWebUrl = GetRootSite(practiceSite.URL);
+
+                    string LibraryName = "Program Participation";
+                    string fileName3 = "KCEckcc.JPG";
+
+                    byte[] f3 = System.IO.File.ReadAllBytes(LayoutsFolder + fileName3);
+
+                    FileCreationInformation fc3 = new FileCreationInformation();
+                    fc3.Url = fileName3;
+                    fc3.Overwrite = true;
+                    fc3.Content = f3;
+                    List myLibrary = web.Lists.GetByTitle(LibraryName);
+
+                    if (siteType != null && siteType.Contains("ckcc"))
+                    {
+                        Microsoft.SharePoint.Client.File newFile3 = myLibrary.RootFolder.Files.Add(fc3);
+                        clientContext.Load(newFile3);
+                        clientContext.ExecuteQuery();
+
+                        ListItem lItem3 = newFile3.ListItemAllFields;
+                        lItem3.File.CheckOut();
+                        clientContext.ExecuteQuery();
+                        lItem3["Title"] = "CKCC/KCE Coming Soon!";  // has to say Coming Soon; will get corrected with later method...
+                        //lItem3["Title"] = "CKCC/KCE Resources";
+                        lItem3["ProgramNameText"] = practiceSite.URL + "/Pages/CkccKceResources.aspx";
+                        lItem3["Thumbnail"] = practiceSite.URL + "/Program%20Participation/" + fileName3;
+                        lItem3.Update();
+                        lItem3.File.CheckIn("Checkin - Create Ckcc item", CheckinType.OverwriteCheckIn);
+                        clientContext.ExecuteQuery();
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("uploadProgramPracticeSupportFilesCkcc", ex.Message, "Error", "");
+                }
+            }
+        }
+        public static string GetRootSite(string url)
+        {
+            Uri uri = new Uri(url.TrimEnd(new[] { '/' }));
+            return $"{uri.Scheme}://{ uri.DnsSafeHost}";
+        }
     }
 }

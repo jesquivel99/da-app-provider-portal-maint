@@ -32,6 +32,9 @@ namespace SiteUtilityTest
             string srcUrlCKCC = ConfigurationManager.AppSettings["SP_CKCCUrl"];
             string siteInfoFile = ConfigurationManager.AppSettings["Csv_File"];
 
+            string connString = "Data Source=" + ConfigurationManager.AppSettings["SqlServer"]
+                        + "; Initial Catalog=" + ConfigurationManager.AppSettings["Database"] + "; Integrated Security=SSPI";
+
             string urlAdminGroup = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/PM08";
 
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
@@ -60,6 +63,9 @@ namespace SiteUtilityTest
                                 SiteFilesUtility sfu = new SiteFilesUtility();
                                 sfu.uploadProgramPracticeSupportFilesWoDialysisStarts(psite);
                                 modifyWebPartProgramParticipation(psite.URL, psite);
+
+                                //Testing...
+                                //DataTableToCsv();
 
                                 uploadMultiPartSupportingFiles(psite.URL, psite);
 
@@ -1333,32 +1339,32 @@ namespace SiteUtilityTest
             pmData = SP_GetPortalData_PMData(adminGroupUrl);
             return pmData;
         }
-        public static DataTable readPMSiteData()
-        {
-            try
-            {
-                string connString = "Data Source=" + ConfigurationManager.AppSettings["SqlServer"]
-                        + "; Initial Catalog=" + ConfigurationManager.AppSettings["Database"] + "; Integrated Security=SSPI";
+        //public static DataTable readPMSiteData()
+        //{
+        //    try
+        //    {
+        //        string connString = "Data Source=" + ConfigurationManager.AppSettings["SqlServer"]
+        //                + "; Initial Catalog=" + ConfigurationManager.AppSettings["Database"] + "; Integrated Security=SSPI";
 
-                string query = @"SELECT * FROM [HealthCloud_NightlyProd].[PORTAL].[vwPracticeInfo] ORDER BY GroupID";
+        //        string query = @"SELECT * FROM [HealthCloud_NightlyProd].[PORTAL].[vwPracticeInfo] ORDER BY GroupID";
 
-                DataTable dtTable = new DataTable();
-                SqlConnection conn = new SqlConnection(connString);
-                SqlCommand cmd = new SqlCommand(query, conn);
-                conn.Open();
-                SqlDataAdapter da = new SqlDataAdapter(cmd);
-                da.Fill(dtTable);
-                conn.Close();
-                da.Dispose();
+        //        DataTable dtTable = new DataTable();
+        //        SqlConnection conn = new SqlConnection(connString);
+        //        SqlCommand cmd = new SqlCommand(query, conn);
+        //        conn.Open();
+        //        SqlDataAdapter da = new SqlDataAdapter(cmd);
+        //        da.Fill(dtTable);
+        //        conn.Close();
+        //        da.Dispose();
 
-                return dtTable;
-            }
-            catch (Exception ex)
-            {
-                SiteLogUtility.CreateLogEntry("readPMSiteData", ex.Message, "Error", "");
-                return null;
-            }
-        }
+        //        return dtTable;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        SiteLogUtility.CreateLogEntry("readPMSiteData", ex.Message, "Error", "");
+        //        return null;
+        //    }
+        //}
 
         public static List<PMData> SP_GetPortalData_PMData(string adminGroupUrl)
         {
@@ -1815,6 +1821,91 @@ namespace SiteUtilityTest
                 SiteLogUtility.CreateLogEntry("uploadMultiPartSupportingFiles", ex.Message, "Error", wUrl);
             }
         }
-        
+        private static bool DataTableToCsv()
+        {
+            string csvPracInfo = ConfigurationManager.AppSettings["Csv_File"];
+            try
+            {
+                DataTable dataTable = readPMSiteData();
+                dataTable.WriteToCsvFile(csvPracInfo);
+                List<PracticeInfo> newPracticeInfo = SiteInfoUtility.GenericTextFileProcessor.LoadFromTextFile<PracticeInfo>(csvPracInfo);
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("DataTableToCsv", ex.Message, "Error", "");
+                return false;
+            }
+            return true;
+        }
+        private static DataTable readPMSiteData()
+        {
+            try
+            {
+                string ds = ConfigurationManager.AppSettings["SqlServer"].ToString();
+                string ic = ConfigurationManager.AppSettings["Database"].ToString();
+                string connString = "Data Source=" + ConfigurationManager.AppSettings["SqlServer"]
+                        + "; Initial Catalog=" + ConfigurationManager.AppSettings["Database"] + "; Integrated Security=SSPI";
+
+                string query = @"SELECT * FROM [HealthCloud_NightlyProd].[PORTAL].[vwPracticeInfo] ORDER BY GroupID";
+
+                DataTable dtTable = new DataTable();
+                SqlConnection conn = new SqlConnection(connString);
+                SqlCommand cmd = new SqlCommand(query, conn);
+                conn.Open();
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                da.Fill(dtTable);
+                conn.Close();
+                da.Dispose();
+                return dtTable;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+    }
+    public static class DataTableExtensions
+    {
+        public static void WriteToCsvFile(this DataTable dataTable, string filePath)
+        {
+            StringBuilder fileContent = new StringBuilder();
+
+            foreach (var col in dataTable.Columns)
+            {
+                fileContent.Append(col.ToString() + ",");
+            }
+
+            fileContent.Replace(",", System.Environment.NewLine, fileContent.Length - 1, 1);
+
+            foreach (DataRow dr in dataTable.Rows)
+            {
+                foreach (var column in dr.ItemArray)
+                {
+                    fileContent.Append("\"" + column.ToString() + "\",");
+                }
+
+                fileContent.Replace(",", System.Environment.NewLine, fileContent.Length - 1, 1);
+            }
+
+            System.IO.File.WriteAllText(filePath, fileContent.ToString());
+        }
+    }
+    public class PracticeInfo
+    {
+        public PracticeInfo()
+        {
+
+        }
+        public int GroupID { get; set; }
+        public string ProgramManager { get; set; }
+        public string SiteID { get; set; }
+        public string PracticeName { get; set; }
+        public string PracticeTIN { get; set; }
+        public string PracticeNPI { get; set; }
+        public string CKCCArea { get; set; }
+        public int IWNRegion { get; set; }
+        public int KC365 { get; set; }
+        public string EncryptedPracticeTIN { get; set; }
     }
 }

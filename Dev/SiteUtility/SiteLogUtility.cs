@@ -64,8 +64,9 @@ namespace SiteUtility
 
         public static void LogPracDetail(PracticeSite psite)
         {
-            SiteLogUtility.Log_Entry("--\n");
+            SiteLogUtility.Log_Entry("--");
             SiteLogUtility.Log_Entry($"--          Portal Site: {psite.Name}", true);
+            SiteLogUtility.Log_Entry($"--          Portal Site: {psite.ProgramParticipation}", true);
             SiteLogUtility.Log_Entry($"--          Portal Site: {psite.URL}", true);
             //SiteLogUtility.Log_Entry($"--    Permissions Audit: {psite.URL}/_layouts/user.aspx");
             //SiteLogUtility.Log_Entry($"--        Site Contents: {psite.URL}/_layouts/viewlsts.aspx");

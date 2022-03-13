@@ -173,7 +173,7 @@ namespace SiteUtility
 
         public PublishingPage InitializePage(string webUrl, string pageName, string pageTitle)
         {
-            SiteLogUtility.Log_Entry("InitializePage - In Progress...");
+            SiteLogUtility.Log_Entry("   InitializePage - In Progress...");
             String filename = pageName + ".aspx";
             String title = pageTitle;
             String list = "Pages";
@@ -238,7 +238,7 @@ namespace SiteUtility
 
         public void DeleteWebPart(string webURL, string pageName)
         {
-            SiteLogUtility.Log_Entry("DeleteWebPart - In Progress...");
+            SiteLogUtility.Log_Entry("   DeleteWebPart - In Progress...");
             //var pageRelativeUrl = "/Pages/Home.aspx";
             var pageRelativeUrl = "/Pages/" + pageName + ".aspx";
             using (ClientContext clientContext = new ClientContext(webURL))

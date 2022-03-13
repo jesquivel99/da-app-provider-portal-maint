@@ -12,6 +12,7 @@ using Microsoft.SharePoint.Client.WebParts;
 using System.Net;
 using System.IO;
 
+
 namespace Release_1_4
 {
     public class Program
@@ -23,6 +24,8 @@ namespace Release_1_4
         /// Update urlSiteAssets - url will point to the SiteAssets library of Referral site
         /// Update rootUrl and siteUrl in the App.config file
         /// Update runPM - value will be used for url path to PM site
+        /// Update runPractice - value will be used for url path to Practice site
+        /// Update Credentials in SiteCredentialUtility.cs
         /// </summary>
         /// 
         static string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
@@ -40,14 +43,13 @@ namespace Release_1_4
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
 
             string pageName = "PatientUpdates";
-            string runPM = "PM09";
-            string urlAdminGroup = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/" + runPM;
-            string urlSiteAssets = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/interimckcc/referral";
+            string runPM = "PM06";
+            string runPractice = "99929033839";
+            string urlAdminGroup = @"https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/" + runPM;
+            string urlSiteAssets = @"https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/referral";
 
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
             SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
-
-            
 
             using (ClientContext clientContext = new ClientContext(siteUrl))
             {
@@ -56,8 +58,8 @@ namespace Release_1_4
                 try
                 {
                     SiteLogUtility.Log_Entry("\n\n=============[ Get PM AdminGroup ]=============", true);
-                    SiteLogUtility.Log_Entry("Processing AdminGroup:  " + urlAdminGroup, true); 
-                    List<PMData> pmData = initPMDataToList(urlAdminGroup);
+                    SiteLogUtility.Log_Entry("Processing AdminGroup:  " + urlAdminGroup, true);
+                    List<PMData> pmData = SiteInfoUtility.initPMDataToList(urlAdminGroup);
 
                     SiteLogUtility.Log_Entry("\n\n=============[ Get all Portal Practice Data ]=============", true);
                     List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext, practicesIWH, practicesCKCC, pmData);
@@ -67,17 +69,17 @@ namespace Release_1_4
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
-                            if (psite.URL.Contains(runPM) && psite.IsCKCC.Equals("true"))
+                            if (psite.URL.Contains(runPM) && psite.URL.Contains(runPractice) && psite.IsCKCC.Equals("true"))
                             {
                                 cntRun++;
                                 cntIsCkcc++;
-                                //DialysisStartsSetup(psite, pageName, urlSiteAssets);
+                                DialysisStartsSetup(psite, pageName, urlSiteAssets, pmData);
                             }
                         }
                     }
                     SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - End]=============", true);
 
-                    SiteLogUtility.Log_Entry("\n\n--Program Participation Totals for " + runPM + "--", true);
+                    SiteLogUtility.Log_Entry("\n\n--PROGRAM PARTICIPATION TOTALS for " + runPM + "--", true);
                     PMData progPart = new PMData();
                     progPart.PrintProgramParticipationGroupTotal(pmData);
 
@@ -97,9 +99,10 @@ namespace Release_1_4
                 finally
                 {
                     SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
-                    SiteLogUtility.Log_Entry("  Total cntIsIwh = " + cntIsIwh.ToString(), true);
-                    SiteLogUtility.Log_Entry("Total cntIsKc365 = " + cntIsKc365.ToString(), true);
                     SiteLogUtility.Log_Entry(" Total cntIsCkcc = " + cntIsCkcc.ToString(), true);
+                    SiteLogUtility.Log_Entry("Total cntIsKc365 = " + cntIsKc365.ToString(), true);
+                    SiteLogUtility.Log_Entry("  Total cntIsIwh = " + cntIsIwh.ToString(), true);
+                    SiteLogUtility.Log_Entry(" TOTAL PRACTICES = " + cntRunAdminGroup.ToString(), true);
 
                     SiteLogUtility.finalLog(releaseName);
                 }
@@ -107,29 +110,33 @@ namespace Release_1_4
             }
         }
 
-        public static void DialysisStartsSetup(PracticeSite psite, string pageName, string urlSiteAssets)
+        public static void DialysisStartsSetup(PracticeSite psite, string pageName, string urlSiteAssets, List<PMData> pMDatas)
         {
             try
             {
                 SiteFilesUtility sfUtility = new SiteFilesUtility();
                 SitePublishUtility spUtility = new SitePublishUtility();
+                PMData progPart = new PMData();
+                cntRunAdminGroup = progPart.CntProgramParticipationGroupSubTotal(pMDatas, "KCE Participation");
+                SiteLogUtility.Log_Entry("--");
                 SiteLogUtility.Log_Entry("RUN COUNT = " + cntRun.ToString() + " OF " + cntRunAdminGroup.ToString(), true);
                 SiteLogUtility.LogPracDetail(psite);
 
                 //Deploy on 3-04...
-                spUtility.InitializePage(psite.URL, pageName, "Patient Status Updates");
-                spUtility.DeleteWebPart(psite.URL, pageName);
-                ConfigureDialysisStartsPage(psite.URL, urlSiteAssets, pageName);
+                //spUtility.InitializePage(psite.URL, pageName, "Patient Status Updates");
+                //spUtility.DeleteWebPart(psite.URL, pageName);
+                //ConfigureDialysisStartsPage(psite.URL, urlSiteAssets, pageName);
 
                 //Deploy on 3-11...
-                //uploadProgramPracticeSupportFilesDialysisStarts(psite);
-                //modifyWebPartProgramParticipation(psite.URL, psite);
+                uploadProgramPracticeSupportFilesDialysisStarts(psite);
+                modifyWebPartProgramParticipation(psite.URL, psite);
             }
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("DialysisStartsSetup", ex.Message, "Error", "");
             }
         }
+
         public static bool ConfigureDialysisStartsPage(string webUrl, string siteAssetUrl, string pgName)
         {
             bool outcome = false;
@@ -225,6 +232,7 @@ namespace Release_1_4
         }
         public static bool modifyWebPartProgramParticipation(string webUrl, PracticeSite practiceSite)
         {
+            SiteLogUtility.Log_Entry("   modifyWebPartProgramParticipation - In Progress...");
             bool outcome = false;
             string clink = string.Empty;
             int webPartHeight = gridHeight(webUrl, practiceSite);
@@ -457,87 +465,88 @@ namespace Release_1_4
                 }
             }
         }
-        public static List<PMData> initPMDataToList(string adminGroupUrl)
-        {
-            List<PMData> pmData = new List<PMData>();
-            try
-            {
-                pmData = SP_GetPortalData_PMData(adminGroupUrl);
-            }
-            catch (Exception ex)
-            {
-                SiteLogUtility.CreateLogEntry("initPMDataToList", ex.Message, "Error", "");
-            }
-            return pmData;
-        }
-        public static List<PMData> SP_GetPortalData_PMData(string adminGroupUrl)
-        {
-            List<PMData> All_PortalData = new List<PMData>();
-            //List<PMData> CKCC_PMData = new List<PMData>();
-            try
-            {
-                All_PortalData = SP_GetAll_PMData(adminGroupUrl);
-                //CKCC_PMData = All_PortalData.Where
-                //    (x => x.ProgramParticipation.Contains("KCE Participation")).ToList();
-            }
-            catch (Exception ex)
-            {
-                SiteLogUtility.CreateLogEntry("SP_GetPortalData_PMData", ex.Message, "Error", "");
-            }
+        //public static List<PMData> initPMDataToList(string adminGroupUrl)
+        //{
+        //    List<PMData> pmData = new List<PMData>();
+        //    try
+        //    {
+        //        pmData = SP_GetPortalData_PMData(adminGroupUrl);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        SiteLogUtility.CreateLogEntry("initPMDataToList", ex.Message, "Error", "");
+        //    }
+        //    return pmData;
+        //}
+        //public static List<PMData> SP_GetPortalData_PMData(string adminGroupUrl)
+        //{
+        //    List<PMData> All_PortalData = new List<PMData>();
+        //    //List<PMData> CKCC_PMData = new List<PMData>();
+        //    try
+        //    {
+        //        All_PortalData = SP_GetAll_PMData(adminGroupUrl);
+        //        //CKCC_PMData = All_PortalData.Where
+        //        //    (x => x.ProgramParticipation.Contains("KCE Participation")).ToList();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        SiteLogUtility.CreateLogEntry("SP_GetPortalData_PMData", ex.Message, "Error", "");
+        //    }
 
-            //return CKCC_PMData;
-            return All_PortalData;
-        }
-        public static List<PMData> SP_GetAll_PMData(string urlAdminGrp)
-        {
-            List<PMData> pmData = new List<PMData>();
-            SitePMData sitePMData = new SitePMData();
+        //    //return CKCC_PMData;
+        //    return All_PortalData;
+        //}
+        //public static List<PMData> SP_GetAll_PMData(string urlAdminGrp)
+        //{
+        //    List<PMData> pmData = new List<PMData>();
+        //    SitePMData sitePMData = new SitePMData();
 
-            using(ClientContext clientContext = new ClientContext(urlAdminGrp))
-            {
-                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+        //    using(ClientContext clientContext = new ClientContext(urlAdminGrp))
+        //    {
+        //        clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
 
-                List list = clientContext.Web.Lists.GetByTitle("AdminGroup");
-                clientContext.Load(list);
-                clientContext.ExecuteQuery();
-                View view = list.Views.GetByTitle("All Links");
+        //        List list = clientContext.Web.Lists.GetByTitle("AdminGroup");
+        //        clientContext.Load(list);
+        //        clientContext.ExecuteQuery();
+        //        View view = list.Views.GetByTitle("All Links");
 
-                clientContext.Load(view);
-                clientContext.ExecuteQuery();
-                CamlQuery query = new CamlQuery();
-                query.ViewXml = view.ViewQuery;
+        //        clientContext.Load(view);
+        //        clientContext.ExecuteQuery();
+        //        CamlQuery query = new CamlQuery();
+        //        query.ViewXml = view.ViewQuery;
 
-                ListItemCollection items = list.GetItems(query);
-                clientContext.Load(items);
-                clientContext.ExecuteQuery();
-                SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
-                SiteLogUtility.Log_Entry("Total Count: " + items.Count, true);
-                cntRunAdminGroup = items.Count;
+        //        ListItemCollection items = list.GetItems(query);
+        //        clientContext.Load(items);
+        //        clientContext.ExecuteQuery();
+        //        SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
+        //        SiteLogUtility.Log_Entry("Total Count: " + items.Count, true);
+        //        cntRunAdminGroup = items.Count;
 
-                foreach (var item in items)
-                {
-                    PMData pmd = new PMData();
+        //        foreach (var item in items)
+        //        {
+        //            PMData pmd = new PMData();
                     
 
-                    SiteLogUtility.Log_Entry(item["PracticeTIN"] + " - " + item["PracticeName"] + " - " + item["ProgramParticipation"], true);
+        //            SiteLogUtility.Log_Entry(item["PracticeTIN"] + " - " + item["PracticeName"] + " - " + item["ProgramParticipation"], true);
 
-                    pmd.PracticeName = item["PracticeName"].ToString();
-                    pmd.PracticeTIN = item["PracticeTIN"].ToString();
-                    pmd.SiteId = item["PracticeTIN"].ToString();
-                    pmd.ProgramParticipation = item["ProgramParticipation"].ToString();
+        //            pmd.PracticeName = item["PracticeName"].ToString();
+        //            pmd.PracticeTIN = item["PracticeTIN"].ToString();
+        //            pmd.SiteId = item["PracticeTIN"].ToString();
+        //            pmd.ProgramParticipation = item["ProgramParticipation"].ToString();
 
-                    pmd.IsKC365 = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationKC365) ? "true" : "false";
-                    pmd.IsCKCC = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationCKCC) ? "true" : "false";
-                    pmd.IsIWH = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationIWH) ? "true" : "false";
+        //            pmd.IsKC365 = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationKC365) ? "true" : "false";
+        //            pmd.IsCKCC = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationCKCC) ? "true" : "false";
+        //            pmd.IsIWH = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationIWH) ? "true" : "false";
 
-                    pmData.Add(pmd);
-                }
-            }
+        //            pmData.Add(pmd);
+        //        }
+        //    }
 
-            return pmData;
-        }
+        //    return pmData;
+        //}
         public static void uploadProgramPracticeSupportFilesDialysisStarts(PracticeSite practiceSite)
         {
+            SiteLogUtility.Log_Entry("   uploadProgramPracticeSupportFilesDialysisStarts - In Progress...");
             string siteType = practiceSite.siteType;
 
             if (siteType == "")
@@ -595,4 +604,5 @@ namespace Release_1_4
             return $"{uri.Scheme}://{ uri.DnsSafeHost}";
         }
     }
+    
 }

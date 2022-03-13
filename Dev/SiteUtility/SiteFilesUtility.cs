@@ -13,7 +13,7 @@ namespace SiteUtility
     {
         public void DocumentUpload(string siteURL, string filePath, string LibraryName)
         {
-            SiteLogUtility.Log_Entry("DocumentUpload - In Progress...");
+            SiteLogUtility.Log_Entry("   DocumentUpload - In Progress...");
             using (ClientContext clientContext = new ClientContext(siteURL))
             {
                 clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
@@ -99,6 +99,7 @@ namespace SiteUtility
 
         public void uploadImageSupportingFilesSingleImage(string wUrl, string imgFileName)
         {
+            SiteLogUtility.Log_Entry("   UploadImageSupportingFilesSingleImage - In Progress...");
             string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config";
             using (ClientContext clientContext = new ClientContext(wUrl))
             {
@@ -158,6 +159,7 @@ namespace SiteUtility
         }
         public void uploadHtmlSupportingFilesSingleFile(string wUrl, string htmlFileName)
         {
+            SiteLogUtility.Log_Entry("   UploadHtmlSupportingFilesSingleFile - In Progress...");
             string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
             using (ClientContext clientContext = new ClientContext(wUrl))
             {
@@ -211,6 +213,109 @@ namespace SiteUtility
             }
         }
         public void uploadProgramPracticeSupportFilesWoDialysisStarts(PracticeSite practiceSite)
+        {
+            string siteType = practiceSite.siteType;
+
+            if (siteType == "")
+            {
+                return;
+            }
+            string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
+            using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    var web = clientContext.Web;
+                    string rootWebUrl = GetRootSite(practiceSite.URL);
+
+                    string LibraryName = "Program Participation";
+
+                    //string fileName0 = "EducationReviewPro.JPG";
+                    string fileName1 = "KCEckcc.JPG";
+                    //string fileName2 = "PracticeReferrals.JPG";
+
+                    //byte[] f0 = System.IO.File.ReadAllBytes(LayoutsFolder + fileName0);
+                    byte[] f1 = System.IO.File.ReadAllBytes(LayoutsFolder + fileName1);
+                    //byte[] f2 = System.IO.File.ReadAllBytes(LayoutsFolder + fileName2);
+
+                    //FileCreationInformation fc0 = new FileCreationInformation();
+                    //fc0.Url = fileName0;
+                    //fc0.Overwrite = true;
+                    //fc0.Content = f0;
+
+                    FileCreationInformation fc1 = new FileCreationInformation();
+                    fc1.Url = fileName1;
+                    fc1.Overwrite = true;
+                    fc1.Content = f1;
+
+                    //FileCreationInformation fc2 = new FileCreationInformation();
+                    //fc2.Url = fileName2;
+                    //fc2.Overwrite = true;
+                    //fc2.Content = f2;
+
+                    List myLibrary = web.Lists.GetByTitle(LibraryName);
+
+                    //if (siteType != null && siteType.Contains("kc365"))
+                    //{
+                    //    Microsoft.SharePoint.Client.File newFile2 = myLibrary.RootFolder.Files.Add(fc2);
+                    //    clientContext.Load(newFile2);
+                    //    clientContext.ExecuteQuery();
+
+                    //    ListItem lItem2 = newFile2.ListItemAllFields;
+                    //    lItem2.File.CheckOut();
+                    //    clientContext.ExecuteQuery();
+                    //    lItem2["Title"] = "Payor Enrollment";
+                    //    lItem2["ProgramNameText"] = rootWebUrl + "/bi/fhppp/iwn/EnrollmentReferrals/SitePages/ReferralSearch.aspx?qsptine=" + practiceSite.EncryptedPracticeTIN;
+                    //    lItem2["Thumbnail"] = practiceSite.URL + "/Program%20Participation/" + fileName2;
+                    //    lItem2.Update();
+                    //    lItem2.File.CheckIn("Z", CheckinType.OverwriteCheckIn);
+                    //    clientContext.ExecuteQuery();
+                    //}
+
+                    if (siteType != null && siteType.Contains("ckcc"))
+                    {
+                        Microsoft.SharePoint.Client.File newFile1 = myLibrary.RootFolder.Files.Add(fc1);
+                        clientContext.Load(newFile1);
+                        clientContext.ExecuteQuery();
+
+                        ListItem lItem1 = newFile1.ListItemAllFields;
+                        lItem1.File.CheckOut();
+                        clientContext.ExecuteQuery();
+                        //lItem1["Title"] = "CKCC/KCE Coming Soon!";
+                        lItem1["Title"] = "CKCC/KCE";
+                        lItem1["ProgramNameText"] = practiceSite.URL + "/Pages/ProgramParticipation.aspx";
+                        lItem1["Thumbnail"] = practiceSite.URL + "/Program%20Participation/" + fileName1;
+                        lItem1.Update();
+                        lItem1.File.CheckIn("Z", CheckinType.OverwriteCheckIn);
+                        clientContext.ExecuteQuery();
+                    }
+
+                    //if (siteType != null && siteType.Contains("iwh"))
+                    //{
+                    //    Microsoft.SharePoint.Client.File newFile0 = myLibrary.RootFolder.Files.Add(fc0);
+                    //    clientContext.Load(newFile0);
+                    //    clientContext.ExecuteQuery();
+
+                    //    ListItem lItem0 = newFile0.ListItemAllFields;
+                    //    lItem0.File.CheckOut();
+                    //    clientContext.ExecuteQuery();
+                    //    lItem0["Title"] = "Payor Program Education Resources Coming Soon!";
+                    //    //lItem0["Title"] = "Payor Program Education Resources";
+                    //    lItem0["ProgramNameText"] = practiceSite.URL + "/Pages/ProgramParticipation.aspx";
+                    //    lItem0["Thumbnail"] = practiceSite.URL + "/Program%20Participation/" + fileName0;
+                    //    lItem0.Update();
+                    //    lItem0.File.CheckIn("Z", CheckinType.OverwriteCheckIn);
+                    //    clientContext.ExecuteQuery();
+                    //}
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("uploadProgramPracticeSupportFiles", ex.Message, "Error", practiceSite.URL);
+                }
+            }
+        }
+        public void uploadProgramPracticeSupportFiles_SingleFile(PracticeSite practiceSite, string imgName, string imgUrl, string progrPracTitle)
         {
             string siteType = practiceSite.siteType;
 

@@ -115,7 +115,35 @@ namespace SiteUtility
 
             return true;
         }
+        public int CntProgramParticipationGroupSubTotal(List<PMData> pMData, string pGroup)
+        {
+            int grpTotal = 0;
+            try
+            {
+                var groupPerProgram1 = pMData
+                        .GroupBy(g => g.ProgramParticipation)
+                        .Where(fl => fl.Key.Contains(pGroup))
+                        .Select(grp => new {
+                            Program = grp.Key,
+                            Count = grp.Count(),
+                            pmData = grp.ToList()
+                        })
+                        .OrderBy(pp => pp.Program)
+                        .ToList();
 
+                foreach (var item in groupPerProgram1)
+                {
+                    grpTotal = grpTotal + item.Count;
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("CntParticipationGroupTotal", ex.Message, "Error", "");
+                return grpTotal;
+            }
+
+            return grpTotal;
+        }
     }
 
     public class SitePMData
@@ -132,6 +160,8 @@ namespace SiteUtility
         {
             try
             {
+                string ds = ConfigurationManager.AppSettings["SqlServer"].ToString();
+                string ic = ConfigurationManager.AppSettings["Database"].ToString();
                 string connString = "Data Source=" + ConfigurationManager.AppSettings["SqlServer"]
                         + "; Initial Catalog=" + ConfigurationManager.AppSettings["Database"] + "; Integrated Security=SSPI";
 
@@ -145,8 +175,8 @@ namespace SiteUtility
                 da.Fill(dtTable);
                 conn.Close();
                 da.Dispose();
-                filterPMSiteData(dtTable);
-                //createJSONConfig(dtTable);
+                //filterPMSiteData(dtTable);
+                createJSONConfig(dtTable);
             }
             catch (Exception ex)
             {
@@ -227,7 +257,8 @@ namespace SiteUtility
                 string strTINValue = "";
                 string strURL = "url: ";
                 string strFormatURL = "";
-                string strPracticeSite = "PracticeSite20_PM";
+                //string strPracticeSite = "PracticeSite20_PM";
+                string strPracticeSite = "/bi/fhppp/portal/PM";
                 string strPracticeSiteValue = "";
                 DataTable dtDataNew = dt.Clone();
                 dtDataNew = dt.AsEnumerable().Where(row => row.Field<Int32>("KC365") != 0).CopyToDataTable();
