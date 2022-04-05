@@ -450,6 +450,88 @@ namespace SiteUtility
 
             return siteName;
         }
+        public string GetSiteDescriptionData(string wUrl, string sTitle)
+        {
+            string strDescription = "";
+            string strParticipationValue = "";
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                try
+                {
+                    var web = clientContext.Web;
+                    clientContext.Load(web.ParentWeb);
+                    clientContext.ExecuteQuery();
+
+                    List list = clientContext.Web.Lists.GetByTitle("AdminGroup");
+                    clientContext.Load(list);
+                    clientContext.ExecuteQuery();
+                    CamlQuery query = new CamlQuery();
+                    query.ViewXml = @"<View><Query><Where><Eq><FieldRef Name='PracticeName' /><Value Type='Text'>" + sTitle + "</Value></Eq></Where></Query></View>";
+                    ListItemCollection items = list.GetItems(query);
+                    clientContext.Load(items);
+                    clientContext.ExecuteQuery();
+
+                    if (items.Count > 0)
+                    {
+                        if (items[0].FieldValues["KCEArea"] != null)
+                        {
+                            strDescription = sTitle + " is a member of " + items[0].FieldValues["KCEArea"].ToString() + ". Program Participation: ";
+                        }
+                        else
+                        {
+                            strDescription = sTitle + ". Program Participation: ";
+                        }
+                        if (items[0].FieldValues["ProgramParticipation"] != null)
+                        {
+                            string[] strParticipationList = items[0].FieldValues["ProgramParticipation"].ToString().Split(';');
+                            for (int intLoop = 0; intLoop < strParticipationList.Length; intLoop++)
+                            {
+                                strParticipationValue = strParticipationValue + " " + (intLoop + 1) + "." + strParticipationList[intLoop].ToString() + ";";
+                            }
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("GetSiteDescriptionData", ex.Message, "Error", "");
+                }
+            }
+            strDescription = strDescription + " " + strParticipationValue;
+            return strDescription;
+        }
+
+        public void SyncSubSiteDescription(string wUrl, string psiteTitle)
+        {
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    var web = clientContext.Web;
+                    clientContext.Load(web);
+                    clientContext.Load(web.ParentWeb);
+                    clientContext.ExecuteQuery();
+
+                    string strSiteDesc = GetSiteDescriptionData(GetRootSite(wUrl) + web.ParentWeb.ServerRelativeUrl, psiteTitle);
+
+                    web.Description = strSiteDesc;
+                    web.Update();
+                    clientContext.Load(web);
+                    clientContext.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("SyncSubSiteDescription", ex.Message, "Error", "");
+                }
+            }
+        }
+
+        public string GetRootSite(string url)
+        {
+            Uri uri = new Uri(url.TrimEnd(new[] { '/' }));
+            return $"{uri.Scheme}://{ uri.DnsSafeHost}";
+        }
 
         public static string DecryptPTIN(string s)
         {

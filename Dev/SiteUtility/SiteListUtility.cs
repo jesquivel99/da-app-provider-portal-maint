@@ -57,6 +57,7 @@ namespace SiteUtility
         public string listNamePayorEducationIwh = "PayorEdResourcesIwh";
         public string listTitlePayorEducationIwh = "Payor Education Resources Iwh";
         public string listFolder1PayorEducationIwh = "Education";
+        public string listFolder2PayorEducationIwh = "CKD Support";
         public string tabTitlePayorEducationIwh = "Payor Programs";
         public string webpartPayorEducationIwh = "PayorEducation_Iwh";
 
@@ -65,6 +66,42 @@ namespace SiteUtility
         public string listFolder1PayorEducationCkcc = "Education";
         public string tabTitlePayorEducationCkcc = "CKCC/KCE";
         public string webpartPayorEducationCkcc = "PayorEducation_Ckcc";
+
+        // Data Exchange...
+        public string pageNameDataExchange = "DataExchange";
+        public string pageTitleDataExchange = "Data Exchange";
+
+        public string listNameDataExchangeIwh = "Documentsiwh";
+        public string listTitleDataExchangeIwh = "Documentsiwh";
+        public string tabTitleDataExchangeIwh = "Payor Programs";
+        public string webpartDataExchangeIwh = "Practice Documents IWH";
+        public string listFolder1DataExchangeIwh = "Explanation of Payment";
+        public string listFolder2DataExchangeIwh = "ESRD Practice Rosters";
+        public string listFolder3DataExchangeIwh = "Hospital Notifications";
+        public string listFolder4DataExchangeIwh = "Other Documents";
+        
+
+        public string listNameDataExchangeCkcc = "Documentsckcc";
+        public string listTitleDataExchangeCkcc = "DocumentsCkcc";
+        public string tabTitleDataExchangeCkcc = "CKCC/KCE";
+        public string webpartDataExchangeCkcc = "Practice Documents CKCC";
+
+        // Risk Adjustment...
+        public string pageNameRiskAdjustment = "RiskAdjustmentResources";
+        public string pageTitleRiskAdjustment = "Risk Adjustment Resources";
+
+        public string listNameRiskAdjustmentIwh = "RiskAdjustment_iwh";
+        public string listTitleRiskAdjustmentIwh = "RiskAdjustment_iwh";
+        public string tabTitleRiskAdjustmentIwh = "Private Payor Program";
+        public string webpartRiskAdjustmentIwh = "Private Payor Program";
+        public string listFolder1RiskAdjustmentIwh = "Accurate Documentation Worksheet";
+        public string listFolder2RiskAdjustmentIwh = "Medical Chart Reviews";
+        
+
+        public string listNameRiskAdjustmentCkcc = "RiskAdjustment_ckcc";
+        public string listTitleRiskAdjustmentCkcc = "RiskAdjustment_ckcc";
+        public string tabTitleRiskAdjustmentCkcc = "CKCC/KCE Program";
+        public string webpartRiskAdjustmentCkcc = "CKCC/KCE Program";
 
 
         public static void ListFunction1()

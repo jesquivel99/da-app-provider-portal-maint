@@ -65,16 +65,23 @@ namespace SiteUtility
         public static void LogPracDetail(PracticeSite psite)
         {
             SiteLogUtility.Log_Entry("--");
-            SiteLogUtility.Log_Entry($"--          Portal Site: {psite.Name}", true);
-            SiteLogUtility.Log_Entry($"--          Portal Site: {psite.ProgramParticipation}", true);
-            SiteLogUtility.Log_Entry($"--          Portal Site: {psite.URL}", true);
-            //SiteLogUtility.Log_Entry($"--    Permissions Audit: {psite.URL}/_layouts/user.aspx");
-            //SiteLogUtility.Log_Entry($"--        Site Contents: {psite.URL}/_layouts/viewlsts.aspx");
-            //SiteLogUtility.Log_Entry($"--          Pages Audit: {psite.URL}/Pages");
-            //SiteLogUtility.Log_Entry($"--Program Participation: {psite.ProgramParticipation}");
-            //SiteLogUtility.Log_Entry($"--               IsCKCC: {psite.IsCKCC}", true);
-            //SiteLogUtility.Log_Entry($"--                IsIWH: {psite.IsIWH}", true);
-            //SiteLogUtility.Log_Entry($"--              IsKC365: {psite.IsKC365}", true);
+            SiteLogUtility.Log_Entry($"--             Portal Site: {psite.Name}", true);
+            SiteLogUtility.Log_Entry($"--             Portal Site: {psite.ProgramParticipation}", true);
+            SiteLogUtility.Log_Entry($"--             Portal Site: {psite.URL}", true);
+            SiteLogUtility.Log_Entry($"--             Portal Site: {psite.SiteId}", true);
+            SiteLogUtility.Log_Entry($"--             Portal Site: {psite.PracticeTIN}", true);
+
+            SiteLogUtility.Log_Entry($"--       Permissions Audit: {psite.URL}/_layouts/user.aspx");
+            SiteLogUtility.Log_Entry($"--           Site Contents: {psite.URL}/_layouts/viewlsts.aspx");
+            SiteLogUtility.Log_Entry($"--             Pages Audit: {psite.URL}/Pages");
+
+            SiteLogUtility.Log_Entry($"--    Prac_User Permission: {psite.PracUserPermission}");
+            SiteLogUtility.Log_Entry($"-- Prac_User RO Permission: {psite.PracUserReadOnlyPermission}");
+
+            SiteLogUtility.Log_Entry($"--   Program Participation: {psite.ProgramParticipation}");
+            SiteLogUtility.Log_Entry($"--                  IsCKCC: {psite.IsCKCC}", true);
+            SiteLogUtility.Log_Entry($"--                   IsIWH: {psite.IsIWH}", true);
+            SiteLogUtility.Log_Entry($"--                 IsKC365: {psite.IsKC365}", true);
         }
 
         public static void CreateLogEntry(string strMethod, string strMessage, string strType, string strURL)
