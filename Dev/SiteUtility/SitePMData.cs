@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using System.Globalization;
 
 namespace SiteUtility
 {
@@ -156,6 +157,11 @@ namespace SiteUtility
             SitePMData objSitePMData = new SitePMData();
             objSitePMData.readPMSiteData();
         }
+        public static void initialConnectDBPortal(string PMRef = "")
+        {
+            SitePMData objSitePMData = new SitePMData();
+            objSitePMData.readDBPortalPMData(PMRef);
+        }
         public void readPMSiteData()
         {
             try
@@ -175,8 +181,44 @@ namespace SiteUtility
                 da.Fill(dtTable);
                 conn.Close();
                 da.Dispose();
-                //filterPMSiteData(dtTable);
-                createJSONConfig(dtTable);
+                filterPMSiteData(dtTable);
+                //createJSONConfig(dtTable);
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        public void readDBPortalPMData(string PMRef = "")
+        {
+            try
+            {
+                string filterPM = "";
+                string ds = ConfigurationManager.AppSettings["SqlServer"].ToString();
+                string ic = ConfigurationManager.AppSettings["Database"].ToString();
+                string connString = "Data Source=" + ConfigurationManager.AppSettings["SqlServer"]
+                        + "; Initial Catalog=" + ConfigurationManager.AppSettings["Database"] + "; Integrated Security=SSPI";
+                string query = string.Empty;
+
+                if(PMRef != "")
+                {
+                    query = @"SELECT * FROM [HealthCloud_NightlyProd].[PORTAL].[vwPracticeInfo] WHERE GroupID = " + PMRef + " ORDER BY GroupID";
+                }
+                else
+                {
+                    query = @"SELECT * FROM [HealthCloud_NightlyProd].[PORTAL].[vwPracticeInfo] ORDER BY GroupID";
+                }
+
+                DataTable dtTable = new DataTable();
+                SqlConnection conn = new SqlConnection(connString);
+                SqlCommand cmd = new SqlCommand(query, conn);
+                conn.Open();
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                da.Fill(dtTable);
+                conn.Close();
+                da.Dispose();
+                filterPMSiteData(dtTable);
+                //createJSONConfig(dtTable);
             }
             catch (Exception ex)
             {
@@ -195,12 +237,12 @@ namespace SiteUtility
                     if (intLoop <= 9)
                     {
                         dtDataNew = allData.AsEnumerable().Where(row => row.Field<Int32>("GroupID") == Convert.ToInt32(distinctValues.Rows[intLoop]["GroupID"])).CopyToDataTable();
-                        updateXML(dtDataNew, ConfigurationManager.AppSettings["ConfigURL"] + "PracticeSiteTemplate_PM" + Convert.ToInt32(distinctValues.Rows[intLoop]["GroupID"]).ToString("00") + ".config", "PracticeSite20_PM" + Convert.ToInt32(distinctValues.Rows[intLoop]["GroupID"]).ToString("00"));
+                        updateXML(dtDataNew, ConfigurationManager.AppSettings["ConfigURL"] + "PracticeSiteTemplate_PM" + Convert.ToInt32(distinctValues.Rows[intLoop]["GroupID"]).ToString("00") + ".config", "PM" + Convert.ToInt32(distinctValues.Rows[intLoop]["GroupID"]).ToString("00"));
                     }
                     else
                     {
                         dtDataNew = allData.AsEnumerable().Where(row => row.Field<Int32>("GroupID") == Convert.ToInt32(distinctValues.Rows[intLoop]["GroupID"])).CopyToDataTable();
-                        updateXML(dtDataNew, ConfigurationManager.AppSettings["ConfigURL"] + "PracticeSiteTemplate_PM" + distinctValues.Rows[intLoop]["GroupID"].ToString() + ".config", "PracticeSite20_PM" + distinctValues.Rows[intLoop]["GroupID"].ToString());
+                        updateXML(dtDataNew, ConfigurationManager.AppSettings["ConfigURL"] + "PracticeSiteTemplate_PM" + distinctValues.Rows[intLoop]["GroupID"].ToString() + ".config", "PM" + distinctValues.Rows[intLoop]["GroupID"].ToString());
                     }
                     dtDataNew.Rows.Clear();
                 }
@@ -221,17 +263,27 @@ namespace SiteUtility
                 var propertyValueSourceEle = sourceFile.Elements("Config").Elements("Sites").Elements("Site").Elements("SubSites").Elements("Site").Elements("SiteSettings").Elements("PropertyBag").Elements("Property");
                 var sourceSite = sourceElementSbsite.FirstOrDefault();
                 var propertySourceSite = propertyValueSourceEle.FirstOrDefault();
+
                 for (int i = 0; i < dt.Rows.Count; i++)
                 {
                     DataRow dr = dt.Rows[i];
                     sourceSite.SetAttributeValue("SiteName", dr["SiteID"]);
-                    sourceSite.SetAttributeValue("SiteTitle", dr["PracticeName"]);
+
+                    //sourceSite.SetAttributeValue("SiteTitle", dr["PracticeName"]);
+                    sourceSite.SetAttributeValue("SiteTitle", changeSiteNameTitleCase(dr["PracticeName"].ToString()));
+                    
                     sourceSite.SetAttributeValue("RegionID", strRegionID);
-                    sourceSite.SetAttributeValue("SiteDescription", dr["PracticeName"] + " is a member of " + strRegionID);
+                    
+                    //sourceSite.SetAttributeValue("SiteDescription", dr["PracticeName"] + " is a member of " + strRegionID);
+                    sourceSite.SetAttributeValue("SiteDescription", changeSiteNameTitleCase(dr["PracticeName"].ToString()) + " is a member of " + strRegionID);
+                    
                     sourceSite.SetAttributeValue("IsKC365", Convert.ToInt32(dr["KC365"]) == 0 ? "false" : "true");
                     sourceSite.SetAttributeValue("kceArea", dr["CKCCArea"]);
                     sourceSite.SetAttributeValue("IsCKCC", dr["CKCCArea"].ToString() == "" ? "false" : "true");
-                    sourceSite.SetAttributeValue("IsIWH", dr["IWNRegion"].ToString() == "" ? "false" : "true");
+                    
+                    //sourceSite.SetAttributeValue("IsIWH", dr["IWNRegion"].ToString() == "0" ? "false" : "true");
+                    sourceSite.SetAttributeValue("IsIWH", Convert.ToBoolean(dr["IWNRegion"]) == false ? "false" : "true");
+                    
                     sourceSite.SetAttributeValue("encryptedTIN", dr["EncryptedPracticeTIN"]);
                     propertySourceSite.SetAttributeValue("PropertyValue", strRegionID);
                     xdoc.Element("Config").Element("Sites").Element("Site").Element("SubSites").Add(sourceSite);
@@ -292,6 +344,65 @@ namespace SiteUtility
             {
                 //test
             }
+        }
+
+        public static string formateSiteName(string strSiteName)
+        {
+            if (strSiteName.Split(',').Count() > 1)
+            {
+                return changeSiteNameTitleCaseNxt(strSiteName);
+            }
+            else
+            {
+                return changeSiteNameTitleCase(strSiteName);
+            }
+        }
+        public static string changeSiteNameTitleCase(string strSiteName)
+        {
+            TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+            string strText = "";
+            string[] strSiteNameArr = strSiteName.Split(' ');
+            for (int intArray = 0; intArray < strSiteNameArr.Count(); intArray++)
+            {
+                if ((intArray + 1) != strSiteNameArr.Count())
+                {
+                    if (strSiteNameArr[intArray].ToString().ToLower() == "and" || strSiteNameArr[intArray].ToString().ToLower() == "of")
+                    {
+                        strText = strText + " " + strSiteNameArr[intArray].ToString().ToLower();
+                    }
+                    else
+                    {
+                        strText = strText + " " + textInfo.ToTitleCase(strSiteNameArr[intArray].ToString().ToLower());
+                    }
+                }
+                else if (strSiteNameArr.Last().Contains('('))
+                {
+                    strText = strText + " " + strSiteNameArr[intArray].ToString();
+                }
+                else if (strSiteNameArr.Last().Count() < 5)
+                {
+                    strText = strText + " " + strSiteNameArr[intArray].ToString();
+                }
+                else
+                {
+                    strText = strText + " " + textInfo.ToTitleCase(strSiteNameArr[intArray].ToString().ToLower());
+                }
+            }
+            return strText.Trim();
+        }
+        public static string changeSiteNameTitleCaseNxt(string strSiteName)
+        {
+            TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+            string strNewText = textInfo.ToTitleCase(strSiteName.Split(',')[0].ToLower()) + "," + strSiteName.Split(',')[1].ToString();
+            if (strNewText.Contains("Of"))
+            {
+                strNewText = strNewText.Replace("Of", "of");
+            }
+            if (strNewText.Contains("And"))
+            {
+                strNewText = strNewText.Replace("And", "and");
+            }
+            return strNewText;
         }
     }
 }

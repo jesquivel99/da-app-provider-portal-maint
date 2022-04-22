@@ -154,7 +154,7 @@ namespace SiteUtility
         }
 
         /// <summary>
-        /// SP_GetAll_PMData will read the AdminGroup SharePoint List for a given Program Manager site and the PM's Practice sites
+        /// SP_GetAll_PMData_All will read the AdminGroup SharePoint List for a given Program Manager site and the PM's Practice sites
         ///     and return a List of Type PMData
         /// </summary>
         /// <param name="urlAdminGrp"></param>

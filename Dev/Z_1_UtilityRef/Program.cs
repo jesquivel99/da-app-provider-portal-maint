@@ -15,9 +15,9 @@ using System.IO;
 using System.Xml;
 using System.Reflection;
 
-namespace SiteUtilityTest
+namespace Z_1_UtilityRef
 {
-    public class ProgramNew2
+    class Program
     {
         /// <summary>
         /// NOTES:
@@ -40,6 +40,10 @@ namespace SiteUtilityTest
         static int cntIsCkcc = 0;
         static int cntIsIwh = 0;
         static int cntIsKc365 = 0;
+        static void Main(string[] args)
+        {
+        }
+
         public void InitiateProgNew2()
         {
             string releaseName = "SiteUtilityTest - Print Webparts";
@@ -86,7 +90,7 @@ namespace SiteUtilityTest
                                 SiteLogUtility.LogPracDetail(psite);
                                 SiteListUtility slu = new SiteListUtility();
 
-                                UpdateSiteLogo(psite);
+                                //UpdateSiteLogo(psite);
                             }
                         }
                     }
@@ -118,26 +122,28 @@ namespace SiteUtilityTest
             }
         }
 
-        private static void UpdateSiteLogo(PracticeSite practiceSite)
-        {
-            using (ClientContext clientContext = new ClientContext(practiceSite.URL))
-            {
-                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                Web web = clientContext.Web;
-                clientContext.Load(web, w => w.ServerRelativeUrl, w => w.SiteLogoUrl);
-                clientContext.ExecuteQuery();
-                try
-                {
-                    web.SiteLogoUrl = web.ServerRelativeUrl + "/SiteAssets/FHPIcon.JPG";
-                    web.Update();
-                    clientContext.ExecuteQuery();
-                }
-                catch (Exception ex)
-                {
-                    SiteLogUtility.CreateLogEntry("UpdateSiteLogo", ex.Message, "Error", "");
-                }
-            }
-        }
+        //private static void UpdateSiteLogo(PracticeSite practiceSite)
+        //{
+        //    using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+        //    {
+        //        clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+        //        Web web = clientContext.Web;
+                
+        //        clientContext.Load(web, w => w.ServerRelativeUrl, w => w.SiteLogoUrl);
+        //        clientContext.ExecuteQuery();
+
+        //        try
+        //        {
+        //            web.SiteLogoUrl = web.ServerRelativeUrl + "/SiteAssets/FHPIcon.JPG";
+        //            web.Update();
+        //            clientContext.ExecuteQuery();
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            SiteLogUtility.CreateLogEntry("UpdateSiteLogo", ex.Message, "Error", "");
+        //        }
+        //    }
+        //}
 
         private static void Init_ModifyView_IWH(string wUrl)
         {
@@ -2360,7 +2366,7 @@ namespace SiteUtilityTest
                     {
                         var fndPage = item["FileRef"].ToString();
                         bool endsInPage = fndPage.EndsWith(pageName + ".aspx");
-                        if(endsInPage)
+                        if (endsInPage)
                         {
                             SiteLogUtility.Log_Entry($">>> {item["FileRef"]}", true);
                         }
@@ -2456,8 +2462,8 @@ namespace SiteUtilityTest
                 }
             }
         }
-
     }
+
     public static class DataTableExtensions
     {
         public static void WriteToCsvFile(this DataTable dataTable, string filePath)
@@ -2502,3 +2508,4 @@ namespace SiteUtilityTest
         public string EncryptedPracticeTIN { get; set; }
     }
 }
+

@@ -123,9 +123,9 @@ namespace Release_1_4
                 SiteLogUtility.LogPracDetail(psite);
 
                 //Deploy on 3-04...
-                //spUtility.InitializePage(psite.URL, pageName, "Patient Status Updates");
-                //spUtility.DeleteWebPart(psite.URL, pageName);
-                //ConfigureDialysisStartsPage(psite.URL, urlSiteAssets, pageName);
+                spUtility.InitializePage(psite.URL, pageName, "Patient Status Updates");
+                spUtility.DeleteWebPart(psite.URL, pageName);
+                ConfigureDialysisStartsPage(psite.URL, urlSiteAssets, pageName);
 
                 //Deploy on 3-11...
                 uploadProgramPracticeSupportFilesDialysisStarts(psite);

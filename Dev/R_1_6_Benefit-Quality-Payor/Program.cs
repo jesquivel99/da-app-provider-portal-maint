@@ -87,11 +87,11 @@ namespace R_1_6_Benefit_Quality_Payor
                                 modifyWebPartProgramParticipation(psite.URL, psite);   // Resize...
                                 uploadMultiPartSupportingFiles(psite.URL, psite);      // JavaScript...
 
-                                // Deploy 3-04 AND 3-11
-                                //if (psite.IsCKCC == "true")
-                                //{
-                                //    Init_Benefit(psite);
-                                //}
+                                //Deploy 3 - 04 AND 3 - 11
+                                if (psite.IsCKCC == "true")
+                                {
+                                    Init_Benefit(psite);
+                                }
 
                                 // Deploy 3-25
                                 if (psite.IsIWH == "true")
@@ -100,7 +100,7 @@ namespace R_1_6_Benefit_Quality_Payor
                                 }
 
                                 // Deploy 3-04 AND 3-11
-                                //Init_Quality(psite);
+                                Init_Quality(psite);
 
                                 // Deploy 3-04 AND 3-11 AND 3-25
                                 SiteLogUtility.Log_Entry("ClearQuickNavigationRecent - In Progress...");
@@ -190,23 +190,23 @@ namespace R_1_6_Benefit_Quality_Payor
             //Deploy 3-04
             try
             {
-                //if (practiceSite.IsIWH == "true")
-                //{
-                //    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityIwh, practiceCView);
-                //    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder1QualityIwh);
-                //    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder2QualityIwh);
-                //    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder3QualityIwh);
-                //    cntIsIwh++;
-                //}
+                if (practiceSite.IsIWH == "true")
+                {
+                    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityIwh, practiceCView);
+                    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder1QualityIwh);
+                    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder2QualityIwh);
+                    CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder3QualityIwh);
+                    cntIsIwh++;
+                }
 
-                //if (practiceSite.IsCKCC == "true")
-                //{
-                //    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityCkcc, practiceCView);
-                //    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder1QualityCkcc);
-                //    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder2QualityCkcc);
-                //    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder3QualityCkcc);
-                //    cntIsCkcc++;
-                //}
+                if (practiceSite.IsCKCC == "true")
+                {
+                    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityCkcc, practiceCView);
+                    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder1QualityCkcc);
+                    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder2QualityCkcc);
+                    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder3QualityCkcc);
+                    cntIsCkcc++;
+                }
 
                 //Deploy 3-11
                 spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNameQuality);
@@ -297,10 +297,6 @@ namespace R_1_6_Benefit_Quality_Payor
                     {
                         list = w.Lists.GetByTitle(slu.listNamePayorEducationIwh);
                     }
-                    //else if (strWebPartTitle == slu.webpartPayorEducationCkcc)
-                    //{
-                    //    list = w.Lists.GetByTitle(slu.listNamePayorEducationCkcc);
-                    //}
                     else if (strWebPartTitle == slu.webpartQualityIwh)   // Quality
                     {
                         list = w.Lists.GetByTitle(slu.listNameQualityIwh);
@@ -477,7 +473,7 @@ namespace R_1_6_Benefit_Quality_Payor
 
                         WebPartDefinition wpd1 = olimitedwebpartmanager.ImportWebPart(contentEditorXML("Multi Tab", "600px", "700px", web.Url + "/SiteAssets/BenefitEnhancement_MultiTab.js"));
                         wpd1.WebPart.Title = "Multi Tab";
-                        olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "CenterLeftColumn", 1);
+                        olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "CenterColumn", 1);
 
                         //if (pracSite.IsIWH == "true")
                         //{
@@ -548,7 +544,7 @@ namespace R_1_6_Benefit_Quality_Payor
 
                         WebPartDefinition wpd1 = olimitedwebpartmanager.ImportWebPart(contentEditorXML("Multi Tab", "600px", "700px", web.Url + "/SiteAssets/Quality_MultiTab.js"));
                         wpd1.WebPart.Title = "Multi Tab";
-                        olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "CenterLeftColumn", 1);
+                        olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "CenterColumn", 1);
 
                         if (pracSite.IsIWH == "true")
                         {
