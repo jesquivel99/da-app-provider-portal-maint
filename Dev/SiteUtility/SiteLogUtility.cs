@@ -6,6 +6,7 @@ using Microsoft.SharePoint.Client;
 using System.Net;
 using System.Configuration;
 using System.IO;
+using System.Net.Mail;
 
 namespace SiteUtility
 {
@@ -18,6 +19,8 @@ namespace SiteUtility
         public static List<string> FileList = new List<string>();
         public static List<string> LogList = new List<string>();
         public static List<LogInfo> logEntryList = new List<LogInfo>();
+
+        public static List<LogEmailContent> listEmailContent = new List<LogEmailContent>();
 
         public static string ResultDescription = "", ResultDescConcern = "", EmailDesc = "";
         public static string textLine0 = "\n------------------------------";
@@ -44,6 +47,24 @@ namespace SiteUtility
 
         }
 
+        public class LogEmailContent
+        {
+            public LogEmailContent()
+            {
+
+            }
+
+            public string FolderName { get; set; }
+            public string FileName { get; set; }
+            public string FileRootSiteUrl { get; set; }
+            public string FileServerRelativeUrl { get; set; }
+            public DateTime ModifiedDate { get; set; }
+            public DateTime CreateDate { get; set; }
+            public int BaseMinutes { get; set; }
+            public double TotalTimeSpan { get; set; }
+            public string Notes { get; set; }
+        }
+
         public static void InitLogFile(string maintAppName, string rootUrl, string siteUrl)
         {
             LogFile = ConfigurationManager.AppSettings["LogFile"];
@@ -66,10 +87,10 @@ namespace SiteUtility
         {
             SiteLogUtility.Log_Entry("--");
             SiteLogUtility.Log_Entry($"--             Portal Site: {psite.Name}", true);
-            SiteLogUtility.Log_Entry($"--             Portal Site: {psite.ProgramParticipation}", true);
-            SiteLogUtility.Log_Entry($"--             Portal Site: {psite.URL}", true);
-            SiteLogUtility.Log_Entry($"--             Portal Site: {psite.SiteId}", true);
-            SiteLogUtility.Log_Entry($"--             Portal Site: {psite.PracticeTIN}", true);
+            SiteLogUtility.Log_Entry($"--   Program Participation: {psite.ProgramParticipation}", true);
+            SiteLogUtility.Log_Entry($"--                     URL: {psite.URL}", true);
+            SiteLogUtility.Log_Entry($"--                  SiteID: {psite.SiteId}", true);
+            SiteLogUtility.Log_Entry($"--                    PTIN: {psite.PracticeTIN}", true);
 
             SiteLogUtility.Log_Entry($"--       Permissions Audit: {psite.URL}/_layouts/user.aspx");
             SiteLogUtility.Log_Entry($"--           Site Contents: {psite.URL}/_layouts/viewlsts.aspx");
@@ -84,7 +105,7 @@ namespace SiteUtility
             SiteLogUtility.Log_Entry($"--                 IsKC365: {psite.IsKC365}", true);
         }
 
-        public static void CreateLogEntry(string strMethod, string strMessage, string strType, string strURL)
+        public static void CreateLogEntry(string strMethod, string strMessage, string strType, string strURL, bool consolePrint = false)
         {
             if (strURL == "")
             {
@@ -113,6 +134,11 @@ namespace SiteUtility
                 oItem["Author"] = theUser;
                 oItem.Update();
                 clientContext.ExecuteQuery();
+
+                if (consolePrint)
+                {
+                    Console.WriteLine($"{strMessage}, {strType}, {strMethod}");
+                }
             }
         }
 
@@ -208,7 +234,6 @@ namespace SiteUtility
 
         public static string CreateLog(string LogName)
         {
-            //string logFolder = Path.Combine(ConfigurationManager.AppSettings["Log_Dir"], "Logs");
             string logFolder = ConfigurationManager.AppSettings["Log_Dir"];
             if (!Directory.Exists(logFolder))
                 Directory.CreateDirectory(logFolder);
@@ -216,10 +241,7 @@ namespace SiteUtility
             string fileName = LogName + "_" + DateTime.Now.ToString("yyyyMMdd") + "_" + DateTime.Now.ToString("HHmmss") + ".log";
             string filePath = Path.Combine(logFolder, fileName);
 
-            //using (StreamWriter sw = new StreamWriter(filePath))
-            //    sw.WriteLine(ex.ToString());
             LogText = "Log File Created: " + DateTime.Now;
-            //AddLogEntry(LogText);
             LogFileName = filePath;
 
             return LogText;
@@ -272,8 +294,41 @@ namespace SiteUtility
             Console.WriteLine(textLine);
             LogText = $"PracticeSiteMaint - {rName} \n   Complete";
             Log_Entry(LogText, true);
+        }
 
-            //Log_EmailToMe();
+        public static void email_toMe(string emailContent, string emailSubject, string emailAddress, string emailAddressName = "Portal-Notification", bool isEmailHighPriority = false)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(emailContent))
+                    emailContent = "emailContent was empty";
+
+                using (var message = new MailMessage())
+                {
+                    if (isEmailHighPriority)
+                        message.Priority = MailPriority.High;
+
+                    message.From = new MailAddress("sp_smtp@medspring.com", emailAddressName);
+                    message.To.Add(new MailAddress(emailAddress));
+
+                    message.Subject = emailSubject;
+                    message.IsBodyHtml = false;
+                    message.Body = emailContent;
+
+                    using (var smtp = new SmtpClient())
+                    {
+                        smtp.Host = "smtp.fmcna.com";
+                        smtp.Port = 25;
+                        smtp.EnableSsl = false;
+                        smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                        smtp.Send(message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("GetFiles", ex.Message, "Error", "");
+            }
         }
         public static void LogFunction1()
         {

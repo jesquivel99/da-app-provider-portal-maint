@@ -50,9 +50,6 @@ namespace SiteUtilityTest
             string runPractice = "94711764549";
             string urlAdminGroup = siteUrl + "/" + runPM;
 
-            string connString = "Data Source=" + ConfigurationManager.AppSettings["SqlServer"]
-                        + "; Initial Catalog=" + ConfigurationManager.AppSettings["Database"] + "; Integrated Security=SSPI";
-
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
             SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
 

@@ -40,9 +40,9 @@ namespace SiteUtility
         public string IsKC365 { get; set; }
         public string siteType { get; set; }
         public string PracUserPermission { get; set; }
-        public string PracUserPermissionDesc = "Practice Site User Permission Level";
+        public string PracUserPermissionDesc = "This is the Sites General Practice User group.";
         public string PracUserReadOnlyPermission { get; set; }
-        public string PracUserReadOnlyPermissionDesc = "Read";
+        public string PracUserReadOnlyPermissionDesc = "This is the Sites Practice ReadOnly User group.";
 
         public DateTime RowCreateDate { get; set; }
         public DateTime RowUpdateDate { get; set; }

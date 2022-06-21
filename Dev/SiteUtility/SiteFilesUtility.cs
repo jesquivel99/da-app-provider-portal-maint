@@ -159,7 +159,7 @@ namespace SiteUtility
         }
         public void uploadHtmlSupportingFilesSingleFile(string wUrl, string htmlFileName)
         {
-            SiteLogUtility.Log_Entry("   UploadHtmlSupportingFilesSingleFile - In Progress...");
+            SiteLogUtility.Log_Entry("   UploadHtmlSupportingFilesSingleFile - " + htmlFileName);
             string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
             using (ClientContext clientContext = new ClientContext(wUrl))
             {
@@ -577,6 +577,95 @@ namespace SiteUtility
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("CreateRedirectPage", ex.Message, "Error", "");
+            }
+        }
+
+        private static void UseRecursiveMethodToGetAllItems(string pracUrl, string libName, string folderName)
+        {
+            using (ClientContext context = new ClientContext(pracUrl))
+            {
+                context.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+                FolderCollection rootFolders = context.Web.GetFolderByServerRelativeUrl(libName).Folders;
+                context.Load(rootFolders, folders => folders.Include(f => f.ListItemAllFields));
+                context.ExecuteQuery();
+                foreach (var folder in rootFolders)
+                {
+                    GetFilesAndFolders(context, folder, folderName);
+                }
+
+                Console.ReadLine();
+            }
+        }
+
+        private static void GetFilesAndFolders(ClientContext context, Folder folder, string folderName)
+        {
+            if (folder != null && folder.ListItemAllFields.FieldValues.Count > 0)
+            {
+                if (folder.ListItemAllFields.FieldValues["FileLeafRef"].ToString() == folderName)
+                {
+                    Console.WriteLine($"Folder - {folder.ListItemAllFields.FieldValues["FileLeafRef"]} - FOUND THE FOLDER!");
+                }
+                else
+                {
+                    Console.WriteLine($"Folder - {folder.ListItemAllFields.FieldValues["FileLeafRef"]}");
+                }
+
+                var fileCollection = folder.Files;
+                context.Load(fileCollection, files => files.Include(f => f.ListItemAllFields));
+                context.ExecuteQuery();
+
+                foreach (var file in fileCollection)
+                {
+                    Console.WriteLine($" -> {file.ListItemAllFields.FieldValues["FileLeafRef"]}");
+                }
+
+                var subFolderCollection = folder.Folders;
+                context.Load(subFolderCollection, folders => folders.Include(f => f.ListItemAllFields));
+                context.ExecuteQuery();
+                foreach (var subFolder in subFolderCollection)
+                {
+                    GetFilesAndFolders(context, subFolder, folderName);
+                }
+            }
+        }
+
+        public void GetAllCheckedOutFilesInLibrary(string pracUrl, string listName)
+        {
+            try
+            {
+                using (var ctx = new ClientContext(pracUrl))
+                {
+                    ctx.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    ctx.Load(ctx.Web, a => a.Lists);
+                    ctx.ExecuteQuery();
+
+                    List list = ctx.Web.Lists.GetByTitle(listName);
+                    ListItemCollection items = list.GetItems(
+                        new CamlQuery()
+                        {
+                            ViewXml = @"<View Scope='RecursiveAll'><Query><Where><IsNotNull><FieldRef Name='File_x0020_Type' /></IsNotNull></Where></Query></View>"
+                        });
+                    ctx.Load(items, a => a.IncludeWithDefaultProperties(item => item.File, item => item.File.CheckedOutByUser, item => item.File.Author));
+                    ctx.ExecuteQuery();
+                    foreach (var item in items)
+                    {
+                        //if (item.File.CheckOutType != CheckOutType.None)
+                        {
+                            SiteLogUtility.Log_Entry("File: " + item["FileRef"].ToString().Split('/').LastOrDefault(), true);
+                            SiteLogUtility.Log_Entry("                Author: " + item.File.Author.Title, true);
+                            //SiteLogUtility.Log_Entry("        Checked-Out By: " + item.File.CheckedOutByUser.Title, true);
+                            //SiteLogUtility.Log_Entry("Checked-Out User Email: " + item.File.CheckedOutByUser.Email, true);
+                            SiteLogUtility.Log_Entry("Last Modified: " + DateTime.Parse(item["Last_x0020_Modified"].ToString()), true);
+                            SiteLogUtility.Log_Entry("-----------------------", true);
+                            SiteLogUtility.Log_Entry("", true);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("GetAllCheckedOutFiles", ex.Message, "Error", "");
             }
         }
     }

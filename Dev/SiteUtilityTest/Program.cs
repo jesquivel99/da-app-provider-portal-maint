@@ -23,10 +23,10 @@ namespace SiteUtilityTest
             //ProgramNew_AA objProgramNew_AA = new ProgramNew_AA();
             //objProgramNew_AA.InitiateProg();
 
-            //ProgramNew_JE objProgramNew_JE = new ProgramNew_JE();
-            //objProgramNew_JE.InitiateProg();
+            ProgramNew_JE objProgramNew_JE = new ProgramNew_JE();
+            objProgramNew_JE.InitiateProg();
 
-            //SitePMData.initialConnectDBPortal("1");
+            //SitePMData.initialConnectDBPortal("02");
 
         }
     }

@@ -533,6 +533,29 @@ namespace SiteUtility
             return $"{uri.Scheme}://{ uri.DnsSafeHost}";
         }
 
+        public string GetRelativeParentWeb(string strUrl)
+        {
+            using (ClientContext clientContext = new ClientContext(strUrl))
+            {
+                string strParentWeb = string.Empty;
+
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                try
+                {
+                    clientContext.Load(clientContext.Web, web => web.ParentWeb.ServerRelativeUrl);
+                    clientContext.ExecuteQuery();
+
+                    strParentWeb = clientContext.Web.ParentWeb.ServerRelativeUrl;
+                    return strParentWeb;
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("GetParentWeb", ex.Message, "Error", "");
+                    return string.Empty;
+                }
+            }
+        }
+
         public static string DecryptPTIN(string s)
         {
             try

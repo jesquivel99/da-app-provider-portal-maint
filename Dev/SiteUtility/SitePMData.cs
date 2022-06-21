@@ -157,6 +157,13 @@ namespace SiteUtility
             SitePMData objSitePMData = new SitePMData();
             objSitePMData.readPMSiteData();
         }
+        
+        /// <summary>
+        /// Method will call readDBPortalPMData with an optional parameter.
+        /// Optional parameter is used to filter for a single Program Manager.
+        /// Format is "01", "02"...
+        /// </summary>
+        /// <param name="PMRef"></param>
         public static void initialConnectDBPortal(string PMRef = "")
         {
             SitePMData objSitePMData = new SitePMData();

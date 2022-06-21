@@ -103,6 +103,16 @@ namespace SiteUtility
         public string tabTitleRiskAdjustmentCkcc = "CKCC/KCE Program";
         public string webpartRiskAdjustmentCkcc = "CKCC/KCE Program";
 
+        //Program Participation List items...
+        public const string progpart_PayorEnrollment = "Payor Enrollment";
+        public const string progpart_CkccKceResources = "CKCC/KCE Resources";
+        public const string progpart_PayorProgeducation = "Payor Program Education Resources";
+        public const string progpart_PatientStatusUpdates = "Patient Status Updates";
+        public const string progpart_CkccKceEngagement = "CKCC/KCE Engagement";
+
+
+
+
 
         public static void ListFunction1()
         {
@@ -141,6 +151,7 @@ namespace SiteUtility
             {
                 using (ClientContext clientContext = new ClientContext(strWebURL))
                 {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
                     List targetList = clientContext.Web.Lists.GetByTitle(strListName);
                     Field oField = targetList.Fields.AddFieldAsXml(strColumnXML, true, AddFieldOptions.AddFieldInternalNameHint);
 
