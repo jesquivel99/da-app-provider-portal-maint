@@ -6,6 +6,7 @@ using SiteUtility;
 using System.Configuration;
 using Microsoft.SharePoint.Client;
 using System.Net;
+using Serilog;
 
 namespace SiteUtilityTest
 {
@@ -13,6 +14,13 @@ namespace SiteUtilityTest
     {
         static void Main(string[] args)
         {
+            const string outputTemp = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+            ILogger logger = Log.Logger = new LoggerConfiguration()
+               .MinimumLevel.Debug()
+               .Enrich.FromLogContext()
+               .WriteTo.Console()
+               .WriteTo.File("Logs/Nabeel/ex_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp)
+               .CreateLogger();
             //ProgramNew objProgramNew = new ProgramNew();
             //objProgramNew.InitiateProg();
             //objProgramNew.ReferralSetup();
@@ -26,12 +34,12 @@ namespace SiteUtilityTest
             //ProgramNew_JE objProgramNew_JE = new ProgramNew_JE();
             //objProgramNew_JE.InitiateProg();
 
-            ProgramNew_NA objProgramNew_NA = new ProgramNew_NA();
+            ProgramNew_NA objProgramNew_NA = new ProgramNew_NA(logger);
             objProgramNew_NA.InitiateProg();
 
 
             //SitePMData.initialConnectDBPortal("02");
-
+            Log.CloseAndFlush();
         }
     }
 }
