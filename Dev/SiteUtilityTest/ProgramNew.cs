@@ -49,10 +49,9 @@ namespace SiteUtilityTest
                             {
                                 intLoop++;
                                 setupMedicalAlertDeployment(psite.URL);
-
-                                Console.WriteLine(intLoop + ". " + psite.Name+ "  ..  Med & Hosp Alert Deployed.");
-                                Console.WriteLine("=======================================");      
-                                
+                                setupHospitalizationAlertDeployment(psite.URL);
+                                Console.WriteLine(intLoop + ". " + psite.Name + "  ..  Med & Hosp Alert Deployed.");
+                                Console.WriteLine("=======================================");
                             }
                         }
                     }
@@ -63,10 +62,10 @@ namespace SiteUtilityTest
                     Console.WriteLine("Dumping Hosp Alert Data in SharePoint List");
                     Console.WriteLine("=======================================");
 
-                    //string sHsptlAlertListName = "HospitalizationAlert";
-                    //List<PracticeMap> PracticesMap = new List<PracticeMap>();
-                    //PracticesMap = CreatePracticeMap_with_RosterData();
-                    //insertHospitalizeAlertDataSP(PracticesMap, sHsptlAlertListName);
+                    string sHsptlAlertListName = "HospitalizationAlert";
+                    List<PracticeMap> PracticesMap = new List<PracticeMap>();
+                    PracticesMap = CreatePracticeMap_with_RosterData();
+                    insertHospitalizeAlertDataSP(PracticesMap, sHsptlAlertListName);
 
                 }
                 catch (Exception ex)
@@ -153,7 +152,7 @@ namespace SiteUtilityTest
                 //createCarePlanListColumns(strURL);
                 uploadMedAlertRelatedHTMLFile(strURL);
                 increaseMedHospAlertWPHeight(strURL, "/Pages/MedicationAlerts.aspx", "Medication Alerts", "/SiteAssets/cePrac_MedAlertDataTable.html");
-                modifyMedicalAlertNavigationNode(strURL, "Medication Alert Coming Soon", "Medication Alert", "/Pages/MedicationAlerts.aspx");
+                modifyMedicalAlertNavigationNode(strURL, "Medication Alert Coming Soon", "Medication Alerts", "/Pages/MedicationAlerts.aspx");
             }
             catch(Exception ex)
             {
@@ -184,7 +183,7 @@ namespace SiteUtilityTest
                 createHospitalizeAlertList(strURL, sHsptlAlertListName);
                 uploadHospAlertRelatedHTMLfile(strURL);
                 increaseMedHospAlertWPHeight(strURL, "/Pages/HospitalAlerts.aspx", "Hospitalization Alerts", "/SiteAssets/cePrac_HospAlertDataTable.html");
-                modifyMedicalAlertNavigationNode(strURL, "Hospitalization Alerts Coming Soon", "Hospitalization Alert", "/Pages/HospitalAlerts.aspx");
+                modifyMedicalAlertNavigationNode(strURL, "Hospitalization Alerts Coming Soon", "Hospitalization Alerts", "/Pages/HospitalAlerts.aspx");
             }
             catch (Exception ex)
             {
