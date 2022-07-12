@@ -11,12 +11,17 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SiteUtilityTest
+namespace R_1_9_MedAlertHospitalizeAlerts
 {
-    public class ProgramNew
+    public class Program
     {
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
+        public static void Main(string[] args)
+        {
+            
+        }
+
         public void InitiateProg()
         {
             string sAdminListName = ConfigurationManager.AppSettings["AdminRootListName"];
@@ -48,11 +53,10 @@ namespace SiteUtilityTest
                             foreach (PracticeSite psite in pm.PracticeSiteCollection)
                             {
                                 intLoop++;
-                                setupMedicalAlertDeployment(psite.URL);
+                                createCarePlanListColumns(psite.URL);
+                                Console.WriteLine(intLoop + ". " + psite.Name + "  ..  Med & Hosp Alert Deployed.");
+                                Console.WriteLine("=======================================");
 
-                                Console.WriteLine(intLoop + ". " + psite.Name+ "  ..  Med & Hosp Alert Deployed.");
-                                Console.WriteLine("=======================================");      
-                                
                             }
                         }
                     }
@@ -112,7 +116,7 @@ namespace SiteUtilityTest
             }
             catch (Exception ex)
             {
-
+                SiteLogUtility.CreateLogEntry("changeColumnToRichText", ex.Message, "Error", strPortalSiteURL);
             }
         }
 
@@ -139,26 +143,25 @@ namespace SiteUtilityTest
                     clientContext.ExecuteQuery();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-
+                SiteLogUtility.CreateLogEntry("DeleteColumnsAndList", ex.Message, "Error", strPortalSiteURL);
             }
-           
         }
 
         public void setupMedicalAlertDeployment(string strURL)
         {
             try
             {
-                //createCarePlanListColumns(strURL);
+                createCarePlanListColumns(strURL);
                 uploadMedAlertRelatedHTMLFile(strURL);
                 increaseMedHospAlertWPHeight(strURL, "/Pages/MedicationAlerts.aspx", "Medication Alerts", "/SiteAssets/cePrac_MedAlertDataTable.html");
                 modifyMedicalAlertNavigationNode(strURL, "Medication Alert Coming Soon", "Medication Alert", "/Pages/MedicationAlerts.aspx");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-
-            }            
+                SiteLogUtility.CreateLogEntry("setupMedicalAlertDeployment", ex.Message, "Error", strPortalSiteURL);
+            }
         }
 
         public void createCarePlanListColumns(string strURL)
@@ -169,10 +172,10 @@ namespace SiteUtilityTest
                 objListUtility.CreateListColumn("<Field Type='Text' DisplayName='FaxType' Name='FaxType' />", "CarePlan", strURL);
                 objListUtility.CreateListColumn("<Field Type='Text' DisplayName='MemberStatus' Name='MemberStatus' />", "CarePlan", strURL);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-
-            }            
+                SiteLogUtility.CreateLogEntry("createCarePlanListColumns", ex.Message, "Error", strPortalSiteURL);
+            }
         }
 
         public void setupHospitalizationAlertDeployment(string strURL)
@@ -188,7 +191,7 @@ namespace SiteUtilityTest
             }
             catch (Exception ex)
             {
-
+                SiteLogUtility.CreateLogEntry("setupHospitalizationAlertDeployment", ex.Message, "Error", strPortalSiteURL);
             }
         }
 
@@ -217,8 +220,8 @@ namespace SiteUtilityTest
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - createHospitalizeAlertList", ex.Message, "Error", strPortalSiteURL);
-            }            
+                SiteLogUtility.CreateLogEntry("createHospitalizeAlertList", ex.Message, "Error", strPortalSiteURL);
+            }
         }
 
         public void uploadHospAlertRelatedHTMLfile(string strURL)
@@ -231,8 +234,8 @@ namespace SiteUtilityTest
             }
             catch (Exception ex)
             {
-
-            }            
+                SiteLogUtility.CreateLogEntry("uploadHospAlertRelatedHTMLfile", ex.Message, "Error", strPortalSiteURL);
+            }
         }
 
         public void uploadMedAlertRelatedHTMLFile(string strURL)
@@ -245,8 +248,8 @@ namespace SiteUtilityTest
             }
             catch (Exception ex)
             {
-
-            }            
+                SiteLogUtility.CreateLogEntry("uploadMedAlertRelatedHTMLFile", ex.Message, "Error", strPortalSiteURL);
+            }
         }
 
         public void increaseMedHospAlertWPHeight(string webURL, string strPageRelativeUrl, string strTitle, string strContentLink)
@@ -295,7 +298,7 @@ namespace SiteUtilityTest
                 }
                 catch (Exception ex)
                 {
-                    //SiteLogUtility.CreateLogEntry("increaseCarePlansWPHeight", ex.Message, "Error", strPortalSiteURL);
+                    SiteLogUtility.CreateLogEntry("increaseCarePlansWPHeight", ex.Message, "Error", strPortalSiteURL);
                 }
             }
         }
@@ -344,7 +347,7 @@ namespace SiteUtilityTest
             }
             catch (Exception ex)
             {
-                //SiteLogUtility.CreateLogEntry("addSWReferralNavigationNode", ex.Message, "Error", strPortalSiteURL);
+                SiteLogUtility.CreateLogEntry("addSWReferralNavigationNode", ex.Message, "Error", strPortalSiteURL);
             }
         }
 
@@ -374,7 +377,7 @@ namespace SiteUtilityTest
                         for (int intArray = 0; intArray < objPracticesMap[intLoop].RosterDataList.Count; intArray++)
                         {
                             ListItem oItem = oList.AddItem(oListItemCreationInformation);
-                            if(objPracticesMap[intLoop].RosterDataList[intArray].GroupID.ToString()!="")
+                            if (objPracticesMap[intLoop].RosterDataList[intArray].GroupID.ToString() != "")
                                 oItem["GroupID"] = objPracticesMap[intLoop].RosterDataList[intArray].GroupID.ToString();
                             if (objPracticesMap[intLoop].RosterDataList[intArray].PracticeTIN.ToString() != "")
                                 oItem["PracticeTIN"] = objPracticesMap[intLoop].RosterDataList[intArray].PracticeTIN.ToString();
@@ -478,12 +481,12 @@ namespace SiteUtilityTest
             }
             catch (Exception ex)
             {
-                
+
 
             }
             return PracMap;
         }
-        
+
         public List<RosterData> SQL_Get_RosterData()
         {
             List<RosterData> RosterDataList = new List<RosterData>();
@@ -586,7 +589,7 @@ namespace SiteUtilityTest
         }
     }
 
-     public class PracticeMap
+    public class PracticeMap
     {
         public string CensusFolderName;
         public string FileName;
