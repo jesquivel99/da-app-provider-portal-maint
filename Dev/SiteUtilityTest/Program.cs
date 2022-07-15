@@ -21,7 +21,7 @@ namespace SiteUtilityTest
             //   .WriteTo.Console()
             //   .WriteTo.File("Logs/Nabeel/ex_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp)
             //   .CreateLogger();
-            ProgramNew objProgramNew = new ProgramNew();
+            ProgramNew_SS objProgramNew = new ProgramNew_SS();
             objProgramNew.InitiateProg();
             //objProgramNew.ReferralSetup();
             

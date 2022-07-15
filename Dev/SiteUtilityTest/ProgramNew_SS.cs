@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace SiteUtilityTest
 {
-    public class ProgramNew
+    public class ProgramNew_SS
     {
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
