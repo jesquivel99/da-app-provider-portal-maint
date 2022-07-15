@@ -6,11 +6,13 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using Serilog;
 
 namespace SiteUtility
 {
     public class SiteFilesUtility
     {
+        static ILogger _logger = Log.ForContext<SiteFilesUtility>();
         public void DocumentUpload(string siteURL, string filePath, string LibraryName)
         {
             SiteLogUtility.Log_Entry("   DocumentUpload - In Progress...");
@@ -668,5 +670,43 @@ namespace SiteUtility
                 SiteLogUtility.CreateLogEntry("GetAllCheckedOutFiles", ex.Message, "Error", "");
             }
         }
+
+
+        public static bool FileExists(string siteUrl, string libName, string fileName)
+        {
+
+            using (ClientContext context = new ClientContext(siteUrl))
+            {
+                Web web = context.Web;
+                context.Load(web);
+                context.ExecuteQuery();
+                string serverRelativeUrl = web.ServerRelativeUrl;
+                var file = context.Web.GetFileByServerRelativeUrl(serverRelativeUrl + "/" + libName + "/" + fileName);
+                context.Load(file, f => f.Exists);
+                try
+                {
+                    context.ExecuteQuery();
+
+                    if (file.Exists)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                catch (ServerUnauthorizedAccessException uae)
+                {
+                    _logger.Error("You are not allowed to access this file " + uae.Message);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.Information("Could not find file {name}", fileName);
+                    return false;
+                }
+            }
+               
+        }
+
+
     }
 }
