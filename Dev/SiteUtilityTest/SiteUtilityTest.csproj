@@ -71,6 +71,7 @@
     <Compile Include="ProgramNew_SS.cs" />
     <Compile Include="ProgramNew2.cs" />
     <Compile Include="ProgramNew_AA.cs" />
+    <Compile Include="ProgramNew_DW.cs" />
     <Compile Include="ProgramNew_JE.cs" />
     <Compile Include="ProgramNew_NA.cs" />
     <Compile Include="ProgramNew_Vignesh.cs" />
