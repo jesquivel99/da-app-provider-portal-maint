@@ -225,8 +225,9 @@ namespace SiteUtilityTest
             try
             {
                 SiteFilesUtility objFilesSite = new SiteFilesUtility();
-                objFilesSite.DocumentUpload(strURL, @"C:\Users\ssaleh\Downloads\cePrac_HospitalAlerts.html", "SiteAssets");
-                objFilesSite.DocumentUpload(strURL, @"C:\Users\ssaleh\Downloads\cePrac_HospAlertDataTable.html", "SiteAssets");
+                objFilesSite.DocumentUpload(strURL, @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\cePrac_HospitalAlerts.html", "SiteAssets");
+                objFilesSite.DocumentUpload(strURL, @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\cePrac_HospAlertDataTable.html", "SiteAssets");
+                objFilesSite.DocumentUpload(strURL, @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Images\HospitalAlerts.jpg", "SiteAssets/Img");
             }
             catch (Exception ex)
             {
@@ -239,8 +240,9 @@ namespace SiteUtilityTest
             try
             {
                 SiteFilesUtility objFilesSite = new SiteFilesUtility();
-                objFilesSite.DocumentUpload(strURL, @"C:\Users\ssaleh\Downloads\cePrac_MedAlertDataTable.html", "SiteAssets");
-                objFilesSite.DocumentUpload(strURL, @"C:\Users\ssaleh\Downloads\cePrac_MedicationAlerts.html", "SiteAssets");
+                objFilesSite.DocumentUpload(strURL, @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\cePrac_MedAlertDataTable.html", "SiteAssets");
+                objFilesSite.DocumentUpload(strURL, @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\cePrac_MedicationAlerts.html", "SiteAssets");
+                objFilesSite.DocumentUpload(strURL, @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Images\MedicationAlerts.jpg", "SiteAssets/Img");
             }
             catch (Exception ex)
             {
