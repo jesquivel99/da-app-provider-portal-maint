@@ -33,7 +33,6 @@ namespace SiteUtilityTest
                 clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
 
                 Console.WriteLine("=============Release Starts=============");
-
                 try
                 {
                     List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
@@ -48,8 +47,8 @@ namespace SiteUtilityTest
                             foreach (PracticeSite psite in pm.PracticeSiteCollection)
                             {
                                 intLoop++;
-                                setupMedicalAlertDeployment(psite.URL);
-                                setupHospitalizationAlertDeployment(psite.URL);
+                                //setupMedicalAlertDeployment(psite.URL);
+                                //setupHospitalizationAlertDeployment(psite.URL);
                                 Console.WriteLine(intLoop + ". " + psite.Name + "  ..  Med & Hosp Alert Deployed.");
                                 Console.WriteLine("=======================================");
                             }
@@ -374,6 +373,14 @@ namespace SiteUtilityTest
 
                         for (int intArray = 0; intArray < objPracticesMap[intLoop].RosterDataList.Count; intArray++)
                         {
+                            //checking if item already exists in Hospitalization Alert list.
+                            if (checkIfHospitalizationRecordExists(siteURL, sHsptlAlertListName, 
+                                                                    objPracticesMap[intLoop].RosterDataList[intArray].MEMBER_MASTER_ROW_ID.ToString(), 
+                                                                    objPracticesMap[intLoop].RosterDataList[intArray].DischargeDate.ToString(), 
+                                                                    objPracticesMap[intLoop].RosterDataList[intArray].Setting.ToString()))
+                            {
+                                continue;
+                            }
                             ListItem oItem = oList.AddItem(oListItemCreationInformation);
                             if(objPracticesMap[intLoop].RosterDataList[intArray].GroupID.ToString()!="")
                                 oItem["GroupID"] = objPracticesMap[intLoop].RosterDataList[intArray].GroupID.ToString();
@@ -417,6 +424,49 @@ namespace SiteUtilityTest
             {
                 SiteLogUtility.CreateLogEntry("insertHospitalizeAlertDataSP", ex.Message, "Error", strPortalSiteURL);
             }
+        }
+
+        public bool checkIfHospitalizationRecordExists(string siteURL,string strListName, string strMemberID, string strDischargeDate, string strSettings)
+        {
+            bool result = false;
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(siteURL))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                   
+
+                    Web web = clientContext.Web;
+                    List list = web.Lists.GetByTitle(strListName);
+                    clientContext.Load(web);
+                    clientContext.Load(list);
+                    clientContext.ExecuteQuery();
+
+                    CamlQuery query = new CamlQuery();
+
+                    query.ViewXml = "<View><Query><Where>" +
+                        "<And>" +
+                        "<Eq><FieldRef Name = 'MEMBER_MASTER_ROW_ID'/><Value Type = 'Text'>" + strMemberID + "</Value></Eq>" +
+                        "<And>" +
+                        "<Eq><FieldRef Name = 'Setting'/><Value Type = 'Text'>" + strSettings + "</Value></Eq>" +
+                        "<Eq><FieldRef Name = 'DischargeDate'/><Value Type = 'Text'>" + strDischargeDate + "</Value></Eq>" +
+                        "</And>" +
+                        "</And></Where></Query></View>";
+
+                    ListItemCollection items = list.GetItems(query);
+                    clientContext.Load(items);
+                    clientContext.ExecuteQuery();
+
+                    if (items.Count > 0) {
+                        result = true;
+                    }                    
+                }
+            }
+            catch(Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("checkIfHospitalizationRecordExists", ex.Message, "Error", strPortalSiteURL);
+            }
+            return result;
         }
 
         public List<PracticeMap> CreatePracticeMap_with_RosterData()
