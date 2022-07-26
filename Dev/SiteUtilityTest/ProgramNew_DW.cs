@@ -5,11 +5,8 @@ using SiteUtility;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SiteUtilityTest
 {
@@ -19,7 +16,6 @@ namespace SiteUtilityTest
 
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
-
 
         public ProgramNew_DW()
         {
@@ -36,7 +32,9 @@ namespace SiteUtilityTest
 
                 try
                 {
-                    List<string> TelephonicTIN = Get_TINs_Of_Telephonic_Practices();
+                    List<string> MedicalDirectorTINs = Get_TINs_Of_Medical_Director_Practices();
+
+                    //List<string> TelephonicTIN = Get_TINs_Of_Telephonic_Practices();
                     List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
                     foreach (ProgramManagerSite pm in practicePMSites)
                     {
@@ -44,17 +42,15 @@ namespace SiteUtilityTest
                         {
                             foreach (PracticeSite psite in pm.PracticeSiteCollection)
                             {
-                                if (psite.PracticeTIN == "814322706")
-                                // if (TelephonicTIN.Any(psite.PracticeTIN.Contains))
+                                if (psite.PracticeTIN == "650255930")
+                                //if (MedicalDirectorTINs.Any(psite.PracticeTIN.Contains))
                                 {
-                                    //List<PMData> pmd = SiteInfoUtility.SP_GetAll_PMData(pm.URL, psite.SiteId);
-                                    //if (pmd.Count > 0)
-                                    //{
-                                        if (CkccEngagement_Setup(psite.URL + "/"))
-                                        {
-                                            _logger.Information(psite.Name + " setup is completed");
-                                        }
-                                    //}
+                                    Console.WriteLine(psite.PracticeTIN);
+                                    if (Medical_Director_Setup(psite.URL + "/"))
+                                    //if (CkccEngagement_Setup(psite.URL + "/"))
+                                    {
+                                        _logger.Information(psite.Name + " setup is completed");
+                                    }
                                 }
                             }
                         }
@@ -65,25 +61,83 @@ namespace SiteUtilityTest
                     _logger.Error(ex.Message + " " + ex.StackTrace);
                 }
 
-
                 _logger.Information("Maintenance Tasks Completed Successfully!");
             }
-
         }
-
-        public bool CkccEngagement_Setup(string siteUrl)
+        public bool Medical_Director_Setup(string siteUrl)
         {
             //string urlSiteAssets = @"https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/referral";
             string urlSiteAssets = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/interimckcc/referral";
             try
             {
                 SiteFilesUtility objSiteFiles = new SiteFilesUtility();
-                //objSiteFiles.DocumentUpload(siteUrl, @"C:\Users\nalkazaki\OneDrive - Fresenius Medical Care\Documents\VisualStudio\PayorEnrollment\PayorEnrollment.html", "SiteAssets");
-                //objSiteFiles.DocumentUpload(siteUrl, @"C:\Users\nalkazaki\OneDrive - Fresenius Medical Care\Documents\VisualStudio\PayorEnrollment\bootstrap-float-label.min.css", "SiteAssets");
+
+                if (!SiteFilesUtility.FileExists(siteUrl, "Pages", "MedicalDirectorTable.aspx"))
+                {
+                    createAspxPage(siteUrl, "MedicalDirectorTable", "Medical Director Timesheets", "1000px", urlSiteAssets + "/SiteAssets/MedicalDirectorTable.html");
+                }
+
+                if (!SiteFilesUtility.FileExists(siteUrl, "Pages", "MedicalDirectorForm.aspx"))
+                {
+                    createAspxPage(siteUrl, "MedicalDirectorForm", "Medical Director Quarterly Time Sheet", "", urlSiteAssets + "/SiteAssets/MedicalDirectorForm.html");
+                }
+                addMedicalDirectorNavigationNode(siteUrl);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex.Message + " " + ex.StackTrace);
+                return false;
+            }
+        }
+        public void addMedicalDirectorNavigationNode(string webUrl)
+        {
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(webUrl))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web web = clientContext.Web;
+                    NavigationNodeCollection objNodeColl = clientContext.Web.Navigation.QuickLaunch;
+                    clientContext.Load(web);
+                    clientContext.Load(web.ParentWeb);
+                    clientContext.ExecuteQuery();
+
+                    clientContext.Load(objNodeColl);
+                    clientContext.ExecuteQuery();
+
+                    NavigationNode newNode = objNodeColl.Where(Node => Node.Title == "Medical Director Timesheet").FirstOrDefault();
+                    if (newNode == null) // Add only if Medical Director Timesheet node does not exist
+                    {
+                        NavigationNode prevNode = objNodeColl.Where(Node => Node.Title == "Quality").FirstOrDefault();
+
+                        NavigationNodeCreationInformation objNewNode = new NavigationNodeCreationInformation();
+                        objNewNode.Title = "Medical Director Timesheet";
+                        objNewNode.Url = webUrl + "Pages/MedicalDirectorTable.aspx";
+                        objNewNode.PreviousNode = prevNode; // Add Medical Director Timesheet node right after Quality
+
+                        objNodeColl.Add(objNewNode);
+                        clientContext.ExecuteQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("addSWReferralNavigationNode", ex.Message, "Error", strPortalSiteURL);
+            }
+        }
+
+        public bool CkccEngagement_Setup(string siteUrl)
+        {
+            string urlSiteAssets = @"https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/referral";
+            //string urlSiteAssets = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/interimckcc/referral";
+            try
+            {
+                SiteFilesUtility objSiteFiles = new SiteFilesUtility();
 
                 if (!SiteFilesUtility.FileExists(siteUrl, "Pages", "CkccEngagement.aspx"))
                 {
-                    createCkccEngagementPage(siteUrl, "CkccEngagement", "CKCC Engagement", "1000px", urlSiteAssets + "/SiteAssets/CkccEngagement.html");
+                    createAspxPage(siteUrl, "CkccEngagement", "CKCC Engagement", "1000px", urlSiteAssets + "/SiteAssets/CkccEngagement.html");
                 }
 
                 updateProgramParticipation(siteUrl);
@@ -96,13 +150,13 @@ namespace SiteUtilityTest
             }
         }
 
-        public void createCkccEngagementPage(string siteUrl, string strPageName, string strTitle, string strWPWidth, string strContentWPLink)
+        public void createAspxPage(string siteUrl, string strPageName, string strTitle, string strWPWidth, string strContentWPLink)
         {
             try
             {
                 SitePublishUtility spUtility = new SitePublishUtility();
                 spUtility.InitializePage(siteUrl, strPageName, strTitle);
-                spUtility.DeleteWebPart(siteUrl, strPageName);
+                // spUtility.DeleteWebPart(siteUrl, strPageName);
 
                 using (ClientContext clientContext = new ClientContext(siteUrl))
                 {
@@ -250,7 +304,6 @@ namespace SiteUtilityTest
             }
         }
 
-
         public void modifyWebPartProgramParticipation(string webUrl)
         {
             string clink = string.Empty;
@@ -392,6 +445,36 @@ namespace SiteUtilityTest
             TINs.Add("822391895");
             TINs.Add("832278740");
             TINs.Add("900854896");
+            return TINs;
+        }
+        public static List<string> Get_TINs_Of_Medical_Director_Practices()
+        {
+            List<string> TINs = new List<string>();
+            TINs.Add("631220194");
+            TINs.Add("812808787");
+            TINs.Add("561378901");
+            TINs.Add("751366650");
+            TINs.Add("521323183");
+            TINs.Add("521133614");
+            TINs.Add("561634662");
+            TINs.Add("311477544");
+            TINs.Add("860959487");
+            TINs.Add("431739852");
+            TINs.Add("464495456");
+            TINs.Add("611141697");
+            TINs.Add("351679014");
+            TINs.Add("860990148");
+            TINs.Add("462812104");
+            TINs.Add("640600391");
+            TINs.Add("721311303");
+            TINs.Add("264239523");
+            TINs.Add("222312675");
+            TINs.Add("930751490");
+            TINs.Add("221910022");
+            TINs.Add("824435212");
+            TINs.Add("731498617");
+            TINs.Add("272244677");
+            TINs.Add("650255930");
             return TINs;
         }
     }
