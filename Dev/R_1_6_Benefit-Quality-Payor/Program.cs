@@ -46,9 +46,9 @@ namespace R_1_6_Benefit_Quality_Payor
             string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
 
-            string runPM = "PM10";
-            string runPractice = "93263030589";
-            string urlAdminGroup = @"https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/" + runPM;
+            string runPM = "PM07";
+            string runPractice = "91403041529";
+            string urlAdminGroup = siteUrl + @"/" + runPM;
 
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
             SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
@@ -73,8 +73,8 @@ namespace R_1_6_Benefit_Quality_Payor
                     {
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
-                            //if (psite.URL.Contains(runPM) && psite.URL.Contains(runPractice))
-                            if (psite.URL.Contains(runPM))
+                            if (psite.URL.Contains(runPM) && psite.URL.Contains(runPractice))
+                            //if (psite.URL.Contains(runPM))
                             {
                                 cntRun++;
                                 SiteLogUtility.Log_Entry("--");
@@ -107,7 +107,7 @@ namespace R_1_6_Benefit_Quality_Payor
                                 SiteNavigateUtility.ClearQuickNavigationRecent(psite.URL);
 
                                 // Deploy 3-11
-                                //SiteNavigateUtility.RenameQuickNavigationNode(psite.URL, "Quality Coming Soon", "Quality");
+                                SiteNavigateUtility.RenameQuickNavigationNode(psite.URL, "Quality Coming Soon", "Quality");
                             }
                         }
                     }
@@ -253,9 +253,9 @@ namespace R_1_6_Benefit_Quality_Payor
             try
             {
                 // Deploy 3-04
-                //ProvisionList(practiceSite, slUtility, slUtility.listNameBenefitEnhancementCkcc, practiceCView);
-                //CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder1BenefitEnhancementCkcc);
-                //CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder2BenefitEnhancementCkcc);
+                ProvisionList(practiceSite, slUtility, slUtility.listNameBenefitEnhancementCkcc, practiceCView);
+                CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder1BenefitEnhancementCkcc);
+                CreateFolder(practiceSite, slUtility.listNameBenefitEnhancementCkcc, slUtility.listFolder2BenefitEnhancementCkcc);
 
                 // Deploy 3-11
                 spUtility.InitializePage(practiceSite.URL, slUtility.pageNameBenefitEnhancement, slUtility.pageTitleBenefitEnhancement);
