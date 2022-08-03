@@ -1,33 +1,151 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Configuration;
+using System.Data.SqlClient;
 using System.Net;
 using Microsoft.SharePoint.Client;
 
 namespace SiteUtility
 {
-    
+    public enum PracticeType { IWH, iCKCC };
+    public enum FolderType { IWH, iCKCC, BOTH };
+    public enum SpServer { DEV, PROD };
+
     public class Practice
     {
         public string PMGroup;
+        public string PMName;
+        public string SiteID;
         public string Name;
         public string TIN;
-        public string SiteID;
+        public string NPI;
+        public string CKCCArea;
+        public bool IsIWH;
+        public bool IsCKCC;
+        public bool IsKC365;
+        public bool IsTelephonic;
+        public string MedicalDirector;
         public string NewSiteUrl;
         public string ExistingSiteUrl;
-        public string ProgramParticipation;
+        public string ProgramParticipation; 
         public PracticeType Type;
         public Practice()
         {
         }
     }
-    public enum PracticeType { IWH, iCKCC };
-    public enum FolderType { IWH, iCKCC, BOTH };
-    public enum SpServer { DEV, PROD };
+  
     public class SiteInfoUtility
     {
+        public List<Practice> AllPractices;
+        string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
+
+        public SiteInfoUtility()
+        {
+            AllPractices = new List<Practice>();
+
+            // Read All Practice Info from [HealthCloud_NightlyProd].PORTAL.PracticeInfo_Deployed
+            try
+            {
+                using (SqlConnection sqlConn = new SqlConnection())
+                {
+                    sqlConn.ConnectionString = "Data Source=" + ConfigurationManager.AppSettings["SqlServer"]
+                        + "; Initial Catalog=" + ConfigurationManager.AppSettings["Database"] + "; Integrated Security=SSPI";
+
+                    string query = "SELECT * FROM [HealthCloud_NightlyProd].[PORTAL].[PracticeInfo_Deployed] WHERE IsActive = 1 ORDER BY GroupID";
+                    sqlConn.Open();
+                    SqlCommand getQuery = new SqlCommand(query, sqlConn);
+
+                    using (SqlDataReader reader = getQuery.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Practice practice = new Practice();
+
+                            if (reader["GroupID"].ToString().Length > 1)
+                                practice.PMGroup = reader["GroupID"].ToString();
+                            else 
+                                practice.PMGroup = '0' + reader["GroupID"].ToString();
+
+                            practice.PMName = reader["ProgramManager"].ToString();
+                            practice.Name = reader["PracticeName"].ToString();
+                            practice.SiteID = reader["SiteID"].ToString();
+                            practice.TIN = reader["PracticeTIN"].ToString();
+                            practice.NPI = reader["PracticeNPI"].ToString();
+                            practice.NewSiteUrl = strPortalSiteURL + "/PM" + practice.PMGroup + "/" + practice.SiteID + "/";
+
+                            practice.CKCCArea = reader["CKCCArea"].ToString();
+
+                            if (practice.CKCCArea == "")
+                                practice.IsCKCC = false;
+                            else
+                                practice.IsCKCC = true;
+
+                            practice.IsIWH = (bool)reader["IWNRegion"];
+                            practice.IsKC365 = (bool)reader["KC365"];
+                            practice.IsTelephonic = (bool)reader["IsTelephonic"];
+
+                            practice.MedicalDirector = reader["MedicalDirector"].ToString();
+
+                            AllPractices.Add(practice);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+        public List<Practice> GetAllPractices()
+        {
+            return AllPractices;
+        }
+        public List<Practice> GetAllIWHPractices()
+        {
+            List<Practice> AllIWHSite = new List<Practice>();
+            return AllPractices.Where(p => p.IsIWH).ToList();
+        }
+        public List<Practice> GetAllCKCCPractices()
+        {
+            List<Practice> AllIWHSite = new List<Practice>();
+            return AllPractices.Where(p => p.IsCKCC).ToList();
+        }
+        public List<Practice> GetAllKC365Practices()
+        {
+            List<Practice> AllIWHSite = new List<Practice>();
+            return AllPractices.Where(p => p.IsKC365).ToList();
+        }
+        public List<Practice> GetAllTelephonicPractices()
+        {
+            List<Practice> AllIWHSite = new List<Practice>();
+            return AllPractices.Where(p => p.IsTelephonic).ToList();
+        }
+        public List<Practice> GetAllMedicalDirectorPractices()
+        {
+            List<Practice> AllIWHSite = new List<Practice>();
+            return AllPractices.Where(p => p.MedicalDirector != "").ToList();
+        }
+        public List<Practice> GetPracticesByPM(string pmGroup)
+        {
+            List<Practice> AllIWHSite = new List<Practice>();
+            return AllPractices.Where(p => p.PMGroup == pmGroup).ToList();
+        }
+        public Practice GetPracticeBySiteID(string siteID)
+        {
+            return AllPractices.Where(p => p.SiteID == siteID).FirstOrDefault();
+        }
+        public Practice GetPracticeByTIN(string tin)
+        {
+            return AllPractices.Where(p => p.TIN == tin).FirstOrDefault();
+        }
+        public Practice GetPracticeByNPI(string npi)
+        {
+            return AllPractices.Where(p => p.NPI == npi).FirstOrDefault();
+        }
+
+
+
         //public List<Practice> practicesIWH = new List<Practice>();
         //public List<Practice> practicesCKCC = new List<Practice>();
         public static List<ProgramManagerSite> getSubWebs(string path, string rootUrl)
