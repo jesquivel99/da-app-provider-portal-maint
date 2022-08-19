@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using SiteUtility;
-using System.Configuration;
-using Microsoft.SharePoint.Client;
-using System.Net;
-using Serilog;
+﻿using R_DW_100_CarePlanHtmlUpdate;
 
 namespace SiteUtilityTest
 {
@@ -14,6 +6,15 @@ namespace SiteUtilityTest
     {
         static void Main(string[] args)
         {
+            CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
+            carePlanHtmlUpdate.InitiateProg();
+
+            //--------------------------------------------------------
+            // Run Maintenance Code to Complete a new site Deployment
+            //--------------------------------------------------------
+            // CompleteNewSiteDeployment("siteID");
+
+
             //const string outputTemp = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
             //ILogger logger = Log.Logger = new LoggerConfiguration()
             //   .MinimumLevel.Debug()
@@ -21,10 +22,12 @@ namespace SiteUtilityTest
             //   .WriteTo.Console()
             //   .WriteTo.File("Logs/Nabeel/ex_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp)
             //   .CreateLogger();
-            ProgramNew_SS objProgramNew = new ProgramNew_SS();
-            objProgramNew.InitiateProg();
+            //objProgramNew test = new SiteInfoUtilityTest();
+            //objProgramNew.InitiateProg();
             //objProgramNew.ReferralSetup();
-            
+
+            //ProgramNew_SS objProgramNew2 = new ProgramNew_SS();
+            //objProgramNew2.InitiateProg();
 
             //ProgramNew2 objProgramNew2 = new ProgramNew2();
             //objProgramNew2.InitiateProgNew2();
@@ -41,6 +44,15 @@ namespace SiteUtilityTest
 
             //SitePMData.initialConnectDBPortal("02");
             //Log.CloseAndFlush();
+        }
+        static void CompleteNewSiteDeployment(string siteID)
+        {
+            //DialysisStart dialysisStart = new DialysisStart();
+            //dialysisStart.InitiateProg(siteID);
+            //BenefitQualityPayor benefitQualityPayor = new BenefitQualityPayor();
+            //benefitQualityPayor.InitiateProg(siteID);
+            CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
+            carePlanHtmlUpdate.InitiateProg(siteID);
         }
     }
 }
