@@ -14,7 +14,6 @@ namespace SiteUtility
         //public static string Password = "$5ApjXy9";
         //public static string Domain = "Medspring";
 
-
         // SharePoint Prod Credentials...
         public static string UserName = "spAdmin";
         public static string Password = "Xfw4E9fcis6nj5";

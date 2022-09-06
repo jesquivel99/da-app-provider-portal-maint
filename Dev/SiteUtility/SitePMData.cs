@@ -29,6 +29,7 @@ namespace SiteUtility
         public string IsIWH { get; set; }
         public string IsCKCC { get; set; }
         public string IsKC365 { get; set; }
+        public string IsTeleKC365 { get; set; }
         public string siteType { get; set; }
         public PMData()
         {
@@ -152,6 +153,7 @@ namespace SiteUtility
         public string programParticipationIWH = "InterWell Health";
         public string programParticipationCKCC = "KCE Participation";
         public string programParticipationKC365 = "KC365";
+        public string programParticipationTelephonicKC365 = "Telephonic KC365";
         public static void initialConnect()
         {
             SitePMData objSitePMData = new SitePMData();
@@ -168,6 +170,11 @@ namespace SiteUtility
         {
             SitePMData objSitePMData = new SitePMData();
             objSitePMData.readDBPortalPMData(PMRef);
+        }
+        public static void initialConnectDBPortalDeployed(string PMRef = "")
+        {
+            SitePMData objSitePMData = new SitePMData();
+            objSitePMData.readDBPortalDeployed(PMRef);
         }
         public void readPMSiteData()
         {
@@ -225,10 +232,53 @@ namespace SiteUtility
                 conn.Close();
                 da.Dispose();
                 filterPMSiteData(dtTable);
-                //createJSONConfig(dtTable);
+                createJSONConfig(dtTable);
             }
             catch (Exception ex)
             {
+            }
+        }
+
+        public DataTable readDBPortalDeployed(string PMRef = "")
+        {
+            try
+            {
+                string filterPM = "";
+                string ds = ConfigurationManager.AppSettings["SqlServer"].ToString();
+                string ic = ConfigurationManager.AppSettings["Database"].ToString();
+                string connString = "Data Source=" + ConfigurationManager.AppSettings["SqlServer"]
+                        + "; Initial Catalog=" + ConfigurationManager.AppSettings["Database"] + "; Integrated Security=SSPI";
+                string query = string.Empty;
+
+                if (PMRef.StartsWith("PM"))
+                {
+                    PMRef = PMRef.Substring(2);
+                }
+
+                if (PMRef != "")
+                {
+                    query = @"SELECT * FROM [HealthCloud_NightlyProd].[PORTAL].[PracticeInfo_Deployed] WHERE GroupID = " + PMRef + " ORDER BY GroupID";
+                }
+                else
+                {
+                    query = @"SELECT * FROM [HealthCloud_NightlyProd].[PORTAL].[PracticeInfo_Deployed] ORDER BY GroupID";
+                }
+
+                DataTable dtTable = new DataTable();
+                using (SqlConnection sqlConn = new SqlConnection())
+                {
+                    sqlConn.ConnectionString = connString;
+
+                    sqlConn.Open();
+                    SqlCommand cmd = new SqlCommand(query, sqlConn);
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    da.Fill(dtTable);
+                }
+                return dtTable;
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
         }
 

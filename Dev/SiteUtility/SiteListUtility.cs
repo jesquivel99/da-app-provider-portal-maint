@@ -165,7 +165,7 @@ namespace SiteUtility
             }
         }
 
-        public Guid CreateDocumentLibrary(string strListName, string strWebURL, PracticeSite practiceSite)
+        public Guid CreateDocumentLibrary(string strListName, string strWebURL, Practice practiceSite)
         {
             Guid _listGuid = Guid.Empty;
             bool createList = true;
@@ -179,7 +179,8 @@ namespace SiteUtility
                     {
                         if (strListName.Contains("iwh"))
                         {
-                            if (practiceSite.siteType != null && practiceSite.siteType.Contains("iwh"))
+                            //if (practiceSite.siteType != null && practiceSite.siteType.Contains("iwh"))
+                            if (practiceSite.IsIWH)
                             {
                                 createList = true;
                             }
@@ -191,7 +192,8 @@ namespace SiteUtility
 
                         if (strListName.Contains("ckcc"))
                         {
-                            if (practiceSite.siteType != null && practiceSite.siteType.Contains("ckcc"))
+                            //if (practiceSite.siteType != null && practiceSite.siteType.Contains("ckcc"))
+                            if (practiceSite.IsCKCC)
                             {
                                 createList = true;
                             }
@@ -203,7 +205,8 @@ namespace SiteUtility
 
                         if (strListName.Contains("kc365"))
                         {
-                            if (practiceSite.siteType != null && practiceSite.siteType.Contains("kc365"))
+                            //if (practiceSite.siteType != null && practiceSite.siteType.Contains("kc365"))
+                            if (practiceSite.IsKC365)
                             {
                                 createList = true;
                             }

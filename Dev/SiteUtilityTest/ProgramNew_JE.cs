@@ -16,27 +16,35 @@ using System.Xml;
 using System.Reflection;
 using SP = Microsoft.SharePoint.Client;
 using System.Net.Mail;
+using Serilog;
 
 namespace SiteUtilityTest
 {
     public class ProgramNew_JE
     {
-        public static Guid _listGuid = Guid.Empty;
+        const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+        static ILogger _logger = Log.Logger = new LoggerConfiguration()
+           .MinimumLevel.Debug()
+           .Enrich.FromLogContext()
+           .WriteTo.Console()
+           .WriteTo.File("Logs/maint" + DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString() + "_.log", rollingInterval: RollingInterval.Day, shared: false, outputTemplate: outputTemp1)
+           .CreateLogger();
+        static ILogger logger = _logger.ForContext<ProgramNew_JE>();
+        static public List<Practice> practicesIWH = new List<Practice>();
+        static public List<Practice> practicesCKCC = new List<Practice>();
         public void InitiateProg()
         {
             string releaseName = "SiteUtilityTest";
             string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
-            
 
-            string runPM = "PM06";
-            string runPractice = "92869520159";
+
+            string runPM = "PM04";
+            string runPractice = "97849590689";
             string urlAdminGroup = siteUrl + "/" + runPM;
 
-            
-
             SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
-            SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
+            logger.Information("========================================Release Starts========================================");
 
             using (ClientContext clientContext = new ClientContext(siteUrl))
             {
@@ -44,309 +52,379 @@ namespace SiteUtilityTest
 
                 try
                 {
-                    //Test Start...
-                    //return;
-                    //Test End...
+                    logger.Information("-------------[ Read Deployed DB:  " + urlAdminGroup + "  ]-------------");
+                    //SitePMData objSitePMData = new SitePMData();
+                    //DataTable dataTable = objSitePMData.readDBPortalDeployed(runPM);
+                    //List<PMData> pmd = FilterPMData(dataTable);
 
-                    SiteLogUtility.Log_Entry("\n\n=============[ Get all Portal Practice Data ]=============", true);
-                    List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
+                    logger.Information("-------------[ Processing AdminGroup:  " + urlAdminGroup + "  ]-------------");
+                    List<PMData> pmData = SiteInfoUtility.initPMDataToList(urlAdminGroup);
 
-                    SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - Start]=============", true);
+                    logger.Information("-------------[ Get all Portal Practice Data         ]-------------");
+                    List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext, practicesIWH, practicesCKCC, pmData);
+
+                    logger.Information("-------------[ Maintenance Tasks - Start            ]-------------");
                     foreach (ProgramManagerSite pm in practicePMSites)
                     {
-                        SiteLogUtility.Log_Entry("\nPM Site: " + pm.PracticeName + " - " + pm.PMURL, true);
                         foreach (PracticeSite psite in pm.PracticeSiteCollection)
                         {
                             //if (psite.URL.Contains(runPM))
                             if (psite.URL.Contains(runPM) && psite.URL.Contains(runPractice))
                             {
-                                // get list
-                                // check if column exists
-                                // add column
-                                // update all items with sort values
-                                // refresh the view
+                                // get pm admingroup...
+                                // create if does not exists in SiteAdminData...
+                                // update if exists in SiteAdminData...
+                                logger.Debug("--");
+                                logger.Debug(psite.PracticeName);
+                                logger.Debug(psite.Name + " - " + psite.URL);
+                                logger.Debug(psite.ProgramParticipation);
 
-                                //bool listExist = DoesListExist(psite, "Program Participation");
-                                //ListAddColumn(psite, "Program Participation");
-                                //UpdateSortCol(psite, "Program Participation");
+                                // BEGIN - This code is used to update from Deployed table...
+                                //PMData beforePmd = (PMData)pmData.Where(x => x.SiteId == psite.SiteId).FirstOrDefault();
+                                //PMData afterPmd = (PMData)pmd.Where(x => x.SiteId == psite.SiteId).FirstOrDefault();
 
+                                //if (afterPmd.IsTeleKC365 == "true")
+                                //{
+                                //    logger.Debug("--");
+                                //    logger.Debug(psite.PracticeName);
+                                //    logger.Debug(psite.Name + " - " + psite.URL);
+                                //    //logger.Debug("BEFORE:" + beforePmd.ProgramParticipation);
+                                //    logger.Debug(" AFTER:" + afterPmd.ProgramParticipation);
 
+                                //    string adminUrl = LoadParentWeb(pm.URL);
+                                //    UpdateProgramParticipation(pm.URL, psite, afterPmd.ProgramParticipation);
+                                //    UpdateProgramParticipation(adminUrl, psite, afterPmd.ProgramParticipation, runPM);
+                                //    SyncSiteDescription(psite.URL, psite.Name);
+                                //}
+                                // END - This code is used to update from Deployed table...
 
-
-
-                                SiteFilesUtility sfu = new SiteFilesUtility();
-                                UpdateUrlRef(psite, "Program Participation");
-
-                                //HTML Files for Landing Page
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_ProgramParticipation.html");
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_Home.html");
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_RiskAdjustmentResources.html");
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_CareCoordination.html");
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_InteractiveInsights.html");
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_Quality.html");
-
-                                //HTML Files for CareCoordination Page
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_CarePlans.html");
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_CarePlans_Ckcc.html");
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_HospitalAlerts.html");
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_MedicationAlerts.html");
-
-                                //HTML Files for CarePlans Page
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_CarePlansDataTable.html");
-
-                                //HTML Files - Other
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_HospitalAlerts.html");
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_MedicationAlerts.html");
-                                sfu.uploadHtmlSupportingFilesSingleFile(psite.URL, "cePrac_InteractiveInsights.html");
-
-                                //GetPropertyBag(psite.URL);
                             }
                         }
                     }
-                    SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - End]=============", true);
+                    logger.Information("-------------[ Maintenance Tasks - End              ]-------------");
                 }
                 catch (Exception ex)
                 {
                     SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", "");
+                    logger.Error("Error: " + ex.Message);
                 }
                 finally
                 {
-                    SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
+                    logger.Information(SiteLogUtility.textLine0);
                     SiteLogUtility.finalLog(releaseName);
                     SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
                 }
-                SiteLogUtility.Log_Entry("=============Release Ends=============", true);
+                logger.Information("========================================Release Ends========================================");
             }
+
+            Log.CloseAndFlush();
         }
 
-        private void UpdateUrlRef(PracticeSite psite, string strList)
+        private List<PMData> FilterPMData(DataTable dataTable)
         {
+            List<PMData> listPMData = new List<PMData>();
+            SitePMData sitePMData = new SitePMData();
+            string progPart = string.Empty;
+
             try
             {
-                using (ClientContext clientContext = new ClientContext(psite.URL))
+                foreach (DataRow row in dataTable.Rows)
                 {
-                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                    Web web = clientContext.Web;
-                    List list = web.Lists.GetByTitle(strList);
-                    var items = list.GetItems(CamlQuery.CreateAllItemsQuery());
+                    PMData pd = new PMData();
 
-                    clientContext.Load(items);
-                    clientContext.ExecuteQuery();
-
-
-                    foreach (var item in items)
+                    pd.GroupID = Convert.ToInt32(row["GroupID"]);
+                    pd.SiteId = row["SiteID"].ToString();
+                    switch (pd.SiteId)  // temporary for deployment 0729...
                     {
-                        var fndTitle = item["Title"].ToString();
-                        string thumbNail = GetProgramParticipationImg(fndTitle);
-                        item["Thumbnail"] = psite.URL + "/Program%20Participation/" + thumbNail;
-                        item.Update();
-                        clientContext.ExecuteQuery();
-                        SiteLogUtility.Log_Entry($">>> {item["Title"]} - Thumbnail = {item["Thumbnail"]}", true);
+                        case "97849590689":
+                            pd.GroupID = 4;
+                            break;
+                        case "98410990689":
+                        case "94012182649":
+                        case "96755254749":
+                            pd.GroupID = 1;
+                            break;
+                        case "90667092639":
+                        case "93943863639":
+                        case "94069321269":
+                            pd.GroupID = 9;
+                            break;
+                        default:
+                            break;
                     }
+
+                    pd.PracticeTIN = row["PracticeTIN"].ToString();
+                    pd.PracticeName = row["PracticeName"].ToString();
+                    pd.IsKC365 = row["KC365"].ToString().Equals("0") ? "false" : "true";
+                    pd.IsCKCC = row["CKCCArea"].ToString().Equals("") ? "false" : "true";
+                    pd.IsIWH = row["IWNRegion"].ToString().Equals("False") ? "false" : "true";
+                    pd.IsTeleKC365 = row["IsTelephonic"].ToString().Equals("False") ? "false" : "true";
+                    pd.ProgramParticipation = FormatProgramParticipation(pd);
+                    
+                    logger.Debug(pd.PracticeName + " - " + pd.SiteId + " - " + pd.PracticeTIN);
+                    logger.Debug(pd.ProgramParticipation);
+                    logger.Debug(" ");
+
+                    listPMData.Add(pd);
                 }
+                return listPMData;
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("UpdateSortCol", ex.Message, "Error", "");
+                logger.Information("Error: " + ex.Message);
+                return null;
             }
         }
+        private List<PMData> LoadDeployedDataToList(DataTable dataTable)
+        {
+            List<PMData> listPMData = new List<PMData>();
+            SitePMData sitePMData = new SitePMData();
+            string progPart = string.Empty;
 
-        private void UpdateSortCol(PracticeSite psite, string strList)
+            try
+            {
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    PMData pd = new PMData();
+
+                    pd.GroupID = Convert.ToInt32(row["GroupID"]);
+                    pd.SiteId = row["SiteID"].ToString();
+                    pd.PracticeTIN = row["PracticeTIN"].ToString();
+                    pd.PracticeName = row["PracticeName"].ToString();
+                    pd.IsKC365 = row["KC365"].ToString().Equals("0") ? "false" : "true";
+                    pd.IsCKCC = row["CKCCArea"].ToString().Equals("") ? "false" : "true";
+                    pd.IsIWH = row["IWNRegion"].ToString().Equals("False") ? "false" : "true";
+                    pd.IsTeleKC365 = row["IsTelephonic"].ToString().Equals("False") ? "false" : "true";
+                    pd.ProgramParticipation = FormatProgramParticipation(pd);
+
+                    logger.Debug(pd.PracticeName + " - " + pd.SiteId + " - " + pd.PracticeTIN);
+                    logger.Debug(pd.ProgramParticipation);
+                    logger.Debug(" ");
+
+                    listPMData.Add(pd);
+                }
+                return listPMData;
+            }
+            catch (Exception ex)
+            {
+                logger.Information("Error: " + ex.Message);
+                return null;
+            }
+        }
+        public void UpdateProgramParticipation(string adminUrl, PracticeSite site, string dbProgramParticipation, string strProgramManagerSite = "")
         {
             try
             {
-                using (ClientContext clientContext = new ClientContext(psite.URL))
+                using (ClientContext clientContext = new ClientContext(adminUrl))
                 {
                     clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                    Web web = clientContext.Web;
-                    List list = web.Lists.GetByTitle(strList);
-                    var items = list.GetItems(CamlQuery.CreateAllItemsQuery());
-                    
-                    clientContext.Load(items);
+                    Web w = clientContext.Web;
+                    List adminList = null;
+
+                    if (strProgramManagerSite == "")
+                    {
+                        adminList = clientContext.Web.Lists.GetByTitle("AdminGroup");
+                    }
+                    else
+                    {
+                        adminList = clientContext.Web.Lists.GetByTitle("AdminSiteData");
+                    }
+                    ListItem oItem = null;
+                    clientContext.Load(w);
+
+                    CamlQuery oQuery = new CamlQuery();
+                    oQuery.ViewXml = @"<View><Query><Where><Eq><FieldRef Name='PracticeTIN' /><Value Type='Text'>" + site.SiteId + "</Value></Eq></Where></Query></View>";
+
+                    ListItemCollection oItems = adminList.GetItems(oQuery);
+                    clientContext.Load(oItems);
                     clientContext.ExecuteQuery();
                     
-
-                    foreach (var item in items)
-                    {
-                        
-                        var fndTitle = item["Title"].ToString();
-                        int sortOrder = GetProgramParticipationSortOrder(fndTitle);
-                        item["Sort_Order"] = sortOrder;
-                        item.Update();
-                        clientContext.ExecuteQuery();
-                        SiteLogUtility.Log_Entry($">>> {item["Title"]} - Sort Order = {item["Sort_Order"]}", true);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SiteLogUtility.CreateLogEntry("UpdateSortCol", ex.Message, "Error", "");
-            }
-        }
-
-        private string GetProgramParticipationImg(string fndTitle)
-        {
-            string thumbNail = string.Empty;
-            try
-            {
-                switch (fndTitle)
-                {
-                    case SiteListUtility.progpart_PayorEnrollment:
-                        thumbNail = "PracticeReferrals.JPG";
-                        break;
-                    case SiteListUtility.progpart_CkccKceResources:
-                        thumbNail = "KCEckcc.JPG";
-                        break;
-                    case SiteListUtility.progpart_PayorProgeducation:
-                        thumbNail = "EducationReviewPro.JPG";
-                        break;
-                    case SiteListUtility.progpart_PatientStatusUpdates:
-                        thumbNail = "optimalstarts.jpg";
-                        break;
-                    case SiteListUtility.progpart_CkccKceEngagement:
-                        thumbNail = "CKCC_KCEEngagement.png";
-                        break;
-                    
-                    
-                    default:
-                        thumbNail = "";
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                SiteLogUtility.CreateLogEntry("GetProgramParticipationImg", ex.Message, "Error", "");
-            }
-            return thumbNail;
-        }
-
-        private int GetProgramParticipationSortOrder(string fndTitle)
-        {
-            int sortorder = 0;
-            try
-            {
-                switch (fndTitle)
-                {
-                    case SiteListUtility.progpart_PayorEnrollment:
-                        sortorder = 10;
-                        break;
-                    case SiteListUtility.progpart_CkccKceResources:
-                        sortorder = 20;
-                        break;
-                    case SiteListUtility.progpart_CkccKceEngagement:
-                        sortorder = 30;
-                        break;
-                    case SiteListUtility.progpart_PatientStatusUpdates:
-                        sortorder = 40;
-                        break;
-                    case SiteListUtility.progpart_PayorProgeducation:
-                        sortorder = 50;
-                        break;
-                    default:
-                        sortorder = 10;
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                SiteLogUtility.CreateLogEntry("GetProgramParticipationSortOrder", ex.Message, "Error", "");
-            }
-            return sortorder;
-        }
-
-        private void ListAddColumn(PracticeSite psite, string strList)
-        {
-            try
-            {
-                using (ClientContext clientContext = new ClientContext(psite.URL))
-                {
-                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                    Web web = clientContext.Web;
-                    List list = web.Lists.GetByTitle(strList);
-                    Field field = list.Fields.AddFieldAsXml("<Field Type='Number' DisplayName='Sort_Order' Name='Sort_Order' />", true, AddFieldOptions.AddFieldInternalNameHint);
-
-                    clientContext.Load(field);
+                    oItem = oItems.FirstOrDefault();
+                    logger.Debug("Item=" + oItem["URL"].ToString());
+                    logger.Debug("Item=" + oItem["PracticeName"].ToString());
+                    logger.Debug("Item=" + oItem["PracticeTIN"].ToString());
+                    logger.Debug("Item=" + oItem["ProgramParticipation"].ToString());
+                    logger.Debug("Item=" + oItem["KCEArea"].ToString());
+                    oItem["ProgramParticipation"] = dbProgramParticipation;
+                    //if (strProgramManagerSite != "")
+                    //{
+                    //    logger.Debug("Item=" + oItem["ProgramManagerSite"].ToString());
+                    //}
+                    oItem.Update();
                     clientContext.ExecuteQuery();
                 }
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("ListAddColumn", ex.Message, "Error", "");
+                logger.Error("Error: " + ex.Message);
             }
         }
-
-        private static bool DoesListExist(PracticeSite psite, string listName)
+        private string FormatProgramParticipation(PMData pd)
         {
+            string programParticipation = string.Empty;
+            SitePMData sitePmd = new SitePMData();
+
             try
             {
-                using (ClientContext clientContext = new ClientContext(psite.URL))
+                if (pd.IsIWH == "true")
                 {
-                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                    {
-                        ListCollection lists = clientContext.Web.Lists;
-                        clientContext.Load(lists);
-                        clientContext.ExecuteQuery();
-
-                        bool bListFound = false;
-
-                        if (lists != null && lists.Count > 0)
-                        {
-                            foreach (List list in lists)
-                            {
-                                if (list.Title == listName)
-                                {
-                                    _listGuid = list.Id;
-                                    bListFound = true;
-                                    SiteLogUtility.Log_Entry(psite.Name + " - " + psite.URL, true);
-                                    break;
-                                }
-                            }
-                        }
-
-                        return bListFound;
-                    }
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePmd.programParticipationIWH : programParticipation + "; " + sitePmd.programParticipationIWH;
                 }
+                if (pd.IsCKCC == "true")
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePmd.programParticipationCKCC : programParticipation + "; " + sitePmd.programParticipationCKCC;
+                }
+                if (pd.IsKC365 == "true")
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePmd.programParticipationKC365 : programParticipation + "; " + sitePmd.programParticipationKC365;
+                }
+                if (pd.IsTeleKC365 == "true")
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePmd.programParticipationTelephonicKC365 : programParticipation + "; " + sitePmd.programParticipationTelephonicKC365;
+                }
+
+                return programParticipation;
             }
+            
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("DoesListExist", ex.Message, "Error", "");
+                logger.Error("Error: " + ex.Message);
+                return null;
             }
-            return false;
         }
-
-        private static bool DoesListExistGetGuid(string wUrl, string listName)
+        public void SyncSiteDescription(string wUrl, string pracName)
         {
             using (ClientContext clientContext = new ClientContext(wUrl))
             {
-                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                try
                 {
-                    ListCollection lists = clientContext.Web.Lists;
-                    clientContext.Load(lists);
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    var web = clientContext.Web;
+                    clientContext.Load(web);
+                    clientContext.Load(web.ParentWeb);
                     clientContext.ExecuteQuery();
 
-                    bool bListFound = false;
-                    if (lists != null && lists.Count > 0)
-                    {
-                        foreach (List list in lists)
-                        {
-                            if (list.Title == listName)
-                            {
-                                _listGuid = list.Id;
-                                bListFound = true;
-                                break;
-                            }
-                        }
-                    }
+                    SiteInfoUtility siu = new SiteInfoUtility();
+                    string strSiteDesc = GetSiteDescriptionData(siu.GetRootSite(wUrl) + web.ParentWeb.ServerRelativeUrl, pracName);
 
-                    return bListFound;
+                    web.Description = strSiteDesc;
+                    web.Update();
+                    clientContext.Load(web);
+                    clientContext.ExecuteQuery();
+                    
+                    logger.Information(strSiteDesc);
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("SyncSubSiteDescription", ex.Message, "Error", wUrl);
                 }
             }
         }
 
+        public string GetSiteDescriptionData(string wUrl, string SiteTitle)
+        {
+            string strDescription = "";
+            string strParticipationValue = "";
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                try
+                {
+                    var web = clientContext.Web;
+                    clientContext.Load(web.ParentWeb);
+                    clientContext.ExecuteQuery();
+
+                    List list = clientContext.Web.Lists.GetByTitle("AdminGroup");
+                    clientContext.Load(list);
+                    clientContext.ExecuteQuery();
+                    CamlQuery query = new CamlQuery();
+                    query.ViewXml = @"<View><Query><Where><Eq><FieldRef Name='PracticeName' /><Value Type='Text'>" + SiteTitle + "</Value></Eq></Where></Query></View>";
+                    ListItemCollection items = list.GetItems(query);
+                    clientContext.Load(items);
+                    clientContext.ExecuteQuery();
+
+                    if (items.Count > 0)
+                    {
+                        if (items[0].FieldValues["KCEArea"] != null)
+                        {
+                            strDescription = SiteTitle + " is a member of " + items[0].FieldValues["KCEArea"].ToString() + ". Program Participation: ";
+                        }
+                        else
+                        {
+                            strDescription = SiteTitle + ". Program Participation: ";
+                        }
+                        if (items[0].FieldValues["ProgramParticipation"] != null)
+                        {
+                            string[] strParticipationList = items[0].FieldValues["ProgramParticipation"].ToString().Split(';');
+                            for (int intLoop = 0; intLoop < strParticipationList.Length; intLoop++)
+                            {
+                                strParticipationValue = strParticipationValue + " " + (intLoop + 1) + "." + strParticipationList[intLoop].ToString() + ";";
+                            }
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("SyncSubSiteDescription", ex.Message, "Error", wUrl);
+                }
+            }
+            strDescription = strDescription + " " + strParticipationValue;
+            return strDescription;
+        }
+        public static List<PMData> GetPMData(string urlAdminGrp)
+        {
+            List<PMData> pmData = new List<PMData>();
+            SitePMData sitePMData = new SitePMData();
+            int cntRunAdminGroup = 0;
+
+            using (ClientContext clientContext = new ClientContext(urlAdminGrp))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+                List list = clientContext.Web.Lists.GetByTitle("AdminGroup");
+                clientContext.Load(list);
+                clientContext.ExecuteQuery();
+                View view = list.Views.GetByTitle("All Links");
+
+                clientContext.Load(view);
+                clientContext.ExecuteQuery();
+                CamlQuery query = new CamlQuery();
+                query.ViewXml = view.ViewQuery;
+
+                ListItemCollection items = list.GetItems(query);
+                clientContext.Load(items);
+                clientContext.ExecuteQuery();
+
+                logger.Debug(SiteLogUtility.textLine0);
+                logger.Debug("Total Count: " + items.Count);
+                cntRunAdminGroup = items.Count;
+
+                foreach (var item in items)
+                {
+                    PMData pmd = new PMData();
+                    
+                    logger.Information(item["PracticeTIN"] + " - " + item["PracticeName"] + " - " + item["ProgramParticipation"]);
+
+                    pmd.PracticeName = item["PracticeName"].ToString();
+                    pmd.PracticeTIN = item["PracticeTIN"].ToString();
+                    pmd.SiteId = item["PracticeTIN"].ToString();
+                    pmd.ProgramParticipation = item["ProgramParticipation"].ToString();
+
+                    pmd.IsKC365 = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationKC365) ? "true" : "false";
+                    pmd.IsTeleKC365 = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationTelephonicKC365) ? "true" : "false";
+                    pmd.IsCKCC = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationCKCC) ? "true" : "false";
+                    pmd.IsIWH = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationIWH) ? "true" : "false";
+
+                    pmData.Add(pmd);
+                }
+            }
+
+            return pmData;
+        }
+        
         public static string urlRelativeReferral_Prod = @"/bi/fhppp/portal/referral/";
         public static string urlRelativeReferral_Dev = @"/bi/fhppp/interimckcc/referral/";
-        
-        public static void LoadParentWebTest(PracticeSite site)
+        public static string LoadReferralParentWeb(PracticeSite site)
         {
             using (ClientContext clientContext = new ClientContext(site.URL))
             {
@@ -373,113 +451,53 @@ namespace SiteUtilityTest
                     {
                         urlReferralSite = rootUrl + urlRelativeReferral_Prod;
                     }
-                    
+
                     SiteLogUtility.Log_Entry("RootWeb: " + rootUrl);
                     SiteLogUtility.Log_Entry("ParentWeb: " + clientContext.Web.ParentWeb.ServerRelativeUrl);
                     SiteLogUtility.Log_Entry("PracticeWeb: " + clientContext.Web.ServerRelativeUrl);
                     SiteLogUtility.Log_Entry("ReferralWeb: " + urlReferralSite);
+
+                    return urlReferralSite;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error with LoadParentWebTest: " + ex.Message);
+                    return null;
                 }
             }
         }
-        
-        public static void GetPropertyBag(string wUrl)
+        public static string LoadParentWeb(string wUrl)
         {
             using (ClientContext clientContext = new ClientContext(wUrl))
             {
                 clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                Web w = clientContext.Web;
-                clientContext.Load(w);
-                clientContext.Load(w.AllProperties);
-                clientContext.ExecuteQuery();
+
                 try
                 {
-                    foreach (var item in w.AllProperties.FieldValues)
-                    {
-                        SiteLogUtility.Log_Entry("Key: " + item.Key + " - Value: " + item.Value, true);
-                    }
-                    
-                    //int c = Properties.Count();
-                    //for (int i = 0; i < c; i++)
-                    //{
-                    //    string key = Properties[i].PropertyName;
+                    clientContext.Load(clientContext.Web,
+                                            web => web.ParentWeb.ServerRelativeUrl,
+                                            web => web.ServerRelativeUrl,
+                                            web => web.SiteGroups.Include(
+                                                sg => sg.Description,
+                                                sg => sg.Title));
+                    clientContext.ExecuteQuery();
 
-                    //    if (w.AllProperties.FieldValues.ContainsKey(key) && Properties[i].PropertyValue != (string)w.AllProperties[key])
-                    //    {
-                    //        w.AllProperties[key] = Properties[i].PropertyValue;
-                    //        w.Update();
-                    //        clientContext.ExecuteQuery();
-                    //    }
-                    //    else
-                    //    {
-                    //        //w.AllProperties.Add(key, Properties[i].PropertyValue);
-                    //        w.AllProperties[key] = Properties[i].PropertyValue;
-                    //        w.Update();
-                    //        clientContext.ExecuteQuery();
-                    //    }
-                    //}
+                    SiteInfoUtility siu = new SiteInfoUtility();
+                    string rootUrl = siu.GetRootSite(wUrl);
+
+                    SiteLogUtility.Log_Entry("RootWeb: " + rootUrl, true);
+                    SiteLogUtility.Log_Entry("ParentWeb: " + clientContext.Web.ParentWeb.ServerRelativeUrl, true);
+                    SiteLogUtility.Log_Entry("PracticeWeb: " + clientContext.Web.ServerRelativeUrl, true);
+
+                    return rootUrl + clientContext.Web.ParentWeb.ServerRelativeUrl;
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("SetupPropertyBag", ex.Message, "Error", "");
+                    Console.WriteLine("Error with LoadParentWeb: " + ex.Message);
+                    return null;
                 }
             }
         }
 
-        private static bool DeleteDeploymentErrorItems()
-        {
-            int count = 0;
-            try
-            {
-                using (ClientContext clientContext = new ClientContext("https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal"))
-                {
-                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-
-                    Web web = clientContext.Web;
-                    //List list = web.Lists.GetByTitle("DeploymentErrors");
-
-                    List rList = web.Lists.GetByTitle("DeploymentErrors");
-
-                    //CamlQuery camlQuery = new CamlQuery();
-                    //camlQuery.ViewXml = "<View Scope='RecursiveAll'><RowLimit>4999</RowLimit></View>";
-
-
-                    CamlQuery camlQuery = new CamlQuery();
-                    //camlQuery.ViewXml = @"<View><Query><Where><Eq><FieldRef Name='Method' /><Value Type='Text'>" + "GetRootFolders" + "</Value></Eq></Where></Query><RowLimit>4999</RowLimit></View>";
-                    camlQuery.ViewXml = "<View><RowLimit>4999</RowLimit></View>";
-
-                    List<ListItem> items = new List<ListItem>();
-                    do
-                    {
-                        ListItemCollection colxn = rList.GetItems(camlQuery);
-                        clientContext.Load(colxn);
-                        clientContext.ExecuteQuery();
-                        items.AddRange(colxn);
-                        camlQuery.ListItemCollectionPosition = colxn.ListItemCollectionPosition;
-                    } while (camlQuery.ListItemCollectionPosition != null);
-
-                    if (items.Count < 1)
-                        return false;
-                    foreach (ListItem li in items)
-                    {
-                        //li.DeleteObject();
-                        //SiteLogUtility.Log_Entry(li.DisplayName, true);
-                        SiteLogUtility.Log_Entry(li["Method"].ToString(), true);
-
-                        clientContext.ExecuteQuery();
-                        count++;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error: " + ex.Message);
-                Console.ReadLine();
-            }
-            return true;
-        }
     }
 }

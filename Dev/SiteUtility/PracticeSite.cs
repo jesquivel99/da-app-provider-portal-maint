@@ -38,6 +38,7 @@ namespace SiteUtility
         public string IsIWH { get; set; }
         public string IsCKCC { get; set; }
         public string IsKC365 { get; set; }
+        public string IsTeleKC365 { get; set; }
         public string siteType { get; set; }
         public string PracUserPermission { get; set; }
         public string PracUserPermissionDesc = "This is the Sites General Practice User group.";

@@ -46,13 +46,13 @@
     <Reference Include="Microsoft.SharePoint.Client.Runtime">
       <HintPath>..\..\..\PracticeSite-Core\Prod\packages\Microsoft.SharePoint2013.CSOM.15.0.5031.1001\lib\net45\Microsoft.SharePoint.Client.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+    <Reference Include="Serilog">
       <HintPath>..\packages\Serilog.2.11.0\lib\net45\Serilog.dll</HintPath>
     </Reference>
-    <Reference Include="Serilog.Sinks.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+    <Reference Include="Serilog.Sinks.Console">
       <HintPath>..\packages\Serilog.Sinks.Console.4.0.1\lib\net45\Serilog.Sinks.Console.dll</HintPath>
     </Reference>
-    <Reference Include="Serilog.Sinks.File, Version=5.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+    <Reference Include="Serilog.Sinks.File">
       <HintPath>..\packages\Serilog.Sinks.File.5.0.0\lib\net45\Serilog.Sinks.File.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -66,19 +66,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Practice.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgramNew_SS.cs" />
-    <Compile Include="ProgramNew2.cs" />
     <Compile Include="ProgramNew_AA.cs" />
     <Compile Include="ProgramNew_DW.cs" />
-    <Compile Include="ProgramNew_JE.cs" />
     <Compile Include="ProgramNew_NA.cs" />
     <Compile Include="ProgramNew_Vignesh.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sample.cs" />
     <Compile Include="SiteInfoUtilityTest.cs" />
-    <Compile Include="StartUpTemplate.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -88,6 +83,14 @@
     <ProjectReference Include="..\R_1_10_CarePlanHtmlUpdate\R_DW_100_CarePlanHtmlUpdate.csproj">
       <Project>{a9c8dc68-debc-47ef-9417-cb7f91797db0}</Project>
       <Name>R_DW_100_CarePlanHtmlUpdate</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\R_1_8_MovePractice\R_JE_100_MovePractice.csproj">
+      <Project>{032a541f-1f14-4961-a3e0-d7fb238c5bdd}</Project>
+      <Name>R_JE_100_MovePractice</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\R_1_9_AddSortColumn\R_JE_109_AddSortColumn.csproj">
+      <Project>{ed4b7c80-ef5a-469f-b0a1-423b47a956bf}</Project>
+      <Name>R_JE_109_AddSortColumn</Name>
     </ProjectReference>
     <ProjectReference Include="..\SiteUtility\SiteUtility.csproj">
       <Project>{9d372979-b93c-4937-920a-19d2d36de21d}</Project>

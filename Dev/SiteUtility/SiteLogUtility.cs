@@ -7,6 +7,7 @@ using System.Net;
 using System.Configuration;
 using System.IO;
 using System.Net.Mail;
+using Serilog;
 
 namespace SiteUtility
 {
@@ -23,10 +24,10 @@ namespace SiteUtility
         public static List<LogEmailContent> listEmailContent = new List<LogEmailContent>();
 
         public static string ResultDescription = "", ResultDescConcern = "", EmailDesc = "";
-        public static string textLine0 = "\n------------------------------";
-        public static string textLine = "\n------------------------------\n\n";
-        public static string textLineSPGroups = "\n-----------------------------------------------------------------------------------------------------\n";
-
+        public static string textLine0 = "------------------------------";
+        public static string textLine = "------------------------------";
+        public static string textLineSPGroups = "-----------------------------------------------------------------------------------------------------";
+        static ILogger logger = Log.ForContext<SiteLogUtility>();
         public class LogInfo
         {
             public LogInfo()
@@ -68,7 +69,7 @@ namespace SiteUtility
         public static void InitLogFile(string maintAppName, string rootUrl, string siteUrl)
         {
             LogFile = ConfigurationManager.AppSettings["LogFile"];
-            LogText = "PracticeSite-Maint - SiteLogUtility \n   In Progress...";
+            LogText = "PracticeSite-Maint - SiteLogUtility    In Progress...";
             Console.WriteLine(textLine);
             Log_Entry(LogText, true);
 
@@ -85,24 +86,24 @@ namespace SiteUtility
 
         public static void LogPracDetail(PracticeSite psite)
         {
-            SiteLogUtility.Log_Entry("--");
-            SiteLogUtility.Log_Entry($"--             Portal Site: {psite.Name}", true);
-            SiteLogUtility.Log_Entry($"--   Program Participation: {psite.ProgramParticipation}", true);
-            SiteLogUtility.Log_Entry($"--                     URL: {psite.URL}", true);
-            SiteLogUtility.Log_Entry($"--                  SiteID: {psite.SiteId}", true);
-            SiteLogUtility.Log_Entry($"--                    PTIN: {psite.PracticeTIN}", true);
-
-            SiteLogUtility.Log_Entry($"--       Permissions Audit: {psite.URL}/_layouts/user.aspx");
-            SiteLogUtility.Log_Entry($"--           Site Contents: {psite.URL}/_layouts/viewlsts.aspx");
-            SiteLogUtility.Log_Entry($"--             Pages Audit: {psite.URL}/Pages");
-
-            SiteLogUtility.Log_Entry($"--    Prac_User Permission: {psite.PracUserPermission}");
-            SiteLogUtility.Log_Entry($"-- Prac_User RO Permission: {psite.PracUserReadOnlyPermission}");
-
-            SiteLogUtility.Log_Entry($"--   Program Participation: {psite.ProgramParticipation}");
-            SiteLogUtility.Log_Entry($"--                  IsCKCC: {psite.IsCKCC}", true);
-            SiteLogUtility.Log_Entry($"--                   IsIWH: {psite.IsIWH}", true);
-            SiteLogUtility.Log_Entry($"--                 IsKC365: {psite.IsKC365}", true);
+            logger.Information("--");
+            logger.Information($"--             Portal Site: {psite.Name}");
+            logger.Information($"--   Program Participation: {psite.ProgramParticipation}");
+            logger.Information($"--                     URL: {psite.URL}");
+            logger.Information($"--                  SiteID: {psite.SiteId}");
+            logger.Information($"--                    PTIN: {psite.PracticeTIN}");
+            
+            logger.Information($"--       Permissions Audit: {psite.URL}/_layouts/user.aspx");
+            logger.Information($"--           Site Contents: {psite.URL}/_layouts/viewlsts.aspx");
+            logger.Information($"--             Pages Audit: {psite.URL}/Pages");
+            
+            logger.Information($"--    Prac_User Permission: {psite.PracUserPermission}");
+            logger.Information($"-- Prac_User RO Permission: {psite.PracUserReadOnlyPermission}");
+            
+            logger.Information($"--   Program Participation: {psite.ProgramParticipation}");
+            logger.Information($"--                  IsCKCC: {psite.IsCKCC}");
+            logger.Information($"--                   IsIWH: {psite.IsIWH}");
+            logger.Information($"--                 IsKC365: {psite.IsKC365}");
         }
 
         public static void CreateLogEntry(string strMethod, string strMessage, string strType, string strURL, bool consolePrint = false)
@@ -204,7 +205,7 @@ namespace SiteUtility
                 count = loglines.Count;
                 if (count < 1)
                 {
-                    ResultDescription += "Log_ProcessLogs() -> List from logEntryList was empty \n\n";
+                    ResultDescription += "Log_ProcessLogs() -> List from logEntryList was empty ";
                     Console.WriteLine(ResultDescription);
                     LogList.Add(ResultDescription);
                     return 0;
@@ -292,7 +293,7 @@ namespace SiteUtility
             System.IO.File.AppendAllLines(LogFileName, LogList);
 
             Console.WriteLine(textLine);
-            LogText = $"PracticeSiteMaint - {rName} \n   Complete";
+            LogText = $"PracticeSiteMaint - {rName}    Complete";
             Log_Entry(LogText, true);
         }
 

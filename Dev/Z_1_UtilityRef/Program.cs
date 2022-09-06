@@ -17,7 +17,7 @@ using System.Reflection;
 
 namespace Z_1_UtilityRef
 {
-    class Program
+    public class Program
     {
         /// <summary>
         /// NOTES:
@@ -32,18 +32,96 @@ namespace Z_1_UtilityRef
         /// Update Credentials in SiteLogUtility.cs
         /// </summary>
         static string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
-        static public List<Practice> practicesIWH = new List<Practice>();
-        static public List<Practice> practicesCKCC = new List<Practice>();
+        //static public List<Practice> practicesIWH = new List<Practice>();
+        //static public List<Practice> practicesCKCC = new List<Practice>();
         static Guid _listGuid = Guid.Empty;
         static int cntRun = 0;
         static int cntRunAdminGroup = 0;
         static int cntIsCkcc = 0;
         static int cntIsIwh = 0;
         static int cntIsKc365 = 0;
-        static void Main(string[] args)
-        {
-        }
 
+        // Used for workaround...
+        static public List<Practice> practicesIWH = new List<Practice>();
+        static public List<Practice> practicesCKCC = new List<Practice>();
+        static public string runPM = "PM04";                // Use as a workaround...
+        static public string runPractice = "99590861659";  // Use as a workaround...
+
+        //static void Main(string[] args)
+        //{
+        //}
+
+        //public void InitiateProg()
+        //{
+        //    //string releaseName = "SiteUtilityTest";
+        //    //string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
+        //    //string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
+
+
+        //    //string runPM = "PM01";
+        //    //string runPractice = "94910221369";
+        //    //string urlAdminGroup = siteUrl + "/" + runPM;
+
+
+
+        //    //SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
+        //    //logger.Information("\n\n=============Release Starts=============");
+        //    ////SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
+
+        //    //using (ClientContext clientContext = new ClientContext(siteUrl))
+        //    //{
+        //    //    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+        //    //    try
+        //    //    {
+        //    //        SiteLogUtility.Log_Entry("\n\n=============[ Get Program Participation Sort Order ]=============", true);
+        //    //        GetSortParameters("ProgPartSort");
+
+        //    //        SiteLogUtility.Log_Entry("\n\n=============[ Get PM AdminGroup ]=============", true);
+        //    //        SiteLogUtility.Log_Entry("Processing AdminGroup:  " + urlAdminGroup, true);
+        //    //        _logger.Information("Processing AdminGroup:  " + urlAdminGroup);
+        //    //        List<PMData> pmData = SiteInfoUtility.initPMDataToList(urlAdminGroup);
+
+        //    //        SiteLogUtility.Log_Entry("\n\n=============[ Get all Portal Practice Data ]=============", true);
+        //    //        List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
+
+        //    //        SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - Start]=============", true);
+        //    //        foreach (ProgramManagerSite pm in practicePMSites)
+        //    //        {
+        //    //            SiteLogUtility.Log_Entry("\nPM Site: " + pm.PracticeName + " - " + pm.PMURL, true);
+        //    //            foreach (PracticeSite psite in pm.PracticeSiteCollection)
+        //    //            {
+        //    //                //if (psite.URL.Contains(runPM))
+        //    //                if (psite.URL.Contains(runPM) && psite.URL.Contains(runPractice))
+        //    //                {
+        //    //                    bool listExist = DoesListExist(psite, "Program Participation");
+        //    //                    ListAddColumn(psite, "Program Participation");
+        //    //                    UpdateSortCol(psite, "Program Participation");
+
+
+        //    //                    // get list
+        //    //                    // check if column exists
+        //    //                    // add column
+        //    //                    // update all items with sort values
+        //    //                    // refresh the view; deploy html 
+        //    //                }
+        //    //            }
+        //    //        }
+        //    //        SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - End]=============", true);
+        //    //    }
+        //    //    catch (Exception ex)
+        //    //    {
+        //    //        SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", "");
+        //    //    }
+        //    //    finally
+        //    //    {
+        //    //        SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
+        //    //        SiteLogUtility.finalLog(releaseName);
+        //    //        SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
+        //    //    }
+        //    //    SiteLogUtility.Log_Entry("=============Release Ends=============", true);
+        //    //}
+        //}
         public void InitiateProgNew2()
         {
             string releaseName = "SiteUtilityTest - Print Webparts";
@@ -128,7 +206,7 @@ namespace Z_1_UtilityRef
         //    {
         //        clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
         //        Web web = clientContext.Web;
-                
+
         //        clientContext.Load(web, w => w.ServerRelativeUrl, w => w.SiteLogoUrl);
         //        clientContext.ExecuteQuery();
 
@@ -185,7 +263,7 @@ namespace Z_1_UtilityRef
             }
         }
 
-        private static void Init_Payor(PracticeSite practiceSite)
+        private static void Init_Payor(Practice practiceSite)
         {
             SiteLogUtility.Log_Entry("Init_Payor - In Progress...");
             bool ConfigSuccess = false;
@@ -202,19 +280,19 @@ namespace Z_1_UtilityRef
                 CreateFolder(practiceSite, slUtility.listNamePayorEducationIwh, slUtility.listFolder1PayorEducationIwh);
                 CreateFolder(practiceSite, slUtility.listNamePayorEducationIwh, slUtility.listFolder2PayorEducationIwh);
 
-                spUtility.InitializePage(practiceSite.URL, slUtility.pageNamePayorEducation, slUtility.pageTitlePayorEducation);
-                spUtility.DeleteWebPart(practiceSite.URL, slUtility.pageNamePayorEducation);
-                sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "PayorEducation_MultiTab.js", "SiteAssets");
-                sfUtility.DocumentUpload(practiceSite.URL, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
-                ConfigSuccess = ConfigurePayorEducationPage(practiceSite.URL, practiceSite);
+                spUtility.InitializePage(practiceSite.NewSiteUrl, slUtility.pageNamePayorEducation, slUtility.pageTitlePayorEducation);
+                spUtility.DeleteWebPart(practiceSite.NewSiteUrl, slUtility.pageNamePayorEducation);
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "PayorEducation_MultiTab.js", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                ConfigSuccess = ConfigurePayorEducationPage(practiceSite.NewSiteUrl, practiceSite);
                 if (ConfigSuccess)
                 {
-                    if (practiceSite.IsIWH == "true")
+                    if (practiceSite.IsIWH)
                     {
-                        modifyView(practiceSite.URL, slUtility.pageNamePayorEducation + ".aspx", slUtility.webpartPayorEducationIwh);
+                        modifyView(practiceSite.NewSiteUrl, slUtility.pageNamePayorEducation + ".aspx", slUtility.webpartPayorEducationIwh);
                     }
                 }
-                SP_Update_ProgramParticipation(practiceSite.URL, slUtility.pageNamePayorEducation, "Payor Program Education Resources Coming Soon", "Payor Program Education Resources", "EducationReviewPro.JPG");
+                SP_Update_ProgramParticipation(practiceSite.NewSiteUrl, slUtility.pageNamePayorEducation, "Payor Program Education Resources Coming Soon", "Payor Program Education Resources", "EducationReviewPro.JPG");
             }
             catch (Exception ex)
             {
@@ -525,12 +603,12 @@ namespace Z_1_UtilityRef
                 }
             }
         }
-        public static void ProvisionList(PracticeSite psite, SiteListUtility siUtility, string listName, PracticeCView pracCView)
+        public static void ProvisionList(Practice psite, SiteListUtility siUtility, string listName, PracticeCView pracCView)
         {
             SiteLogUtility.Log_Entry("ProvisionList - In Progress...");
-            if (!DoesListExist(psite.URL, listName))
+            if (!DoesListExist(psite.NewSiteUrl, listName))
             {
-                _listGuid = siUtility.CreateDocumentLibrary(listName, psite.URL, psite);
+                _listGuid = siUtility.CreateDocumentLibrary(listName, psite.NewSiteUrl, psite);
             }
             if (_listGuid != Guid.Empty)
             {
@@ -561,7 +639,7 @@ namespace Z_1_UtilityRef
 
                 practiceCViews.View = new PracticeCView[] { pracCView };
 
-                ViewsInit(psite.URL, _listGuid, practiceCViews);
+                ViewsInit(psite.NewSiteUrl, _listGuid, practiceCViews);
 
                 //Setup Subfolders
                 //SubFolders.Init(wUrl, _listGuid);
@@ -797,7 +875,7 @@ namespace Z_1_UtilityRef
             }
             return outcome;
         }
-        public static bool ConfigurePayorEducationPage(string webUrl, PracticeSite pracSite)
+        public static bool ConfigurePayorEducationPage(string webUrl, Practice pracSite)
         {
             SiteLogUtility.Log_Entry("ConfigurePayorEducationPage - In Progress...");
             SiteListUtility slu = new SiteListUtility();
@@ -826,7 +904,7 @@ namespace Z_1_UtilityRef
                         wpd1.WebPart.Title = "Multi Tab";
                         olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "CenterLeftColumn", 1);
 
-                        if (pracSite.IsIWH == "true")
+                        if (pracSite.IsIWH)
                         {
                             WebPartDefinition wpd5 = olimitedwebpartmanager.ImportWebPart(webPartXML(web.Url + "/" + slu.listNamePayorEducationIwh + "/Forms/PageViewer.aspx"));
                             wpd5.WebPart.Title = slu.webpartPayorEducationIwh;
@@ -1939,12 +2017,12 @@ namespace Z_1_UtilityRef
             }
             return true;
         }
-        public static void CreateFolder(PracticeSite practiceSite, string docListName, string folderName)
+        public static void CreateFolder(Practice practiceSite, string docListName, string folderName)
         {
             SiteLogUtility.Log_Entry("CreateFolder - In Progress...");
             try
             {
-                using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+                using (ClientContext clientContext = new ClientContext(practiceSite.NewSiteUrl))
                 {
                     clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
 
@@ -2327,7 +2405,26 @@ namespace Z_1_UtilityRef
             }
             return true;
         }
+        private static void ListAddColumn(Practice psite, string strList)
+        {
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(psite.NewSiteUrl))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web web = clientContext.Web;
+                    List list = web.Lists.GetByTitle(strList);
+                    Field field = list.Fields.AddFieldAsXml("<Field Type='Number' DisplayName='Sort_Order' Name='Sort_Order' />", true, AddFieldOptions.AddFieldInternalNameHint);
 
+                    clientContext.Load(field);
+                    clientContext.ExecuteQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("ListAddColumn", ex.Message, "Error", "");
+            }
+        }
         public static void CheckIfPageExists(string webURL, string pageName)
         {
             string pageRelativeUrl = "/Pages/" + pageName + ".aspx";
@@ -2380,7 +2477,34 @@ namespace Z_1_UtilityRef
                 }
             }
         }
+        private static bool DoesListExistGetGuid(string wUrl, string listName)
+        {
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                {
+                    ListCollection lists = clientContext.Web.Lists;
+                    clientContext.Load(lists);
+                    clientContext.ExecuteQuery();
 
+                    bool bListFound = false;
+                    if (lists != null && lists.Count > 0)
+                    {
+                        foreach (List list in lists)
+                        {
+                            if (list.Title == listName)
+                            {
+                                _listGuid = list.Id;
+                                bListFound = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    return bListFound;
+                }
+            }
+        }
         public static void PrintWebPartProperties(string webURL, string pageName)
         {
             var pageRelativeUrl = "/Pages/" + pageName + ".aspx";
@@ -2462,6 +2586,58 @@ namespace Z_1_UtilityRef
                 }
             }
         }
+        private string GetProgramParticipationImg(string fndTitle)
+        {
+            string thumbNail = string.Empty;
+            try
+            {
+                switch (fndTitle)
+                {
+                    case SiteListUtility.progpart_PayorEnrollment:
+                        thumbNail = "PracticeReferrals.JPG";
+                        break;
+                    case SiteListUtility.progpart_CkccKceResources:
+                        thumbNail = "KCEckcc.JPG";
+                        break;
+                    case SiteListUtility.progpart_PayorProgeducation:
+                        thumbNail = "EducationReviewPro.JPG";
+                        break;
+                    case SiteListUtility.progpart_PatientStatusUpdates:
+                        thumbNail = "optimalstarts.jpg";
+                        break;
+                    case SiteListUtility.progpart_CkccKceEngagement:
+                        thumbNail = "CKCC_KCEEngagement.png";
+                        break;
+
+
+                    default:
+                        thumbNail = "";
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("GetProgramParticipationImg", ex.Message, "Error", "");
+            }
+            return thumbNail;
+        }
+        //private void EnsureFieldDisplayName()
+        //{
+        //    using (ClientContext clientContext = new ClientContext(_wUrl))
+        //    {
+        //        clientContext.Credentials = new NetworkCredential(SpCredential.UserName, SpCredential.Password, SpCredential.Domain);
+        //        {
+        //            Web w = clientContext.Web;
+        //            List l = w.Lists.GetById(_listGuid);
+        //            Field f = l.Fields.GetByInternalNameOrTitle(FieldName);
+        //            f.Title = DisplayName;
+        //            f.Update();
+        //            l.Update();
+        //            w.Update();
+        //            clientContext.ExecuteQuery();
+        //        }
+        //    }
+        //}
     }
 
     public static class DataTableExtensions
@@ -2506,6 +2682,91 @@ namespace Z_1_UtilityRef
         public int IWNRegion { get; set; }
         public int KC365 { get; set; }
         public string EncryptedPracticeTIN { get; set; }
+    }
+    public class SiteInfoUtility_2
+    {
+        public List<Practice> AllPractices;
+        string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
+
+        public SiteInfoUtility_2()
+        {
+            AllPractices = new List<Practice>();
+
+            // Read All Practice Info from Webs...
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(strPortalSiteURL))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+                    try
+                    {
+                        //Practice practice = new Practice();
+                        //string urlAdminGroup = strPortalSiteURL + "/" + runPM;
+                        //logger.Information("-------------[ Processing AdminGroup:  " + urlAdminGroup + "  ]-------------");
+                        //List<PMData> pmData = SiteInfoUtility.initPMDataToList(urlAdminGroup);
+
+                        //logger.Information("-------------[ Get all Portal Practice Data         ]-------------");
+                        //List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext, practicesIWH, practicesCKCC, pmData);
+
+                        //logger.Information("-------------[ Adding Data to Practice - Start            ]-------------");
+                        //foreach (ProgramManagerSite pm in practicePMSites)
+                        //{
+                        //    foreach (PracticeSite psite in pm.PracticeSiteCollection)
+                        //    {
+                        //        if (psite.URL.Contains(runPM))
+                        //        //if (psite.URL.Contains(runPM) && psite.URL.Contains(runPractice))
+                        //        {
+                        //            practice.PMGroup = psite.ProgramManager;
+
+                        //            practice.PMName = pm.ProgramManagerName;
+                        //            practice.Name = psite.Name;
+                        //            practice.SiteID = psite.SiteId;
+                        //            practice.TIN = psite.PracticeTIN;
+                        //            practice.NPI = psite.PracticeNPI;
+                        //            practice.NewSiteUrl = psite.URL;
+
+                        //            practice.CKCCArea = "";
+
+                        //            if (practice.CKCCArea == "")
+                        //                practice.IsCKCC = false;
+                        //            else
+                        //                practice.IsCKCC = true;
+
+                        //            practice.IsCKCC = psite.IsCKCC.Equals("true") ? true : false;
+                        //            practice.IsIWH = psite.IsIWH.Equals("true") ? true : false;
+                        //            practice.IsKC365 = psite.IsKC365.Equals("true") ? true : false;
+                        //            practice.IsTelephonic = psite.IsTeleKC365.Equals("true") ? true : false;
+
+                        //            practice.MedicalDirector = "";
+
+                        //            AllPractices.Add(practice);
+                        //        }
+                        //    }
+                        //}
+                        //logger.Information("-------------[ Adding Data to Practice - End              ]-------------");
+                    }
+                    catch (Exception ex)
+                    {
+                        //logger.Error("Error: " + ex.Message);
+                    }
+                    finally
+                    {
+                        //logger.Information(SiteLogUtility.textLine0);
+                        //logger.Information("Total Practices: " + AllPractices.Count());
+                        //SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+        public Practice GetPracticeBySiteID(string siteID)
+        {
+            return AllPractices.Where(p => p.SiteID == siteID).FirstOrDefault();
+        }
     }
 }
 

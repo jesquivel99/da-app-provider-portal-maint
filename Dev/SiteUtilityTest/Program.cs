@@ -1,4 +1,7 @@
 ﻿using R_DW_100_CarePlanHtmlUpdate;
+using R_JE_100_MovePractice;
+using R_JE_109_AddSortColumn;
+
 
 namespace SiteUtilityTest
 {
@@ -6,8 +9,11 @@ namespace SiteUtilityTest
     {
         static void Main(string[] args)
         {
-            CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
-            carePlanHtmlUpdate.InitiateProg();
+            //CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
+            //carePlanHtmlUpdate.InitiateProg();
+
+            AddSortColumn addSortColumn = new AddSortColumn();
+            addSortColumn.InitiateProg("94711764549");
 
             //--------------------------------------------------------
             // Run Maintenance Code to Complete a new site Deployment
@@ -29,21 +35,12 @@ namespace SiteUtilityTest
             //ProgramNew_SS objProgramNew2 = new ProgramNew_SS();
             //objProgramNew2.InitiateProg();
 
-            //ProgramNew2 objProgramNew2 = new ProgramNew2();
-            //objProgramNew2.InitiateProgNew2();
-
             //ProgramNew_AA objProgramNew_AA = new ProgramNew_AA();
             //objProgramNew_AA.InitiateProg();
-
-            //ProgramNew_JE objProgramNew_JE = new ProgramNew_JE();
-            //objProgramNew_JE.InitiateProg();
 
             //ProgramNew_NA objProgramNew_NA = new ProgramNew_NA(logger);
             //objProgramNew_NA.InitiateProg();
 
-
-            //SitePMData.initialConnectDBPortal("02");
-            //Log.CloseAndFlush();
         }
         static void CompleteNewSiteDeployment(string siteID)
         {
@@ -51,8 +48,8 @@ namespace SiteUtilityTest
             //dialysisStart.InitiateProg(siteID);
             //BenefitQualityPayor benefitQualityPayor = new BenefitQualityPayor();
             //benefitQualityPayor.InitiateProg(siteID);
-            CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
-            carePlanHtmlUpdate.InitiateProg(siteID);
+            //CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
+            //carePlanHtmlUpdate.InitiateProg(siteID);
         }
     }
 }

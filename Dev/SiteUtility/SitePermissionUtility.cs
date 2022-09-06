@@ -94,12 +94,12 @@ namespace SiteUtility
             return true;
         }
 
-        public static bool RoleAssignment_AddPracReadOnly(PracticeSite pracInfo)
+        public static bool RoleAssignment_AddPracReadOnly(Practice pracInfo)
         {
-            string pTin = pracInfo.PracticeTIN;
+            string pTin = pracInfo.TIN;
 
             //string path = siteUrl + pracInfo.SiteMgrRegionRef + "/" + pracInfo.PracticeTIN;
-            string path = pracInfo.URL;
+            string path = pracInfo.NewSiteUrl;
 
             try
             {
@@ -138,12 +138,12 @@ namespace SiteUtility
             return true;
         }
 
-        public static bool RoleAssignment_AddPracUser(PracticeSite pracInfo)
+        public static bool RoleAssignment_AddPracUser(Practice pracInfo)
         {
-            string pTin = pracInfo.PracticeTIN;
+            string pTin = pracInfo.TIN;
 
             //string path = siteUrl + pracInfo.SiteMgrRegionRef + "/" + pracInfo.PracticeTIN;
-            string path = pracInfo.URL;
+            string path = pracInfo.NewSiteUrl;
 
             try
             {

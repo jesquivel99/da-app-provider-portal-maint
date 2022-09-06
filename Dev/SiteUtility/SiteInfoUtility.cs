@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Data.SqlClient;
 using System.Net;
 using Microsoft.SharePoint.Client;
+using Serilog;
 
 namespace SiteUtility
 {
@@ -51,7 +52,8 @@ namespace SiteUtility
                 {
                     sqlConn.ConnectionString = "Data Source=" + ConfigurationManager.AppSettings["SqlServer"]
                         + "; Initial Catalog=" + ConfigurationManager.AppSettings["Database"] + "; Integrated Security=SSPI";
-
+                    logger.Information("ConnectionString = " + sqlConn.ConnectionString);
+                    Console.WriteLine("ConnectionString = " + sqlConn.ConnectionString);
                     string query = "SELECT * FROM [HealthCloud_NightlyProd].[PORTAL].[PracticeInfo_Deployed] WHERE IsActive = 1 ORDER BY GroupID";
                     sqlConn.Open();
                     SqlCommand getQuery = new SqlCommand(query, sqlConn);
@@ -146,6 +148,7 @@ namespace SiteUtility
 
 
 
+        static ILogger logger = Log.ForContext<SiteInfoUtility>();
         //public List<Practice> practicesIWH = new List<Practice>();
         //public List<Practice> practicesCKCC = new List<Practice>();
         public static List<ProgramManagerSite> getSubWebs(string path, string rootUrl)
@@ -300,8 +303,9 @@ namespace SiteUtility
                 ListItemCollection items = list.GetItems(query);
                 clientContext.Load(items);
                 clientContext.ExecuteQuery();
-                SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
-                SiteLogUtility.Log_Entry("Total Count: " + items.Count, true);
+                
+                logger.Debug(SiteLogUtility.textLine0);
+                logger.Debug("Total Count: " + items.Count);
                 cntRunAdminGroup = items.Count;
 
                 foreach (var item in items)
@@ -310,6 +314,7 @@ namespace SiteUtility
 
 
                     SiteLogUtility.Log_Entry(item["PracticeTIN"] + " - " + item["PracticeName"] + " - " + item["ProgramParticipation"], true);
+                    logger.Debug(item["PracticeTIN"] + " - " + item["PracticeName"] + " - " + item["ProgramParticipation"]);
 
                     pmd.PracticeName = item["PracticeName"].ToString();
                     pmd.PracticeTIN = item["PracticeTIN"].ToString();
@@ -319,6 +324,7 @@ namespace SiteUtility
                     pmd.IsKC365 = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationKC365) ? "true" : "false";
                     pmd.IsCKCC = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationCKCC) ? "true" : "false";
                     pmd.IsIWH = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationIWH) ? "true" : "false";
+                    pmd.IsTeleKC365 = item["ProgramParticipation"].ToString().Contains(sitePMData.programParticipationTelephonicKC365) ? "true" : "false";
 
                     pmData.Add(pmd);
                 }
@@ -379,9 +385,9 @@ namespace SiteUtility
                         pmSite.IWNSiteMgrReadOnlyPermission = pmAssignments.PMGroup + "_ReadOnly";
                         pmSite.PracticeSiteCollection = new List<PracticeSite>();
 
-                        //SiteLogUtility.Log_Entry(SiteLogUtility.textLine);
-                        //SiteLogUtility.Log_Entry($"{pmSite.ProgramManagerName} - {pmSite.ProgramManager}");
-                        //SiteLogUtility.Log_Entry(pmSite.PMURL);
+                        //logger.Debug(SiteLogUtility.textLine);
+                        //logger.Debug($"{pmSite.ProgramManagerName} - {pmSite.ProgramManager}");
+                        //logger.Debug(pmSite.PMURL);
 
                         using (ClientContext clientContext0 = new ClientContext(web.Url))
                         {
@@ -409,20 +415,22 @@ namespace SiteUtility
                                 practiceSite.IsIWH = pMData == null ? "" : pMData.IsIWH;
                                 practiceSite.IsCKCC = pMData == null ? "" : pMData.IsCKCC;
                                 practiceSite.IsKC365 = pMData == null ? "" : pMData.IsKC365;
+                                practiceSite.IsTeleKC365 = pMData == null ? "" : pMData.IsTeleKC365;
 
-                                practiceSite.siteType = GetSiteType(practiceSite.IsIWH, practiceSite.IsCKCC, practiceSite.IsKC365);
+                                practiceSite.siteType = GetSiteType(practiceSite.IsIWH, practiceSite.IsCKCC, practiceSite.IsKC365, practiceSite.IsTeleKC365);
 
                                 pmSite.PracticeSiteCollection.Add(practiceSite);
 
-                                //SiteLogUtility.Log_Entry(practiceSite.Name);
-                                //SiteLogUtility.Log_Entry(practiceSite.URL);
+                                //logger.Debug(practiceSite.Name);
+                                //logger.Debug(practiceSite.URL);
+                                //logger.Debug(practiceSite.ProgramParticipation);
                             }
                         }
 
                         if (pmSite.PMURL.Contains("admingroup01") == false)
                         {
                             pmSites.Add(pmSite);
-                            //SiteLogUtility.Log_Entry($"Total Practices:  {pmSite.PracticeSiteCollection.Count}");
+                            //logger.Debug($"Total Practices:  {pmSite.PracticeSiteCollection.Count}");
                         } 
                     }
                     
@@ -438,7 +446,7 @@ namespace SiteUtility
             return pmSites;
         }
 
-        private static string GetSiteType(string isIWH, string isCKCC, string isKC365)
+        private static string GetSiteType(string isIWH, string isCKCC, string isKC365, string isTeleKC365)
         {
             string siteType = "";
             try
@@ -454,6 +462,10 @@ namespace SiteUtility
                 if (isKC365 == "true")
                 {
                     siteType = siteType + "kc365";
+                }
+                if (isTeleKC365 == "true")
+                {
+                    siteType = siteType + "telekc365";
                 }
                 return siteType;
             }
