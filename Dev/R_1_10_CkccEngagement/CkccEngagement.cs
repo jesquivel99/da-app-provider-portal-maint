@@ -8,10 +8,11 @@ using SiteUtility;
 using System.Configuration;
 using System.Net;
 using Microsoft.SharePoint.Client.WebParts;
+using Serilog;
 
 namespace R_1_10_CkccEngagement
 {
-    class Program
+    public class CkccEngagement
     {
         static string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
         static public List<Practice> practicesIWH = new List<Practice>();
@@ -22,20 +23,37 @@ namespace R_1_10_CkccEngagement
         static int cntIsIwh = 0;
         static int cntIsKc365 = 0;
         static int cntIsTeleKc365 = 0;
-        static void Main(string[] args)
+
+        static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
+        static ILogger logger;
+
+        public void InitProg()
         {
+            #region LoggerRegion
+            const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+            logger = Log.Logger = new LoggerConfiguration()
+               .MinimumLevel.Debug()
+               .Enrich.FromLogContext()
+               .WriteTo.Console()
+               .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: false, outputTemplate: outputTemp1)
+               .CreateLogger();
+
+            logger = Log.ForContext<CkccEngagement>();
+            #endregion
+
             string releaseName = "CkccEngagement";
             string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
 
+
             string pageName = "CkccEngagement";
-            string runPM = "PM01";
-            string runPractice = "91101941279";
+            string runPM = "PM08";
+            string runPractice = "95945000629";
             string urlAdminGroup = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/" + runPM;
             string urlSiteAssets = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/interimckcc/referral";
 
-            SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
-            SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
+            SiteInfoUtility siteInfo = new SiteInfoUtility();
+            SiteLogUtility slu = new SiteLogUtility();
 
             using (ClientContext clientContext = new ClientContext(siteUrl))
             {
@@ -53,16 +71,16 @@ namespace R_1_10_CkccEngagement
                     SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - Start]=============", true);
                     foreach (ProgramManagerSite pm in practicePMSites)
                     {
-                        foreach (PracticeSite psite in pm.PracticeSiteCollection)
-                        {
-                            if (psite.URL.Contains(runPM) && psite.IsTeleKC365.Equals("true"))
-                            //if (psite.URL.Contains(runPM) && psite.URL.Contains(runPractice) && psite.IsTeleKC365.Equals("true"))
-                            {
-                                cntRun++;
-                                cntIsTeleKc365++;
-                                CkccEngagementSetup(psite, pageName, urlSiteAssets, pmData);
-                            }
-                        }
+                        //foreach (PracticeSite psite in pm.PracticeSiteCollection)
+                        //{
+                        //    //if (psite.URL.Contains(runPM) && psite.IsTeleKC365.Equals("true"))
+                        //    if (psite.URL.Contains(runPM) && psite.URL.Contains(runPractice) && psite.IsTeleKC365.Equals("true"))
+                        //    {
+                        //        cntRun++;
+                        //        cntIsTeleKc365++;
+                        //        CkccEngagementSetup(psite, pageName, urlSiteAssets, pmData);
+                        //    }
+                        //}
                     }
                     SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - End]=============", true);
 
@@ -101,24 +119,70 @@ namespace R_1_10_CkccEngagement
                 SiteLogUtility.Log_Entry("=============Release Ends=============", true);
             }
         }
-        public static void CkccEngagementSetup(PracticeSite psite, string pageName, string urlSiteAssets, List<PMData> pMDatas)
+        public void InitiateProg(string siteID)
+        {
+            SiteInfoUtility siteInfo = new SiteInfoUtility();
+            SiteLogUtility slu = new SiteLogUtility();
+
+            #region LoggerRegion
+            const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+            logger = Log.Logger = new LoggerConfiguration()
+               .MinimumLevel.Debug()
+               .Enrich.FromLogContext()
+               .WriteTo.Console()
+               .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: false, outputTemplate: outputTemp1)
+               .CreateLogger();
+
+            logger = Log.ForContext<CkccEngagement>();
+            #endregion
+
+            string pageName = "CkccEngagement";
+            //string urlAdminGroup = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/" + runPM;
+            string urlSiteAssets = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/interimckcc/referral";
+
+            try
+            {
+                Practice practice = siteInfo.GetPracticeBySiteID(siteID);
+                if (practice != null)
+                {
+                    try
+                    {
+                        slu.LoggerInfo_Entry("================ Deployment Started =====================", true);
+                        CkccEngagementSetup(practice, pageName, urlSiteAssets);
+                        slu.LoggerInfo_Entry(practice.Name + "  .. Html Updated.", true);
+                        slu.LoggerInfo_Entry("================ Deployment Completed =====================", true);
+                    }
+                    catch (Exception ex)
+                    {
+                        //SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", strPortalSiteURL);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+        public static void CkccEngagementSetup(Practice psite, string pageName, string urlSiteAssets, List<PMData> pMDatas = null)
         {
             try
             {
                 SiteFilesUtility sfUtility = new SiteFilesUtility();
                 SitePublishUtility spUtility = new SitePublishUtility();
-                PMData progPart = new PMData();
-                cntRunAdminGroup = progPart.CntProgramParticipationGroupSubTotal(pMDatas, "Telephonic KC365");
-                SiteLogUtility.Log_Entry("--");
-                SiteLogUtility.Log_Entry("RUN COUNT = " + cntRun.ToString() + " OF " + cntRunAdminGroup.ToString(), true);
-                SiteLogUtility.LogPracDetail(psite);
+                
+                //PMData progPart = new PMData();
+                //cntRunAdminGroup = progPart.CntProgramParticipationGroupSubTotal(pMDatas, "Telephonic KC365");
+                //SiteLogUtility.Log_Entry("--");
+                //SiteLogUtility.Log_Entry("RUN COUNT = " + cntRun.ToString() + " OF " + cntRunAdminGroup.ToString(), true);
+                //SiteLogUtility.LogPracDetail(psite);
 
-                spUtility.InitializePage(psite.URL, pageName, "CKCC Engagement");
-                spUtility.DeleteWebPart(psite.URL, pageName);
-                ConfigurePage(psite.URL, urlSiteAssets, pageName);
+                spUtility.InitializePage(psite.NewSiteUrl, pageName, "CKCC Engagement");
+                spUtility.DeleteWebPart(psite.NewSiteUrl, pageName);
+                ConfigurePage(psite.NewSiteUrl, urlSiteAssets, pageName);
 
                 uploadProgramPracticeSupportFiles(psite);
-                modifyWebPartProgramParticipation(psite.URL, psite);
+                modifyWebPartProgramParticipation(psite.NewSiteUrl, psite);
             }
             catch (Exception ex)
             {
@@ -218,7 +282,7 @@ namespace R_1_10_CkccEngagement
                                        "<PartStorage xmlns=\"http://schemas.microsoft.com/WebPart/v2/ContentEditor\" /></WebPart>", webPartTitle, webPartHeight, webPartWidth, webPartContentLink);
             return strXML;
         }
-        public static bool modifyWebPartProgramParticipation(string webUrl, PracticeSite practiceSite)
+        public static bool modifyWebPartProgramParticipation(string webUrl, Practice practiceSite)
         {
             SiteLogUtility.Log_Entry("   modifyWebPartProgramParticipation - In Progress...");
             bool outcome = false;
@@ -302,22 +366,26 @@ namespace R_1_10_CkccEngagement
             }
             return outcome;
         }
-        public static int gridHeight(string webUrl, PracticeSite site)
+        public static int gridHeight(string webUrl, Practice site)
         {
             int intCount = -1;
-            int[] intHeight = new int[5] { 156, 253, 350, 447, 544 };
+            int[] intHeight = new int[6] { 156, 253, 350, 447, 544, 641 };
             try
             {
-                if (site.IsIWH == "true")
+                if (site.IsIWH)
                 {
                     intCount++;
                 }
-                if (site.IsCKCC == "true")
+                if (site.IsCKCC)
                 {
                     intCount++;
                     intCount++;  // For Dialysis Starts...
                 }
-                if (site.IsKC365 == "true")
+                if (site.IsKC365)
+                {
+                    intCount++;
+                }
+                if (site.IsTelephonic)
                 {
                     intCount++;
                 }
@@ -532,23 +600,23 @@ namespace R_1_10_CkccEngagement
 
         //    return pmData;
         //}
-        public static void uploadProgramPracticeSupportFiles(PracticeSite practiceSite)
+        public static void uploadProgramPracticeSupportFiles(Practice practiceSite)
         {
             SiteLogUtility.Log_Entry("   uploadProgramPracticeSupportFiles - In Progress...");
-            string siteType = practiceSite.siteType;
+            //string siteType = practiceSite.siteType;
 
-            if (siteType == "")
-            {
-                return;
-            }
+            //if (siteType == "")
+            //{
+            //    return;
+            //}
             string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
-            using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+            using (ClientContext clientContext = new ClientContext(practiceSite.NewSiteUrl))
             {
                 try
                 {
                     clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
                     var web = clientContext.Web;
-                    string rootWebUrl = GetRootSite(practiceSite.URL);
+                    string rootWebUrl = GetRootSite(practiceSite.NewSiteUrl);
 
                     string LibraryName = "Program Participation";
                     string fileName3 = "CKCC_KCEEngagement.png";
@@ -561,7 +629,8 @@ namespace R_1_10_CkccEngagement
                     fc3.Content = f3;
                     List myLibrary = web.Lists.GetByTitle(LibraryName);
 
-                    if (siteType != null && siteType.Contains("telekc365"))
+                    //if (siteType != null && siteType.Contains("telekc365"))
+                    if (practiceSite.IsTelephonic)
                     {
                         Microsoft.SharePoint.Client.File newFile3 = myLibrary.RootFolder.Files.Add(fc3);
                         clientContext.Load(newFile3);
@@ -571,8 +640,8 @@ namespace R_1_10_CkccEngagement
                         lItem3.File.CheckOut();
                         clientContext.ExecuteQuery();
                         lItem3["Title"] = "CKCC/KCE Engagement";
-                        lItem3["ProgramNameText"] = practiceSite.URL + "/Pages/CkccEngagement.aspx";
-                        lItem3["Thumbnail"] = practiceSite.URL + "/Program%20Participation/" + fileName3;
+                        lItem3["ProgramNameText"] = practiceSite.NewSiteUrl + "/Pages/CkccEngagement.aspx";
+                        lItem3["Thumbnail"] = practiceSite.NewSiteUrl + "/Program%20Participation/" + fileName3;
                         lItem3.Update();
                         lItem3.File.CheckIn("Checkin - Create item", CheckinType.OverwriteCheckIn);
                         clientContext.ExecuteQuery();

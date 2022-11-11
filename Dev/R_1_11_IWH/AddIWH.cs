@@ -1,24 +1,19 @@
 ﻿using System;
-using System.Data;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
 using SiteUtility;
-using System.Configuration;
 using Microsoft.SharePoint.Client;
 using Microsoft.SharePoint.Client.Publishing;
 using Microsoft.SharePoint.Client.WebParts;
 using System.Net;
-using System.IO;
 using System.Xml;
 using System.Reflection;
 using Serilog;
 
 namespace R_1_11_IWH
 {
-    class Program
+    public class AddIWH
     {
         static Guid _listGuid = Guid.Empty;
         static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
@@ -29,14 +24,13 @@ namespace R_1_11_IWH
            .WriteTo.Console()
            .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: false, outputTemplate: outputTemp1)
            .CreateLogger();
-        static ILogger logger = _logger.ForContext<Program>();
+        static ILogger logger = _logger.ForContext<AddIWH>();
 
-        static void Main(string[] args)
+        public void InitProg()
         {
             SiteInfoUtility siteInfo = new SiteInfoUtility();
-            //Practice practice = siteInfo.GetPracticeBySiteID("90878090469");
-            List<Practice> practices = siteInfo.GetPracticesByPM("01");
             //List<Practice> practices = siteInfo.GetAllPractices();
+            List<Practice> practices = siteInfo.GetPracticesByPM("01");
             int CntPrac = 0;
 
 
@@ -61,6 +55,58 @@ namespace R_1_11_IWH
 
                             LoggerInfo_Entry("Testing: " + practice.Name + " - " + practice.NewSiteUrl);
                             
+                            SiteNavigateUtility.ClearQuickNavigationRecent(practice.NewSiteUrl);
+                            SiteNavigateUtility.RenameQuickNavigationNode(practice.NewSiteUrl, "Quality Coming Soon", "Quality");
+                            CntPrac++;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerInfo_Entry("Error: " + ex.Message, true);
+            }
+            finally
+            {
+                LoggerInfo_Entry(SiteLogUtility.textLine0);
+                LoggerInfo_Entry("Total Practice Count: " + CntPrac, true);
+                LoggerInfo_Entry(SiteLogUtility.textLine0);
+                LoggerInfo_Entry("========================================Release Ends========================================", true);
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
+            }
+
+            Log.CloseAndFlush();
+        }
+        public void InitProg(string siteId)
+        {
+            SiteInfoUtility siteInfo = new SiteInfoUtility();
+            Practice practice = siteInfo.GetPracticeBySiteID(siteId);
+            int CntPrac = 0;
+
+            try
+            {
+                LoggerInfo_Entry("========================================Release Starts========================================", true);
+
+                if (practice != null)
+                //if (practices != null && practices.Count > 0)
+                {
+                    //foreach (Practice practice in practices)
+                    {
+                        {
+                            siteInfo.Init_UpdateAllProgramParticipation(practice);
+                            return;
+
+                            uploadProgramPracticeSupportFilesIwnPayorEd(practice);                // Image...
+                            modifyWebPartProgramParticipation(practice.NewSiteUrl, practice);     // Resize...
+                            uploadMultiPartSupportingFilesAll(practice.NewSiteUrl, practice);     // JavaScript...
+
+                            Init_Payor(practice);
+                            Init_DataExchange(practice);
+                            Init_RiskAdjustment(practice);
+                            Init_Quality(practice);
+
+                            LoggerInfo_Entry("Practice: " + practice.Name + " - " + practice.NewSiteUrl);
+
                             SiteNavigateUtility.ClearQuickNavigationRecent(practice.NewSiteUrl);
                             SiteNavigateUtility.RenameQuickNavigationNode(practice.NewSiteUrl, "Quality Coming Soon", "Quality");
                             CntPrac++;
@@ -240,7 +286,7 @@ namespace R_1_11_IWH
                     CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder3QualityIwh);
                 }
 
-                //if (practiceSite.IsCKCC == "true")
+                //if (practiceSite.IsCKCC)
                 //{
                 //    ProvisionList(practiceSite, slUtility, slUtility.listNameQualityCkcc, practiceCView);
                 //    CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder1QualityCkcc);
@@ -642,7 +688,7 @@ namespace R_1_11_IWH
 
                         WebPartDefinition wpd1 = olimitedwebpartmanager.ImportWebPart(contentEditorXML("Multi Tab", "600px", "700px", web.Url + "/SiteAssets/Quality_MultiTab.js"));
                         wpd1.WebPart.Title = "Multi Tab";
-                        olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "CenterLeftColumn", 1);
+                        olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "CenterColumn", 1);
 
                         if (pracSite.IsIWH)
                         {

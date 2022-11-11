@@ -35,6 +35,15 @@ namespace R_JE_100_MovePractice
                     {
                         SiteFilesUtility sfu = new SiteFilesUtility();
 
+                        //HTML Update Files - Deploy 9/09...
+                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_CarePlansDataTable.html");
+                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_HospAlertDataTable.html");
+                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_HospitalAlerts.html");
+                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_MedAlertDataTable.html");
+                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_MedicationAlerts.html");
+                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_ProgramParTableData.html");
+
+                        /*
                         //HTML Files for Landing Page
                         sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_ProgramParticipation.html");
                         sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_ProgramParTableData.html");
@@ -67,7 +76,7 @@ namespace R_JE_100_MovePractice
                         SyncSiteDescription(practice.NewSiteUrl, practice.Name);
                         //UpdateLogoUrl()
                         //UpdateProgramMgrUrl()
-
+                        */
                     }
                 }
                 LoggerInfo_Entry("\n\n=============[ Deployment - End]=============", true);
@@ -87,6 +96,7 @@ namespace R_JE_100_MovePractice
         public void InitiateProg(string siteID)
         {
             SiteInfoUtility siteInfo = new SiteInfoUtility();
+            SiteFilesUtility sfu = new SiteFilesUtility();
 
             Practice practice = siteInfo.GetPracticeBySiteID(siteID);
             if (practice != null)
@@ -94,13 +104,24 @@ namespace R_JE_100_MovePractice
                 try
                 {
                     Console.WriteLine("================ Deployment Started =====================");
-                    //UpdateCarePlanHtmlFile(practice.NewSiteUrl);
-                    Console.WriteLine(practice.Name + "  .. Care Plan Html Updated.");
+
+                    SitePermissionUtility.GetWebGroups(practice);
+                    //UpdateUrlRef(practice, "Program Participation");
+                    //SitePermissionUtility.RoleAssignment_AddPracUser(practice);
+                    //SitePermissionUtility.RoleAssignment_AddPracReadOnly(practice);
+                    //UpdateLogoUrl()
+                    //string adminUrl = LoadParentWeb("");
+                    //UpdateProgramMgrUrl()
+                    //SyncSiteDescription(practice.NewSiteUrl, practice.Name);
+
+                    //UpdateProgramParticipation("", practice, "");
+                    //UpdateProgramParticipation("", practice, "");
+
                     Console.WriteLine("================ Deployment Completed =====================");
                 }
                 catch (Exception ex)
                 {
-                    //SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", strPortalSiteURL);
+                    logger.Error(ex.Message);
                 }
             }
         }

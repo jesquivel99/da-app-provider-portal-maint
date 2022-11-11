@@ -27,7 +27,34 @@ namespace SiteUtility
         public static string textLine0 = "------------------------------";
         public static string textLine = "------------------------------";
         public static string textLineSPGroups = "-----------------------------------------------------------------------------------------------------";
+        static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
+        //static ILogger logger;
+        //const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
         static ILogger logger = Log.ForContext<SiteLogUtility>();
+
+        public SiteLogUtility()
+        {
+            //logger = Log.Logger = new LoggerConfiguration()
+            //   .MinimumLevel.Debug()
+            //   .Enrich.FromLogContext()
+            //   .WriteTo.Console()
+            //   .WriteTo.File("Logs/logger" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: false, outputTemplate: outputTemp1)
+            //   .CreateLogger();
+
+            #region LoggerRegion
+            const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+            logger = Log.Logger = new LoggerConfiguration()
+               .MinimumLevel.Debug()
+               .Enrich.FromLogContext()
+               .WriteTo.Console()
+               .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp1)
+               .CreateLogger();
+
+            logger = Log.ForContext<SiteLogUtility>();
+            #endregion
+        }
+
+
         public class LogInfo
         {
             public LogInfo()
@@ -331,6 +358,30 @@ namespace SiteUtility
                 SiteLogUtility.CreateLogEntry("GetFiles", ex.Message, "Error", "");
             }
         }
+        public void LoggerInfoBody(Practice practice)
+        {
+            LoggerInfo_Entry(SiteLogUtility.textLine0, true);
+            LoggerInfo_Entry("              Prac Url: " + practice.NewSiteUrl, true);
+            LoggerInfo_Entry("         Practice Name: " + practice.Name, true);
+            LoggerInfo_Entry(" Program Participation: " + SiteInfoUtility.GetProgramParticipation(practice), true);
+        }
+        public void LoggerInfo_Entry(string logtext, bool consolePrint = false)
+        {
+            try
+            {
+                logger.Information(logtext);
+                SiteLogUtility.LogList.Add(logtext + "\n");
+                if (consolePrint)
+                {
+                    Console.WriteLine(logtext + "\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("LoggerInfo_Entry", ex.Message, "Error", "", true);
+            }
+        }
+        
         public static void LogFunction1()
         {
             Console.WriteLine("LogFunction 1");

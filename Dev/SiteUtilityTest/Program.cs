@@ -1,6 +1,9 @@
 ﻿using R_DW_100_CarePlanHtmlUpdate;
 using R_JE_100_MovePractice;
 using R_JE_109_AddSortColumn;
+using R_1_10_CkccEngagement;
+using R_1_11_IWH;
+using R_JE_110_Init_UpdateProgramParticipation;
 
 
 namespace SiteUtilityTest
@@ -12,13 +15,16 @@ namespace SiteUtilityTest
             //CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
             //carePlanHtmlUpdate.InitiateProg();
 
-            AddSortColumn addSortColumn = new AddSortColumn();
-            addSortColumn.InitiateProg("94711764549");
+            //MovePractice movePractice = new MovePractice();
+            //movePractice.InitiateProg("94711764549");
+
+            UpdateProgramParticipation updateProgramParticipation = new UpdateProgramParticipation();
+            updateProgramParticipation.InitProg();
 
             //--------------------------------------------------------
             // Run Maintenance Code to Complete a new site Deployment
             //--------------------------------------------------------
-            // CompleteNewSiteDeployment("siteID");
+            //CompleteNewSiteDeployment("98357241959");
 
 
             //const string outputTemp = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
@@ -44,6 +50,12 @@ namespace SiteUtilityTest
         }
         static void CompleteNewSiteDeployment(string siteID)
         {
+            //AddIWH addIWH = new AddIWH();
+            //addIWH.InitProg(siteID);
+            //AddSortColumn addSortColumn = new AddSortColumn();
+            //addSortColumn.InitiateProg(siteID);
+            //CkccEngagement ckccEngagement = new CkccEngagement();
+            //ckccEngagement.InitiateProg(siteID);
             //DialysisStart dialysisStart = new DialysisStart();
             //dialysisStart.InitiateProg(siteID);
             //BenefitQualityPayor benefitQualityPayor = new BenefitQualityPayor();

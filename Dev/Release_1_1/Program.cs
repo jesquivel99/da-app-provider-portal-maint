@@ -76,7 +76,7 @@ namespace Release_1_1
                                 //SitePermissionUtility.RoleAssignment_AddPracReadOnly(psite);
 
                                 // Audit Prac permissions...
-                                SitePermissionUtility.GetWebGroups(psite);
+                                //SitePermissionUtility.GetWebGroups(psite);
 
                             }
                         }

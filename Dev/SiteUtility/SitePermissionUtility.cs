@@ -5,11 +5,24 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using Microsoft.SharePoint.Client;
+using Serilog;
 
 namespace SiteUtility
 {
     public class SitePermissionUtility
     {
+        static ILogger logger = Log.ForContext<SitePermissionUtility>();
+        public class PmAssignment
+        {
+            public PmAssignment()
+            {
+
+            }
+
+            public string PMRefId { get; set; }
+            public string PMName { get; set; }
+            public string PMGroup { get; set; }
+        }
         public static bool RoleAssignment_AddPortalBusinessAdminUserReadOnly(PracticeSite pracInfo)
         {
             string pTin = pracInfo.PracticeTIN;
@@ -45,6 +58,7 @@ namespace SiteUtility
             }
             catch (Exception ex)
             {
+                logger.Information(ex.Message);
                 SiteLogUtility.CreateLogEntry("RoleAssignment_AddPortalBusinessAdminUserReadOnly", ex.Message, "Error", "");
                 return false;
             }
@@ -87,6 +101,7 @@ namespace SiteUtility
             }
             catch (Exception ex)
             {
+                logger.Information(ex.Message);
                 SiteLogUtility.CreateLogEntry("RoleAssignment_AddRiskAdjustmentUserReadOnly", ex.Message, "Error", "");
                 return false;
             }
@@ -126,11 +141,12 @@ namespace SiteUtility
                     ctx.Load(roleReadOnly, role => role.Name);
                     ctx.ExecuteQuery();
 
-                    SiteLogUtility.Log_Entry($"Grant Permissions - Added:  Prac_{pTin}_ReadOnly");
+                    logger.Information($"Grant Permissions - Added:  Prac_{pTin}_ReadOnly");
                 }
             }
             catch (Exception ex)
             {
+                logger.Information(ex.Message);
                 SiteLogUtility.CreateLogEntry("RoleAssignment_AddPracReadOnly", ex.Message, "Error", "");
                 return false;
             }
@@ -170,11 +186,12 @@ namespace SiteUtility
                     ctx.Load(roleReadOnly, role => role.Name);
                     ctx.ExecuteQuery();
 
-                    SiteLogUtility.Log_Entry($"Grant Permissions - Added:  Prac_{pTin}_User");
+                    logger.Information($"Grant Permissions - Added:  Prac_{pTin}_User");
                 }
             }
             catch (Exception ex)
             {
+                logger.Information(ex.Message);
                 SiteLogUtility.CreateLogEntry("RoleAssignment_AddPracUser", ex.Message, "Error", "");
                 return false;
             }
@@ -182,9 +199,97 @@ namespace SiteUtility
             return true;
         }
 
-        public static bool GetWebGroups(PracticeSite pracInfo)
+        private static bool RoleAssignment_AddSiteManager(string siteName, List<PmAssignment> pmAssignment, string strUrl)
         {
-            var path = pracInfo.URL;
+            int sStart = siteName.Length - 2;
+            string PMid = siteName.Substring(sStart, 2);
+            PmAssignment result = pmAssignment.Find(x => x.PMRefId == PMid);
+
+            //string path = siteUrl + pracInfo.SiteMgrRegionRef + "/" + pracInfo.PracticeTIN;
+            string path = strUrl;
+
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(path))
+                {
+                    Web w = clientContext.Web;
+                    clientContext.Load(w);
+                    clientContext.ExecuteQuery();
+
+                    //Get by name > RoleDefinition...
+                    RoleDefinition roleContributorPM = clientContext.Web.RoleDefinitions.GetByName("Practice Manager Site Permission Level");
+
+                    //Get by name > Group...
+                    Group oGroup = w.SiteGroups.GetByName(result.PMGroup + "_SiteManager");
+
+                    RoleDefinitionBindingCollection collRoleDefinitionBinding = new RoleDefinitionBindingCollection(clientContext);
+                    collRoleDefinitionBinding.Add(roleContributorPM);
+
+                    // Add Group and RoleDefinitionBinding to RoleAssignments...
+                    w.RoleAssignments.Add(oGroup, collRoleDefinitionBinding);
+
+                    clientContext.Load(oGroup, group => group.Title);
+                    clientContext.Load(roleContributorPM, role => role.Name);
+                    clientContext.ExecuteQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Information(ex.Message);
+                SiteLogUtility.CreateLogEntry("RoleAssignment_AddSiteManager", ex.Message, "Error", "");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool RoleAssignment_AddSiteManagerReadOnly(string siteName, List<PmAssignment> pmAssignment, string strUrl)
+        {
+            int sStart = siteName.Length - 2;
+            string PMid = siteName.Substring(sStart, 2);
+            PmAssignment result = pmAssignment.Find(x => x.PMRefId == PMid);
+
+            //string path = siteUrl + pracInfo.SiteMgrRegionRef + "/" + pracInfo.PracticeTIN;
+            string path = strUrl;
+
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(path))
+                {
+                    Web w = clientContext.Web;
+                    clientContext.Load(w);
+                    clientContext.ExecuteQuery();
+
+                    //Get by name > RoleDefinition...
+                    RoleDefinition roleReadOnly = clientContext.Web.RoleDefinitions.GetByName("Read");
+
+                    //Get by name > Group...
+                    Group oGroup = w.SiteGroups.GetByName(result.PMGroup + "_ReadOnly");
+
+                    RoleDefinitionBindingCollection collRoleDefinitionBinding = new RoleDefinitionBindingCollection(clientContext);
+                    collRoleDefinitionBinding.Add(roleReadOnly);
+
+                    // Add Group and RoleDefinitionBinding to RoleAssignments...
+                    w.RoleAssignments.Add(oGroup, collRoleDefinitionBinding);
+
+                    clientContext.Load(oGroup, group => group.Title);
+                    clientContext.Load(roleReadOnly, role => role.Name);
+                    clientContext.ExecuteQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Information(ex.Message);
+                SiteLogUtility.CreateLogEntry("RoleAssignment_AddSiteManagerReadOnly", ex.Message, "Error", "");
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool GetWebGroups(Practice pracInfo)
+        {
+            var path = pracInfo.NewSiteUrl;
 
             try
             {
@@ -208,13 +313,13 @@ namespace SiteUtility
 
 
                     SiteLogUtility.LogText = $"Groups has permission to the Web:  {web.Title}";
-                    SiteLogUtility.Log_Entry(SiteLogUtility.LogText, true);
+                    logger.Information(SiteLogUtility.LogText);
 
                     SiteLogUtility.LogText = $"Groups Count:  {roleAssignmentColl.Count}";
-                    SiteLogUtility.Log_Entry(SiteLogUtility.LogText, true);
+                    logger.Information(SiteLogUtility.LogText);
 
                     SiteLogUtility.LogText = "Group with Permissions as follows:  ";
-                    SiteLogUtility.Log_Entry(SiteLogUtility.LogText, true);
+                    logger.Information(SiteLogUtility.LogText);
 
                     foreach (RoleAssignment grp in roleAssignmentColl)
                     {
@@ -225,15 +330,16 @@ namespace SiteUtility
                         {
                             strGroup += $"{rd.Name} ";
                         }
-                        SiteLogUtility.Log_Entry(strGroup, true);
+                        logger.Information(strGroup);
                     }
                     //Console.Read();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                logger.Information(ex.Message);
+                SiteLogUtility.CreateLogEntry("GetWebGroups", ex.Message, "Error", "");
                 return false;
-                //throw;
             }
 
             return true;
@@ -282,7 +388,8 @@ namespace SiteUtility
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("GetPermission", ex.Message, "Error", sUrl);
+                    logger.Information(ex.Message);
+                    SiteLogUtility.CreateLogEntry("GetPermission", ex.Message, "Error", "");
                 }
                 return "";
             }

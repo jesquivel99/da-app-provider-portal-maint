@@ -572,6 +572,30 @@ namespace SiteUtility
             return siteName;
         }
 
+        public static string GetPMRef(string sUrl)
+        {
+            try
+            {
+                Uri pracUrl = new Uri(sUrl);
+                string pmRef = string.Empty;
+                
+                foreach (var item in pracUrl.Segments)
+                {
+                    if (item.StartsWith("PM"))
+                    {
+                        pmRef = item.Substring(0, 4);
+                        continue;
+                    }
+                }
+                return pmRef;
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("GetPMRef", ex.Message, "Error", "");
+                return string.Empty;
+            }
+        }
+
         public static string GetPracSiteName(string sUrl)
         {
             Uri pracUrl = new Uri(sUrl);
@@ -631,6 +655,102 @@ namespace SiteUtility
             return strDescription;
         }
 
+        public string FormatSiteDescriptionData(string wUrl, string sTitle, Practice practice)
+        {
+            string strParticipationNew = FormatProgramParticipation(practice);
+            string strDescription = string.Empty;
+            string strParticipationValue = string.Empty;
+
+            try
+            {
+                if (practice.CKCCArea != null)
+                {
+                    strDescription = sTitle + " is a member of " + practice.CKCCArea.ToString() + ". Program Participation: ";
+                }
+                else
+                {
+                    strDescription = sTitle + ". Program Participation: ";
+                }
+                if (strParticipationNew != null)
+                {
+                    string[] strParticipationList = strParticipationNew.ToString().Split(';');
+                    for (int intLoop = 0; intLoop < strParticipationList.Length; intLoop++)
+                    {
+                        strParticipationValue = strParticipationValue + " " + (intLoop + 1) + "." + strParticipationList[intLoop].ToString() + ";";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("GetSiteDescriptionData", ex.Message, "Error", "");
+            }
+
+            strDescription = strDescription + " " + strParticipationValue;
+            return strDescription;
+        }
+
+        public string FormatProgramParticipation(Practice practice)
+        {
+            string strDesc = string.Empty;
+            string programParticipation = string.Empty;
+            SitePMData sitePMData = new SitePMData();
+            try
+            {
+                if (practice.IsIWH)
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePMData.programParticipationIWH : programParticipation + "; " + sitePMData.programParticipationIWH;
+                }
+                if (practice.IsCKCC)
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePMData.programParticipationCKCC : programParticipation + "; " + sitePMData.programParticipationCKCC;
+                }
+                if (practice.IsKC365)
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePMData.programParticipationKC365 : programParticipation + "; " + sitePMData.programParticipationKC365;
+                }
+                if (practice.IsTelephonic)
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePMData.programParticipationTelephonicKC365 : programParticipation + "; " + sitePMData.programParticipationTelephonicKC365;
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("FormatProgramParticipation", ex.Message, "Error", "");
+            }
+            return programParticipation;
+        }
+
+        public static string GetProgramParticipation(Practice practice)
+        {
+            string strDesc = string.Empty;
+            string programParticipation = string.Empty;
+            SitePMData sitePMData = new SitePMData();
+            try
+            {
+                if (practice.IsIWH)
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePMData.programParticipationIWH : programParticipation + "; " + sitePMData.programParticipationIWH;
+                }
+                if (practice.IsCKCC)
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePMData.programParticipationCKCC : programParticipation + "; " + sitePMData.programParticipationCKCC;
+                }
+                if (practice.IsKC365)
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePMData.programParticipationKC365 : programParticipation + "; " + sitePMData.programParticipationKC365;
+                }
+                if (practice.IsTelephonic)
+                {
+                    programParticipation = String.IsNullOrEmpty(programParticipation) ? sitePMData.programParticipationTelephonicKC365 : programParticipation + "; " + sitePMData.programParticipationTelephonicKC365;
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("FormatProgramParticipation", ex.Message, "Error", "");
+            }
+            return programParticipation;
+        }
+
         public void SyncSubSiteDescription(string wUrl, string psiteTitle)
         {
             using (ClientContext clientContext = new ClientContext(wUrl))
@@ -653,6 +773,118 @@ namespace SiteUtility
                 catch (Exception ex)
                 {
                     SiteLogUtility.CreateLogEntry("SyncSubSiteDescription", ex.Message, "Error", "");
+                }
+            }
+        }
+
+        public void Init_UpdateAllProgramParticipation(Practice practice)
+        {
+            SitePMData sitePMData = new SitePMData();
+            SiteListUtility siteListUtility = new SiteListUtility();
+            SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
+
+            try
+            {
+                string wUrl = practice.NewSiteUrl;
+                string pmUrl = siteInfoUtility.GetRootSite(wUrl) + siteInfoUtility.GetRelativeParentWeb(wUrl);
+
+                string pracName = SitePMData.formateSiteName(practice.Name);
+                pracName = SitePMData.formateSiteName(pracName);
+                practice.Name = pracName;
+
+                string pracCKCCArea = SitePMData.formateSiteName(practice.CKCCArea);
+                pracCKCCArea = SitePMData.formateSiteName(pracCKCCArea);
+                practice.CKCCArea = pracCKCCArea;
+
+                practice.ProgramParticipation = siteInfoUtility.FormatProgramParticipation(practice);
+                
+                //Test...
+                //var lastIndex1 = pmUrl.LastIndexOf('/');
+                //var lastIndex2 = pmUrl.Split('/')[pmUrl.Split('/').Length - 1];
+
+                //PM Site...
+                if (siteListUtility.CheckAdminList(wUrl, practice.SiteID) == false)
+                {
+                    siteListUtility.List_AddAdminListItem(pmUrl, practice);
+                }
+                else
+                {
+                    siteListUtility.List_UpdateAdminListItem(pmUrl, practice);
+                }
+
+                //Admin Site...
+                string adminUrl = pmUrl.Substring(0, pmUrl.LastIndexOf('/'));
+                if (siteListUtility.CheckAdminList(pmUrl, practice.SiteID, pmUrl) == false)
+                {
+                    siteListUtility.List_AddAdminListItem(adminUrl, practice, pmUrl);
+                }
+                else
+                {
+                    siteListUtility.List_UpdateAdminListItem(adminUrl.Substring(0, pmUrl.LastIndexOf('/')), practice, pmUrl);
+                }
+
+                //Practice Site...
+                UpdateSiteSettingsDesc(wUrl, pracName, practice);
+
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("Init_UpdateAllProgramParticipation", ex.Message, "Error", "");
+            }
+        }
+
+        public string GetSiteSettingsDesc(string wUrl)
+        {
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
+
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    var web = clientContext.Web;
+                    clientContext.Load(web);
+                    clientContext.Load(web.ParentWeb);
+                    clientContext.ExecuteQuery();
+
+                    siteLogUtility.LoggerInfo_Entry("SiteTitle: " + web.Title);
+                    siteLogUtility.LoggerInfo_Entry(" SiteDesc: " + web.Description);
+
+                    return web.Title;
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("UpdatePmAdminGrp", ex.Message, "Error", "");
+                    return "ERROR - Title Not Found";
+                }
+            }
+        }
+        public void UpdateSiteSettingsDesc(string wUrl, string psiteTitle, Practice practice)
+        {
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
+
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    var web = clientContext.Web;
+                    clientContext.Load(web);
+                    clientContext.Load(web.ParentWeb);
+                    clientContext.ExecuteQuery();
+
+                    siteLogUtility.LoggerInfo_Entry("SiteDesc BEFORE: " + web.Description);
+                    string strSiteDesc = FormatSiteDescriptionData(GetRootSite(wUrl) + web.ParentWeb.ServerRelativeUrl, psiteTitle, practice);
+                    web.Description = strSiteDesc;
+                    siteLogUtility.LoggerInfo_Entry("SiteDesc  AFTER: " + web.Description);
+
+                    web.Update();
+                    clientContext.Load(web);
+                    clientContext.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("UpdatePmAdminGrp", ex.Message, "Error", "");
                 }
             }
         }
@@ -878,5 +1110,34 @@ namespace SiteUtility
             //Console.ReadLine();
         }
 
+        public bool PrintProgramParticipationGroupTotal(List<Practice> practices)
+        {
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
+            try
+            {
+                var groupPerProgram = practices
+                                .GroupBy(u => u.ProgramParticipation)
+                                .Select(grp => new
+                                {
+                                    Program = grp.Key,
+                                    Count = grp.Count(),
+                                    pmData = grp.ToList()
+                                })
+                                .OrderBy(pp => pp.Program)
+                                .ToList();
+
+                foreach (var item in groupPerProgram)
+                {
+                    siteLogUtility.LoggerInfo_Entry(item.Program + " = " + item.pmData.Count().ToString(), true);
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("PrintParticipationGroupTotal", ex.Message, "Error", "");
+                return false;
+            }
+
+            return true;
+        }
     }
 }

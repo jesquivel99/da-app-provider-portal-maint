@@ -37,7 +37,7 @@ namespace SiteUtility
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("DocumentUpload", ex.Message, "Error", siteURL);
+                    SiteLogUtility.CreateLogEntry("DocumentUpload", ex.Message, "Error", "");
                 }
             }
         }

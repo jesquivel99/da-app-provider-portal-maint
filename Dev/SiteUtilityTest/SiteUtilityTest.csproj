@@ -84,6 +84,14 @@
       <Project>{a9c8dc68-debc-47ef-9417-cb7f91797db0}</Project>
       <Name>R_DW_100_CarePlanHtmlUpdate</Name>
     </ProjectReference>
+    <ProjectReference Include="..\R_1_10_CkccEngagement\R_1_10_CkccEngagement.csproj">
+      <Project>{b0bc8139-90da-448d-8a43-706bedf528e8}</Project>
+      <Name>R_1_10_CkccEngagement</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\R_1_11_IWH\R_1_11_IWH.csproj">
+      <Project>{51a627e6-e887-4757-9262-cc4b0b821bae}</Project>
+      <Name>R_1_11_IWH</Name>
+    </ProjectReference>
     <ProjectReference Include="..\R_1_8_MovePractice\R_JE_100_MovePractice.csproj">
       <Project>{032a541f-1f14-4961-a3e0-d7fb238c5bdd}</Project>
       <Name>R_JE_100_MovePractice</Name>
@@ -91,6 +99,10 @@
     <ProjectReference Include="..\R_1_9_AddSortColumn\R_JE_109_AddSortColumn.csproj">
       <Project>{ed4b7c80-ef5a-469f-b0a1-423b47a956bf}</Project>
       <Name>R_JE_109_AddSortColumn</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\R_JE_110_Init_UpdateProgramParticipation\R_JE_110_UpdateProgramParticipation.csproj">
+      <Project>{c9d17a4e-dbd8-45cd-9e6e-4665cedb1227}</Project>
+      <Name>R_JE_110_UpdateProgramParticipation</Name>
     </ProjectReference>
     <ProjectReference Include="..\SiteUtility\SiteUtility.csproj">
       <Project>{9d372979-b93c-4937-920a-19d2d36de21d}</Project>

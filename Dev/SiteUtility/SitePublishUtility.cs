@@ -211,7 +211,7 @@ namespace SiteUtility
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("InitializeHomePage", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("InitializeHomePage", ex.Message, "Error", "");
                     clientContext.Dispose();
                 }
             }
