@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Net;
 using Microsoft.SharePoint.Client;
 using Serilog;
+using Microsoft.SharePoint.Client.WebParts;
 
 namespace SiteUtility
 {
@@ -571,7 +572,21 @@ namespace SiteUtility
 
             return siteName;
         }
-
+        public static string GetPMUrl(string pracUrl)
+        {
+            SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
+            try
+            {
+                string pmUrl = siteInfoUtility.GetRootSite(pracUrl) + siteInfoUtility.GetRelativeParentWeb(pracUrl);
+                return pmUrl;
+            }
+            catch (Exception ex)
+            {
+                logger.Information(ex.Message);
+                SiteLogUtility.CreateLogEntry("GetPMRef", ex.Message, "Error", "");
+                return string.Empty;
+            }
+        }
         public static string GetPMRef(string sUrl)
         {
             try
@@ -832,7 +847,122 @@ namespace SiteUtility
                 SiteLogUtility.CreateLogEntry("Init_UpdateAllProgramParticipation", ex.Message, "Error", "");
             }
         }
+        public static int gridHeight(Practice site)
+        {
+            int intCount = -1;
+            int[] intHeight = new int[5] { 156, 253, 350, 447, 544 };
+            try
+            {
+                if (site.IsIWH)
+                {
+                    intCount++;  // Payor Program Education Resources...
+                }
+                if (site.IsCKCC)
+                {
+                    intCount++;  // CKCC/KCE Resources...
+                    intCount++;  // Patient Status Updates...
+                }
+                if (site.IsKC365)
+                {
+                    intCount++;  // Payor Enrollment...
+                }
+                if (site.IsTelephonic)
+                {
+                    intCount++;  // CKCC/KCE Engagement...
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("gridHeight", ex.Message, "Error", "");
+            }
+            return intHeight[intCount];
+        }
+        public static bool modifyWebPartProgramParticipation(string webUrl, Practice practiceSite)
+        {
+            SiteLogUtility slu = new SiteLogUtility();
+            bool outcome = false;
+            string clink = string.Empty;
+            int webPartHeight = gridHeight(practiceSite);
 
+            using (ClientContext clientContext = new ClientContext(webUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                Web web = clientContext.Web;
+                clientContext.Load(web, w => w.ServerRelativeUrl);
+                clientContext.ExecuteQuery();
+                var file = clientContext.Web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + "/Pages/ProgramParticipation.aspx");
+                file.CheckOut();
+                try
+                {
+                    clientContext.Load(file);
+                    clientContext.Load(web);
+                    clientContext.ExecuteQuery();
+                    try
+                    {
+                        LimitedWebPartManager limitedWebPartManager = file.GetLimitedWebPartManager(Microsoft.SharePoint.Client.WebParts.PersonalizationScope.Shared);
+                        clientContext.Load(limitedWebPartManager.WebParts,
+                            wps => wps.Include(
+                                wp => wp.WebPart.Title,
+                                wp => wp.WebPart.Properties));
+                        //clientContext.Load(limitedWebPartManager.WebParts);
+                        clientContext.ExecuteQuery();
+
+                        if (limitedWebPartManager.WebParts.Count == 0)
+                        {
+                            throw new Exception("No Webparts on this page.");
+                        }
+
+                        foreach (WebPartDefinition webPartDefinition1 in limitedWebPartManager.WebParts)
+                        {
+                            clientContext.Load(webPartDefinition1.WebPart.Properties);
+                            clientContext.ExecuteQuery();
+
+                            if (webPartDefinition1.WebPart.Title.Equals("Data Exchange"))
+                            {
+                                //webPartDefinition1.WebPart.Properties["Title"] = "ProgramParticipation";
+                                webPartDefinition1.WebPart.Properties["Height"] = webPartHeight.ToString();
+                                //webPartDefinition1.WebPart.Properties["ChromeType"] = 2;
+                                webPartDefinition1.SaveWebPartChanges();
+                                
+                                slu.LoggerInfo_Entry("Adjusted WebPart Height: " + webPartHeight.ToString());
+                            }
+                        }
+
+                        //WebPartDefinition webPartDefinition = limitedWebPartManager.WebParts[0];
+                        //WebPart webPart = webPartDefinition.WebPart;
+                        //webPart.Title = "Program Participation";
+                        //webPartDefinition.SaveWebPartChanges();
+                        //clientContext.ExecuteQuery();
+
+                        file.CheckIn("Updating webparts", CheckinType.MajorCheckIn);
+                        file.Publish("Updating webparts");
+                        clientContext.Load(file);
+                        web.Update();
+                        clientContext.ExecuteQuery();
+                        outcome = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        SiteLogUtility.CreateLogEntry("modifyWebPart", ex.Message, "Error", "");
+                        outcome = false;
+                        file.UndoCheckOut();
+                        clientContext.Load(file);
+                        clientContext.ExecuteQuery();
+                        clientContext.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("modifyWebPart", ex.Message, "Error", "");
+                    outcome = false;
+                    file.UndoCheckOut();
+                    clientContext.Load(file);
+                    clientContext.ExecuteQuery();
+                    clientContext.Dispose();
+                }
+            }
+            return outcome;
+        }
         public string GetSiteSettingsDesc(string wUrl)
         {
             SiteLogUtility siteLogUtility = new SiteLogUtility();
@@ -915,6 +1045,66 @@ namespace SiteUtility
                     SiteLogUtility.CreateLogEntry("GetParentWeb", ex.Message, "Error", "");
                     return string.Empty;
                 }
+            }
+        }
+        public static string LoadParentWeb(string wUrl)
+        {
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+                try
+                {
+                    clientContext.Load(clientContext.Web,
+                                            web => web.ParentWeb.ServerRelativeUrl,
+                                            web => web.ServerRelativeUrl,
+                                            web => web.SiteGroups.Include(
+                                                sg => sg.Description,
+                                                sg => sg.Title));
+                    clientContext.ExecuteQuery();
+
+                    SiteInfoUtility siu = new SiteInfoUtility();
+                    string rootUrl = siu.GetRootSite(wUrl);
+
+                    SiteLogUtility.Log_Entry("RootWeb: " + rootUrl, true);
+                    SiteLogUtility.Log_Entry("ParentWeb: " + clientContext.Web.ParentWeb.ServerRelativeUrl, true);
+                    SiteLogUtility.Log_Entry("PracticeWeb: " + clientContext.Web.ServerRelativeUrl, true);
+
+                    return rootUrl + clientContext.Web.ParentWeb.ServerRelativeUrl;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error with LoadParentWeb: " + ex.Message);
+                    return null;
+                }
+            }
+        }
+        public static string GetReferralUrl(string sUrl)
+        {
+            SiteInfoUtility siu = new SiteInfoUtility();
+            try
+            {
+                string rootSite = siu.GetRootSite(sUrl);
+                string urlReferralSiteAssets = string.Empty;
+
+                // "https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/referral";
+                // "https://sharepointdev.fmc-na-icg.com/bi/fhppp/interimckcc/referral";
+
+                if (rootSite.Contains("sharepointdev"))
+                {
+                    urlReferralSiteAssets = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/interimckcc/referral";
+                }
+                else
+                {
+                    urlReferralSiteAssets = @"https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/referral";
+                }
+
+                return urlReferralSiteAssets;
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("GetReferralUrl", ex.Message, "Error", "");
+                return string.Empty;
             }
         }
 
@@ -1138,6 +1328,19 @@ namespace SiteUtility
             }
 
             return true;
+        }
+        public static string GetPortalUrl()
+        {
+            try
+            {
+                return ConfigurationManager.AppSettings["SP_SiteUrl"];
+            }
+            catch (Exception ex)
+            {
+                logger.Information(ex.Message);
+                SiteLogUtility.CreateLogEntry("PrintParticipationGroupTotal", ex.Message, "Error", "");
+                return null;
+            }
         }
     }
 }

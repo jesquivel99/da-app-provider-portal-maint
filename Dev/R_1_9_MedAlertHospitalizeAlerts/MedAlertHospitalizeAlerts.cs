@@ -8,19 +8,26 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using Serilog;
 
 namespace R_1_9_MedAlertHospitalizeAlerts
 {
-    public class Program
+    public class MedAlertHospitalizeAlerts
     {
+        static Guid _listGuid = Guid.Empty;
+        static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
+        const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+        static ILogger _logger = Log.Logger = new LoggerConfiguration()
+           .MinimumLevel.Debug()
+           .Enrich.FromLogContext()
+           .WriteTo.Console()
+           .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp1)
+           .CreateLogger();
+        static ILogger logger = _logger.ForContext<MedAlertHospitalizeAlerts>();
+
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
-        public static void Main(string[] args)
-        {
-            
-        }
+        string LayoutsFolder = ConfigurationManager.AppSettings["LayoutsFolderMnt"];
 
         public void InitiateProg()
         {
@@ -53,7 +60,7 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                             foreach (PracticeSite psite in pm.PracticeSiteCollection)
                             {
                                 intLoop++;
-                                createCarePlanListColumns(psite.URL);
+                                CreateCarePlanListColumns(psite.URL);
                                 Console.WriteLine(intLoop + ". " + psite.Name + "  ..  Med & Hosp Alert Deployed.");
                                 Console.WriteLine("=======================================");
 
@@ -84,42 +91,91 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                 SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "=============Release Ends=============", "Log", strPortalSiteURL);
             }
         }
-
-        public void changeColumnToRichText(string strURL)
+        public void InitiateProg(string siteId)
         {
+            string sAdminListName = ConfigurationManager.AppSettings["AdminRootListName"];
+            SiteRootAdminList objRootSite = new SiteRootAdminList();
+            SiteDeleteUtility objDeleteSite = new SiteDeleteUtility();
+            SiteFilesUtility objFilesSite = new SiteFilesUtility();
+            SiteListUtility objListUtility = new SiteListUtility();
+            SiteNavigateUtility siteNavigateUtility = new SiteNavigateUtility();
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
+            SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
+
+            Practice practice = siteInfoUtility.GetPracticeBySiteID(siteId);
+
             try
             {
-                using (ClientContext clientContext = new ClientContext(strURL))
-                {
-                    clientContext.Credentials = new NetworkCredential("spAdmin_Dev", "$5ApjXy9", "Medspring");
-                    List targetList = clientContext.Web.Lists.GetByTitle("HospitalizationAlert");
-
-                    Field obField = targetList.Fields.GetByTitle("Diagnosis");
-                    obField.TypeAsString = "Note";
-                    obField.Update();
-                    clientContext.Load(obField);
-                    clientContext.ExecuteQuery();
-
-                    //// Get field from list using internal name or display name
-                    //Field oField = targetList.Fields.GetByInternalNameOrTitle("FaxType");
-                    //Field oFields = targetList.Fields.GetByInternalNameOrTitle("MemberStatus");
-                    //oField.DeleteObject();
-                    //oFields.DeleteObject();
-
-                    //clientContext.ExecuteQuery();
-
-                    //List olist = clientContext.Web.Lists.GetByTitle("HospitalizationAlert");
-
-                    //olist.DeleteObject();
-                    //clientContext.ExecuteQuery();
-                }
+                siteLogUtility.LoggerInfoBody(practice);
+                //SiteNavigateUtility.NavigationPracticeMnt(practice.NewSiteUrl, SiteInfoUtility.GetPMUrl(practice.NewSiteUrl));  //maybe only on Dev...
+                objListUtility.ProvisionField(practice, "CarePlan", "FaxType");
+                objListUtility.ProvisionField(practice, "CarePlan", "MemberStatus");
+                SetupMedicalAlertDeployment(practice.NewSiteUrl);
+                SetupHospitalizationAlertDeployment(practice.NewSiteUrl);
+                SiteNavigateUtility.ClearQuickNavigationRecent(practice.NewSiteUrl);
+                Console.WriteLine(practice.Name + "  ..  Med & Hosp Alert Deployed.");
+                Console.WriteLine("=======================================");
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("changeColumnToRichText", ex.Message, "Error", strPortalSiteURL);
+                SiteLogUtility.CreateLogEntry("InitiateProg", ex.Message, "Error", "");
             }
-        }
+            finally
+            {
+                siteLogUtility.LoggerInfo_Entry(SiteLogUtility.textLine0);
+                siteLogUtility.LoggerInfo_Entry("========================================MedAlertHositalizeAlerts - Release Ends========================================", true);
+                //SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
+            }
 
+            //using (ClientContext clientContext = new ClientContext(strPortalSiteURL))
+            //{
+            //    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+            //    Console.WriteLine("=============Release Starts=============");
+
+            //    try
+            //    {
+            //        List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
+            //        Console.WriteLine("=======================================");
+            //        Console.WriteLine("***************************************");
+            //        Console.WriteLine("=======================================");
+            //        foreach (ProgramManagerSite pm in practicePMSites)
+            //        {
+            //            //if (pm.ProgramManager != "03" && pm.ProgramManager != "05")
+            //            {
+            //                //foreach (PracticeSite psite in pm.PracticeSiteCollection)
+            //                {
+            //                    createCarePlanListColumns(psite.URL);
+            //                    Console.WriteLine(psite.Name + "  ..  Med & Hosp Alert Deployed.");
+            //                    Console.WriteLine("=======================================");
+
+            //                }
+            //            }
+            //        }
+            //        Console.WriteLine("=======================================");
+            //        Console.WriteLine("=======================================");
+            //        Console.WriteLine("=======================================");
+            //        Console.WriteLine("=======================================");
+            //        Console.WriteLine("Dumping Hosp Alert Data in SharePoint List");
+            //        Console.WriteLine("=======================================");
+
+            //        string sHsptlAlertListName = "HospitalizationAlert";
+            //        List<PracticeMap> PracticesMap = new List<PracticeMap>();
+            //        PracticesMap = CreatePracticeMap_with_RosterData();
+            //        insertHospitalizeAlertDataSP(PracticesMap, sHsptlAlertListName);
+
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", strPortalSiteURL);
+            //    }
+
+            //    Console.WriteLine("=======================================");
+            //    Console.WriteLine("3. Maintenance Tasks Complete - Complete");
+            //    Console.WriteLine("=============Release Ends=============");
+            //    SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "=============Release Ends=============", "Log", strPortalSiteURL);
+            //}
+        }
         public void DeleteColumnsAndList(string strURL)
         {
             try
@@ -148,118 +204,117 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                 SiteLogUtility.CreateLogEntry("DeleteColumnsAndList", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
-        public void setupMedicalAlertDeployment(string strURL)
+        public void SetupMedicalAlertDeployment(string strURL)
         {
             try
             {
-                createCarePlanListColumns(strURL);
-                uploadMedAlertRelatedHTMLFile(strURL);
-                increaseMedHospAlertWPHeight(strURL, "/Pages/MedicationAlerts.aspx", "Medication Alerts", "/SiteAssets/cePrac_MedAlertDataTable.html");
-                modifyMedicalAlertNavigationNode(strURL, "Medication Alert Coming Soon", "Medication Alert", "/Pages/MedicationAlerts.aspx");
+                //createCarePlanListColumns(strURL);
+                UploadMedAlertRelatedHTMLFile(strURL);
+                IncreaseMedHospAlertWPHeight(strURL, "/Pages/MedicationAlerts.aspx", "Medication Alerts", "SiteAssets/cePrac_MedAlertDataTable.html");
+                ModifyMedicalAlertNavigationNode(strURL, "Medication Alert Coming Soon", "Medication Alert", "Pages/MedicationAlerts.aspx");
             }
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("setupMedicalAlertDeployment", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
-        public void createCarePlanListColumns(string strURL)
+        public void CreateCarePlanListColumns(string strURL)
         {
             try
             {
                 SiteListUtility objListUtility = new SiteListUtility();
                 objListUtility.CreateListColumn("<Field Type='Text' DisplayName='FaxType' Name='FaxType' />", "CarePlan", strURL);
                 objListUtility.CreateListColumn("<Field Type='Text' DisplayName='MemberStatus' Name='MemberStatus' />", "CarePlan", strURL);
+                //objListUtility.ProvisionField()
             }
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("createCarePlanListColumns", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
-        public void setupHospitalizationAlertDeployment(string strURL)
+        public void SetupHospitalizationAlertDeployment(string strURL)
         {
             try
             {
                 string sHsptlAlertListName = "HospitalizationAlert";
 
-                createHospitalizeAlertList(strURL, sHsptlAlertListName);
-                uploadHospAlertRelatedHTMLfile(strURL);
-                increaseMedHospAlertWPHeight(strURL, "/Pages/HospitalAlerts.aspx", "Hospitalization Alerts", "/SiteAssets/cePrac_HospAlertDataTable.html");
-                modifyMedicalAlertNavigationNode(strURL, "Hospitalization Alerts Coming Soon", "Hospitalization Alert", "/Pages/HospitalAlerts.aspx");
+                CreateHospitalizeAlertList(strURL, sHsptlAlertListName);
+                UploadHospAlertRelatedHTMLfile(strURL);
+                IncreaseMedHospAlertWPHeight(strURL, "/Pages/HospitalAlerts.aspx", "Hospitalization Alerts", "SiteAssets/cePrac_HospAlertDataTable.html");
+                ModifyMedicalAlertNavigationNode(strURL, "Hospitalization Alerts Coming Soon", "Hospitalization Alert", "Pages/HospitalAlerts.aspx");
             }
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("setupHospitalizationAlertDeployment", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
-        public void createHospitalizeAlertList(string strURL, string sHsptlAlertListName)
+        public void CreateHospitalizeAlertList(string strURL, string sHsptlAlertListName)
         {
             try
             {
-                SiteListUtility objListUtility = new SiteListUtility();
-                objListUtility.CreateList(sHsptlAlertListName, strURL, (int)ListTemplateType.GenericList);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='GroupID' Name='GroupID' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='PracticeTIN' Name='PracticeTIN' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='MEMBER_MASTER_ROW_ID' Name='MEMBER_MASTER_ROW_ID' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='FirstName' Name='FirstName' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='LastName' Name='LastName' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DateOfBirth' Name='DateOfBirth' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DischargeDate' Name='DischargeDate' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DischargeFacility' Name='DischargeFacility' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='Diagnosis' Name='Diagnosis' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='FacilityType' Name='FacilityType' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='Setting' Name='Setting' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='Nephrologist' Name='Nephrologist' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DialysisFacility' Name='DialysisFacility' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='_File' Name='_File' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='isIWH' Name='isIWH' />", sHsptlAlertListName, strURL);
-                objListUtility.CreateListColumn("<Field Type='Text' DisplayName='isCKCC' Name='isCKCC' />", sHsptlAlertListName, strURL);
+                if (!SiteListUtility.DoesListExist(strURL, sHsptlAlertListName))
+                {
+                    SiteListUtility objListUtility = new SiteListUtility();
+                    objListUtility.CreateList(sHsptlAlertListName, strURL, (int)ListTemplateType.GenericList);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='GroupID' Name='GroupID' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='PracticeTIN' Name='PracticeTIN' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='MEMBER_MASTER_ROW_ID' Name='MEMBER_MASTER_ROW_ID' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='FirstName' Name='FirstName' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='LastName' Name='LastName' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DateOfBirth' Name='DateOfBirth' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DischargeDate' Name='DischargeDate' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DischargeFacility' Name='DischargeFacility' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='Diagnosis' Name='Diagnosis' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='FacilityType' Name='FacilityType' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='Setting' Name='Setting' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='Nephrologist' Name='Nephrologist' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DialysisFacility' Name='DialysisFacility' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='_File' Name='_File' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='isIWH' Name='isIWH' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='isCKCC' Name='isCKCC' />", sHsptlAlertListName, strURL); 
+                }
             }
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("createHospitalizeAlertList", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
-        public void uploadHospAlertRelatedHTMLfile(string strURL)
+        public void UploadHospAlertRelatedHTMLfile(string strURL)
         {
             try
             {
                 SiteFilesUtility objFilesSite = new SiteFilesUtility();
-                objFilesSite.DocumentUpload(strURL, @"C:\Users\ssaleh\Downloads\cePrac_HospitalAlerts.html", "SiteAssets");
-                objFilesSite.DocumentUpload(strURL, @"C:\Users\ssaleh\Downloads\cePrac_HospAlertDataTable.html", "SiteAssets");
+                objFilesSite.DocumentUpload(strURL, @LayoutsFolder + "cePrac_HospitalAlerts.html", "SiteAssets");
+                objFilesSite.DocumentUpload(strURL, @LayoutsFolder + "cePrac_HospAlertDataTable.html", "SiteAssets");
             }
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("uploadHospAlertRelatedHTMLfile", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
-        public void uploadMedAlertRelatedHTMLFile(string strURL)
+        public void UploadMedAlertRelatedHTMLFile(string strURL)
         {
             try
             {
                 SiteFilesUtility objFilesSite = new SiteFilesUtility();
-                objFilesSite.DocumentUpload(strURL, @"C:\Users\ssaleh\Downloads\cePrac_MedAlertDataTable.html", "SiteAssets");
-                objFilesSite.DocumentUpload(strURL, @"C:\Users\ssaleh\Downloads\cePrac_MedicationAlerts.html", "SiteAssets");
+                //objFilesSite.DocumentUpload(strURL, @"C:\Users\ssaleh\Downloads\cePrac_MedAlertDataTable.html", "SiteAssets");
+                //objFilesSite.DocumentUpload(strURL, @"C:\Users\ssaleh\Downloads\cePrac_MedicationAlerts.html", "SiteAssets");
+                objFilesSite.DocumentUpload(strURL, @LayoutsFolder + "cePrac_MedAlertDataTable.html", "SiteAssets");
+                objFilesSite.DocumentUpload(strURL, @LayoutsFolder + "cePrac_MedicationAlerts.html", "SiteAssets");
             }
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("uploadMedAlertRelatedHTMLFile", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
-        public void increaseMedHospAlertWPHeight(string webURL, string strPageRelativeUrl, string strTitle, string strContentLink)
+        public void IncreaseMedHospAlertWPHeight(string webURL, string strPageRelativeUrl, string strTitle, string strContentLink)
         {
             var pageRelativeUrl = strPageRelativeUrl;
             using (ClientContext clientContext = new ClientContext(webURL))
             {
                 try
                 {
-                    clientContext.Credentials = new NetworkCredential("spAdmin_Dev", "$5ApjXy9", "Medspring");
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
                     Web web = clientContext.Web;
                     clientContext.Load(web);
                     clientContext.ExecuteQuery();
@@ -302,15 +357,14 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                 }
             }
         }
-
-        public void modifyMedicalAlertNavigationNode(string webUrl, string strOldTitle, string strTitle, string strNodeURL)
+        public void ModifyMedicalAlertNavigationNode(string webUrl, string strOldTitle, string strTitle, string strNodeURL)
         {
             try
             {
                 bool nodeUpdate = false;
                 using (ClientContext clientContext = new ClientContext(webUrl))
                 {
-                    clientContext.Credentials = new NetworkCredential("spAdmin_Dev", "$5ApjXy9", "Medspring");
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
                     Web web = clientContext.Web;
                     NavigationNodeCollection objNodeColl = clientContext.Web.Navigation.QuickLaunch;
                     clientContext.Load(web);
@@ -350,8 +404,7 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                 SiteLogUtility.CreateLogEntry("addSWReferralNavigationNode", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
-        public void insertHospitalizeAlertDataSP(List<PracticeMap> objPracticesMap, string sHsptlAlertListName)
+        public void InsertHospitalizeAlertDataSP(List<PracticeMap> objPracticesMap, string sHsptlAlertListName)
         {
             try
             {
@@ -420,7 +473,6 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                 SiteLogUtility.CreateLogEntry("insertHospitalizeAlertDataSP", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
         public List<PracticeMap> CreatePracticeMap_with_RosterData()
         {
             List<PracticeMap> PracMap = new List<PracticeMap>();
@@ -486,7 +538,6 @@ namespace R_1_9_MedAlertHospitalizeAlerts
             }
             return PracMap;
         }
-
         public List<RosterData> SQL_Get_RosterData()
         {
             List<RosterData> RosterDataList = new List<RosterData>();

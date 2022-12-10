@@ -104,7 +104,7 @@ namespace R_JE_110_Init_UpdateProgramParticipation
             {
                 siteLogUtility.LoggerInfo_Entry(SiteLogUtility.textLine0);
                 siteLogUtility.LoggerInfo_Entry("========================================Release Ends========================================", true);
-                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
+                //SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
             }
 
             Log.CloseAndFlush();

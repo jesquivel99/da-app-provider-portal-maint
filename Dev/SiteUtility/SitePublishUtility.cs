@@ -12,6 +12,26 @@ namespace SiteUtility
 {
     public class SitePublishUtility
     {
+        public static string pagePayorEnrollment = "PayorEnrollment";
+        public static string titlePayorEnrollment = "Payor Enrollment";
+        public static string imgPayorEnrollment = "PracticeReferrals.JPG";
+
+        public static string pageCkccKceResources = "CkccKceResources";
+        public static string titleCkccKceResources = "CKCC/KCE Resources";
+        public static string imgCkccKceResources = "KCEckcc.JPG";
+
+        public static string pagePatientStatusUpdates = "PatientUpdates";
+        public static string titlePatientStatusUpdates = "Patient Status Updates";
+        public static string imgPatientStatusUpdates = "optimalstarts.jpg";
+
+        public static string pagePayorProgramEdResources = "PayorEdResources";
+        public static string titlePayorProgramEdResources = "Payor Program Education Resources";
+        public static string imgPayorProgramEdResources = "EducationReviewPro.JPG";
+
+        public static string pageCkccEngagement = "CkccKceEngagement";
+        public static string titleCkccEngagement = "CKCC/KCE Engagement";
+        public static string imgCkccEngagement = "CKCC_KCEEngagement.png";
+
         public static void DownloadBackupHomePage(PracticeSite practiceSite, bool keepHomePageCheckedOut=true)
         {
             var pageRelativeUrl = "/Pages/Home.aspx";

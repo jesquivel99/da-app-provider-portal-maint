@@ -11,6 +11,9 @@ namespace SiteUtility
 {
     public class SitePermissionUtility
     {
+        public SitePermissionUtility()
+        {
+        }
         static ILogger logger = Log.ForContext<SitePermissionUtility>();
         public class PmAssignment
         {
@@ -65,7 +68,6 @@ namespace SiteUtility
 
             return true;
         }
-
         public static bool RoleAssignment_AddRiskAdjustmentUserReadOnly(PracticeSite pracInfo)
         {
             string pTin = pracInfo.PracticeTIN;
@@ -108,7 +110,6 @@ namespace SiteUtility
 
             return true;
         }
-
         public static bool RoleAssignment_AddPracReadOnly(Practice pracInfo)
         {
             string pTin = pracInfo.TIN;
@@ -141,7 +142,7 @@ namespace SiteUtility
                     ctx.Load(roleReadOnly, role => role.Name);
                     ctx.ExecuteQuery();
 
-                    logger.Information($"Grant Permissions - Added:  Prac_{pTin}_ReadOnly");
+                    logger.Information($"Grant Permissions - Added:  {oGroup.Title} - {roleReadOnly.Name}");
                 }
             }
             catch (Exception ex)
@@ -153,7 +154,6 @@ namespace SiteUtility
 
             return true;
         }
-
         public static bool RoleAssignment_AddPracUser(Practice pracInfo)
         {
             string pTin = pracInfo.TIN;
@@ -186,7 +186,7 @@ namespace SiteUtility
                     ctx.Load(roleReadOnly, role => role.Name);
                     ctx.ExecuteQuery();
 
-                    logger.Information($"Grant Permissions - Added:  Prac_{pTin}_User");
+                    logger.Information($"Grant Permissions - Added:  {oGroup.Title} - {roleReadOnly.Name}");
                 }
             }
             catch (Exception ex)
@@ -198,12 +198,12 @@ namespace SiteUtility
 
             return true;
         }
-
-        private static bool RoleAssignment_AddSiteManager(string siteName, List<PmAssignment> pmAssignment, string strUrl)
+        public static bool RoleAssignment_AddSiteManager(Practice practice, string strUrl)
         {
-            int sStart = siteName.Length - 2;
-            string PMid = siteName.Substring(sStart, 2);
-            PmAssignment result = pmAssignment.Find(x => x.PMRefId == PMid);
+            //int sStart = siteName.Length - 2;
+            //string PMid = siteName.Substring(sStart, 2);
+            //PmAssignment result = pmAssignment.Find(x => x.PMRefId == PMid);
+            string pmIWNRegion = "IWNRegion" + practice.PMGroup;
 
             //string path = siteUrl + pracInfo.SiteMgrRegionRef + "/" + pracInfo.PracticeTIN;
             string path = strUrl;
@@ -220,7 +220,7 @@ namespace SiteUtility
                     RoleDefinition roleContributorPM = clientContext.Web.RoleDefinitions.GetByName("Practice Manager Site Permission Level");
 
                     //Get by name > Group...
-                    Group oGroup = w.SiteGroups.GetByName(result.PMGroup + "_SiteManager");
+                    Group oGroup = w.SiteGroups.GetByName(pmIWNRegion + "_SiteManager");
 
                     RoleDefinitionBindingCollection collRoleDefinitionBinding = new RoleDefinitionBindingCollection(clientContext);
                     collRoleDefinitionBinding.Add(roleContributorPM);
@@ -231,6 +231,8 @@ namespace SiteUtility
                     clientContext.Load(oGroup, group => group.Title);
                     clientContext.Load(roleContributorPM, role => role.Name);
                     clientContext.ExecuteQuery();
+
+                    logger.Information($"Grant Permissions - Added:  {oGroup.Title} - {roleContributorPM.Name}");
                 }
             }
             catch (Exception ex)
@@ -242,12 +244,12 @@ namespace SiteUtility
 
             return true;
         }
-
-        private static bool RoleAssignment_AddSiteManagerReadOnly(string siteName, List<PmAssignment> pmAssignment, string strUrl)
+        public static bool RoleAssignment_AddSiteManagerReadOnly(Practice practice, string strUrl)
         {
-            int sStart = siteName.Length - 2;
-            string PMid = siteName.Substring(sStart, 2);
-            PmAssignment result = pmAssignment.Find(x => x.PMRefId == PMid);
+            //int sStart = siteName.Length - 2;
+            //string PMid = siteName.Substring(sStart, 2);
+            //PmAssignment result = pmAssignment.Find(x => x.PMRefId == PMid);
+            string pmIWNRegion = "IWNRegion" + practice.PMGroup;
 
             //string path = siteUrl + pracInfo.SiteMgrRegionRef + "/" + pracInfo.PracticeTIN;
             string path = strUrl;
@@ -264,7 +266,7 @@ namespace SiteUtility
                     RoleDefinition roleReadOnly = clientContext.Web.RoleDefinitions.GetByName("Read");
 
                     //Get by name > Group...
-                    Group oGroup = w.SiteGroups.GetByName(result.PMGroup + "_ReadOnly");
+                    Group oGroup = w.SiteGroups.GetByName(pmIWNRegion + "_ReadOnly");
 
                     RoleDefinitionBindingCollection collRoleDefinitionBinding = new RoleDefinitionBindingCollection(clientContext);
                     collRoleDefinitionBinding.Add(roleReadOnly);
@@ -275,6 +277,8 @@ namespace SiteUtility
                     clientContext.Load(oGroup, group => group.Title);
                     clientContext.Load(roleReadOnly, role => role.Name);
                     clientContext.ExecuteQuery();
+
+                    logger.Information($"Grant Permissions - Added:  {oGroup.Title} - {roleReadOnly.Name}");
                 }
             }
             catch (Exception ex)
@@ -286,10 +290,66 @@ namespace SiteUtility
 
             return true;
         }
+        public static string RoleAssignment_RemovePracUserGroup(string spUserGroup, string permLevel, string sUrl)
+        {
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
 
-        public static bool GetWebGroups(Practice pracInfo)
+            using (ClientContext clientContext = new ClientContext(sUrl))
+            {
+                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+                try
+                {
+                    clientContext.Load(clientContext.Web,
+                        web => web.SiteGroups.Include(
+                            g => g.Title,
+                            g => g.Id),
+                        web => web.RoleAssignments.Include(
+                            assignment => assignment.PrincipalId,
+                            assignment => assignment.RoleDefinitionBindings.Include(
+                                defBindings => defBindings.Name)),
+                        web => web.RoleDefinitions.Include(
+                            definition => definition.Id,
+                            definition => definition.Name,
+                            definition => definition.Description));
+                    clientContext.ExecuteQuery();
+
+                    RoleDefinition readDef = clientContext.Web.RoleDefinitions.FirstOrDefault(
+                            definition => definition.Name == permLevel);
+                    Group group = clientContext.Web.SiteGroups.FirstOrDefault(
+                            g => g.Title.Equals(spUserGroup));
+                    if (readDef == null || group == null) return "";
+
+                    foreach (RoleAssignment roleAssignment in clientContext.Web.RoleAssignments)
+                    {
+                        if (roleAssignment.PrincipalId == group.Id)
+                        {
+                            siteLogUtility.LoggerInfo_Entry($"Group will be removed: {group.Title}", true);
+                            siteLogUtility.LoggerInfo_Entry($"  PrincipalId: {roleAssignment.PrincipalId}  - GroupId: {group.Id}", true);
+
+                            // If we want to Remove selected Permission
+                            roleAssignment.RoleDefinitionBindings.Remove(readDef);
+                            roleAssignment.Update();
+                            clientContext.ExecuteQuery();
+
+                        }
+                        //siteLogUtility.LoggerInfo_Entry($"PrincipalId: {roleAssignment.PrincipalId} - RoleDefBindings Cnt: {roleAssignment.RoleDefinitionBindings.Count}");
+                        //clientContext.ExecuteQuery();
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    logger.Information(ex.Message);
+                    SiteLogUtility.CreateLogEntry("GetPermission", ex.Message, "Error", "");
+                }
+                return "";
+            }
+        }
+        public static List<string> GetWebGroups(Practice pracInfo)
         {
             var path = pracInfo.NewSiteUrl;
+            List<string> listWebGrp = new List<string>();
 
             try
             {
@@ -325,6 +385,7 @@ namespace SiteUtility
                     {
                         string strGroup = "";
                         strGroup += $"    {grp.Member.Title} : ";
+                        listWebGrp.Add(grp.Member.Title);
 
                         foreach (RoleDefinition rd in grp.RoleDefinitionBindings)
                         {
@@ -339,13 +400,34 @@ namespace SiteUtility
             {
                 logger.Information(ex.Message);
                 SiteLogUtility.CreateLogEntry("GetWebGroups", ex.Message, "Error", "");
-                return false;
+                return null;
             }
-
-            return true;
+            return listWebGrp;
         }
-        private static string GetPermission(string spUserGroup, string permLevel, string sUrl)
+        public static List<string> GetPracUserGroups(List<string> webGroups)
         {
+            return webGroups.Where(g => g.StartsWith("Prac_")).ToList();
+        }
+        public static List<string> GetPracUserReadOnly(List<string> webGroups)
+        {
+            return webGroups.Where(gb => gb.StartsWith("Prac_")).Where(ge => ge.EndsWith("_ReadOnly")).ToList();
+        }
+        public static List<string> GetPracUser(List<string> webGroups)
+        {
+            return webGroups.Where(gb => gb.StartsWith("Prac_")).Where(ge => ge.EndsWith("_User")).ToList();
+        }
+        public static List<string> GetPMGroupSiteManager(List<string> webGroups)
+        {
+            return webGroups.Where(gb => gb.StartsWith("IWNRegion")).Where(ge => ge.EndsWith("SiteManager")).ToList();
+        }
+        public static List<string> GetPMGroupReadOnly(List<string> webGroups)
+        {
+            return webGroups.Where(gb => gb.StartsWith("IWNRegion")).Where(ge => ge.EndsWith("ReadOnly")).ToList();
+        }
+        public static string GetPermission(string spUserGroup, string permLevel, string sUrl)
+        {
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
+
             using (ClientContext clientContext = new ClientContext(sUrl))
             {
                 clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
@@ -376,12 +458,12 @@ namespace SiteUtility
                     {
                         if (roleAssignment.PrincipalId == group.Id)
                         {
-                            SiteLogUtility.Log_Entry($"PrincipalId: {roleAssignment.PrincipalId}  - GroupId: {group.Id}");
+                            siteLogUtility.LoggerInfo_Entry($"PrincipalId: {roleAssignment.PrincipalId}  - GroupId: {group.Id}", true);
 
                             // If we want to Remove selected Permission
                             //roleAssignment.RoleDefinitionBindings.Remove(readDef);
                         }
-                        SiteLogUtility.Log_Entry($"PrincipalId: {roleAssignment.PrincipalId} - RoleDefBindings Cnt: {roleAssignment.RoleDefinitionBindings.Count}");
+                        siteLogUtility.LoggerInfo_Entry($"PrincipalId: {roleAssignment.PrincipalId} - RoleDefBindings Cnt: {roleAssignment.RoleDefinitionBindings.Count}");
                         clientContext.ExecuteQuery();
                     }
 
@@ -392,6 +474,63 @@ namespace SiteUtility
                     SiteLogUtility.CreateLogEntry("GetPermission", ex.Message, "Error", "");
                 }
                 return "";
+            }
+        }
+        public static bool CreateSiteGroup(string pracUrl, string grpTitle, string grpDesc)
+        {
+            using (ClientContext clientContext = new ClientContext(pracUrl))
+            {
+                SiteLogUtility siteLogUtility = new SiteLogUtility();
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web web = clientContext.Web;
+                    clientContext.Load(web);
+                    clientContext.ExecuteQuery();
+
+                    GroupCollection groups = clientContext.Web.SiteGroups;
+                    GroupCreationInformation grpCreationInformation = new GroupCreationInformation();
+                    grpCreationInformation.Title = grpTitle;
+                    grpCreationInformation.Description = grpDesc;
+
+                    Group group = groups.Add(grpCreationInformation);
+                    clientContext.ExecuteQuery();
+
+                    siteLogUtility.LoggerInfo_Entry(grpTitle + " Group Created");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("CreateSiteGroup - Error", ex.Message, "Error", pracUrl);
+                    return false;
+                }
+
+            }
+        }
+        public static bool CheckIfGroupExists(string pracUrl, string strGroupName)
+        {
+            using (ClientContext clientContext = new ClientContext(pracUrl))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential( SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web web = clientContext.Web;
+                    clientContext.Load(web);
+                    clientContext.ExecuteQuery();
+
+                    Group oGroup = web.SiteGroups.GetByName(strGroupName);
+                    clientContext.Load(oGroup,
+                        group => group.Title,
+                        group => group.Description,
+                        group => group.Id);
+                    clientContext.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("CheckIfGroupExists - Error", ex.Message, "Error", "");
+                    return false;
+                }
+                return true;
             }
         }
     }

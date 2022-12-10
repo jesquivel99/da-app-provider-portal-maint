@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_11_IWH", "R_1_11_IWH\R_
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_JE_110_UpdateProgramParticipation", "R_JE_110_Init_UpdateProgramParticipation\R_JE_110_UpdateProgramParticipation.csproj", "{C9D17A4E-DBD8-45CD-9E6E-4665CEDB1227}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_JE_120_CkccKce", "R_JE_120_CkccKce\R_JE_120_CkccKce.csproj", "{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +107,10 @@ Global
 		{C9D17A4E-DBD8-45CD-9E6E-4665CEDB1227}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9D17A4E-DBD8-45CD-9E6E-4665CEDB1227}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9D17A4E-DBD8-45CD-9E6E-4665CEDB1227}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -113,7 +119,7 @@ Global
 		SolutionGuid = {31813A0A-12DA-4840-B68C-846C9614C493}
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 17
+		SccNumberOfProjects = 18
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = http://or-tfs-svr-01:8080/tfs/defaultcollection
 		SccLocalPath0 = .
@@ -165,5 +171,8 @@ Global
 		SccProjectUniqueName16 = R_JE_110_Init_UpdateProgramParticipation\\R_JE_110_UpdateProgramParticipation.csproj
 		SccProjectName16 = R_JE_110_Init_UpdateProgramParticipation
 		SccLocalPath16 = R_JE_110_Init_UpdateProgramParticipation
+		SccProjectUniqueName17 = R_JE_120_CkccKce\\R_JE_120_CkccKce.csproj
+		SccProjectName17 = R_JE_120_CkccKce
+		SccLocalPath17 = R_JE_120_CkccKce
 	EndGlobalSection
 EndGlobal

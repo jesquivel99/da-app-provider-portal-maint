@@ -27,7 +27,7 @@ namespace SiteUtility
                 public string navPracPageProgramParticipation = "Program Participation";
                 public string navPracPageCareCoordination = "Care Coordination";
                 public string navPracPageInteractiveInsights = "Interactive Insights Coming Soon";
-                public string navPracPageQuality = "Quality Coming Soon";
+                public string navPracPageQuality = "Quality";
 
                 public string navPracPageFileLanding = "Home.aspx";
                 public string navPracPageFileDataExchange = "DataExchange.aspx";
@@ -42,12 +42,17 @@ namespace SiteUtility
             {
                 public string NavPageName;
                 public string NavPageFileName;
+                public string NavPageUrl;
                 public int NavPageSort;
                 public int NavPageStatus;
 
                 public string navPracPagePM = "Program Manager";
-
                 public string navPracPageFilePM = "Home.aspx";
+                public string navPracPagePmUrl = String.Empty;
+
+                public string navPracPageAdmin = "Admin";
+                public string navPracPageFileAdmin = "Admin.aspx";
+                public string navPracPageAdminUrl = String.Empty;
 
             }
         }
@@ -121,7 +126,7 @@ namespace SiteUtility
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("Navigation_AddPagesToNode", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("Navigation_AddPagesToNode", ex.Message, "Error", "");
                 }
             }
 
@@ -142,7 +147,7 @@ namespace SiteUtility
 
                             NavigationNodeCreationInformation navCreateInfo = new NavigationNodeCreationInformation();
                             navCreateInfo.Title = navItem.NavPageName;
-                            navCreateInfo.Url = pracUrl + @"/Pages/" + navItem.NavPageFileName;
+                            navCreateInfo.Url = pracUrl + @"Pages/" + navItem.NavPageFileName;
                             navCreateInfo.AsLastNode = true;
                             qlNavNodeColl.Add(navCreateInfo);
                             clientContext.ExecuteQuery();
@@ -151,7 +156,7 @@ namespace SiteUtility
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("AddLeftNav_Pages", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("AddLeftNav_Pages", ex.Message, "Error", "");
 
                 }
             }
@@ -175,19 +180,19 @@ namespace SiteUtility
                             {
                                 NavigationNodeCreationInformation navCarePlansCreateInfo = new NavigationNodeCreationInformation();
                                 navCarePlansCreateInfo.Title = "Care Plans";
-                                navCarePlansCreateInfo.Url = webUrl + @"/Pages/CarePlans.aspx";
+                                navCarePlansCreateInfo.Url = webUrl + @"Pages/CarePlans.aspx";
                                 navCarePlansCreateInfo.AsLastNode = true;
                                 careCoordinationNode.Children.Add(navCarePlansCreateInfo);
 
                                 NavigationNodeCreationInformation navHospitalCreateInfo = new NavigationNodeCreationInformation();
-                                navHospitalCreateInfo.Title = "Hospitalization Alerts Coming Soon";
-                                navHospitalCreateInfo.Url = webUrl + @"/Pages/HospitalAlerts.aspx";
+                                navHospitalCreateInfo.Title = "Hospitalization Alerts";
+                                navHospitalCreateInfo.Url = webUrl + @"Pages/HospitalAlerts.aspx";
                                 navHospitalCreateInfo.AsLastNode = true;
                                 careCoordinationNode.Children.Add(navHospitalCreateInfo);
 
                                 NavigationNodeCreationInformation navMedicationCreateInfo = new NavigationNodeCreationInformation();
-                                navMedicationCreateInfo.Title = "Medication Alert Coming Soon";
-                                navMedicationCreateInfo.Url = webUrl + @"/Pages/MedicationAlerts.aspx";
+                                navMedicationCreateInfo.Title = "Medication Alerts";
+                                navMedicationCreateInfo.Url = webUrl + @"Pages/MedicationAlerts.aspx";
                                 navMedicationCreateInfo.AsLastNode = true;
                                 careCoordinationNode.Children.Add(navMedicationCreateInfo);
 
@@ -227,13 +232,13 @@ namespace SiteUtility
                                 parentNode.Children.Add(navCarePlansCreateInfo);
 
                                 NavigationNodeCreationInformation navHospitalCreateInfo = new NavigationNodeCreationInformation();
-                                navHospitalCreateInfo.Title = "Hospitalization Alerts Coming Soon";
+                                navHospitalCreateInfo.Title = "Hospitalization Alerts";
                                 navHospitalCreateInfo.Url = webUrl + @"/Pages/HospitalAlerts.aspx";
                                 navHospitalCreateInfo.AsLastNode = true;
                                 parentNode.Children.Add(navHospitalCreateInfo);
 
                                 NavigationNodeCreationInformation navMedicationCreateInfo = new NavigationNodeCreationInformation();
-                                navMedicationCreateInfo.Title = "Medication Alert Coming Soon";
+                                navMedicationCreateInfo.Title = "Medication Alert";
                                 navMedicationCreateInfo.Url = webUrl + @"/Pages/MedicationAlerts.aspx";
                                 navMedicationCreateInfo.AsLastNode = true;
                                 parentNode.Children.Add(navMedicationCreateInfo);
@@ -270,7 +275,7 @@ namespace SiteUtility
                         }
                         catch (Exception ex)
                         {
-                            SiteLogUtility.CreateLogEntry("TopNavigation_InitialAdjustmentPublishing", ex.Message, "Error", sUrl);
+                            SiteLogUtility.CreateLogEntry("TopNavigation_InitialAdjustmentPublishing", ex.Message, "Error", "");
                             clientContext.Dispose();
                         }
                     }
@@ -303,7 +308,7 @@ namespace SiteUtility
                             }
                             catch (Exception ex)
                             {
-                                SiteLogUtility.CreateLogEntry("ClearQuickNavigation", ex.Message, "Error", webUrl);
+                                SiteLogUtility.CreateLogEntry("ClearQuickNavigation", ex.Message, "Error", "");
                                 clientContext.Dispose();
                             }
                         }
@@ -311,7 +316,7 @@ namespace SiteUtility
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("CNavigation - ClearTopNavigation", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("CNavigation - ClearTopNavigation", ex.Message, "Error", "");
                 }
             }
 
@@ -357,7 +362,7 @@ namespace SiteUtility
                     }
                     catch (Exception ex)
                     {
-                        SiteLogUtility.CreateLogEntry("ClearNavigation", ex.Message, "Error", webUrl);
+                        SiteLogUtility.CreateLogEntry("ClearNavigation", ex.Message, "Error", "");
                         clientContext.Dispose();
                         throw;
                     }
@@ -371,24 +376,37 @@ namespace SiteUtility
             List<NavPracPage.NavPracPageTopItems> newNavPracItems = new List<NavPracPage.NavPracPageTopItems>();
             public Navigation_AddToTopNode(string webUrl, string urlPMSite)
             {
+                string adminUrl = string.Empty;
+
                 try
                 {
                     NavPracPage.NavPracPageTopItems pagePM = new NavPracPage.NavPracPageTopItems();
                     pagePM.NavPageName = pagePM.navPracPagePM;
                     pagePM.NavPageFileName = pagePM.navPracPageFilePM;
+                    pagePM.NavPageUrl = urlPMSite;
                     pagePM.NavPageSort = 1;
                     pagePM.NavPageStatus = 1;
                     newNavPracItems.Add(pagePM);
 
-                    var sortedNavPracItems = newNavPracItems.OrderBy(x => x.NavPageStatus).ThenBy(x => x.NavPageSort).ToList();
-                    foreach (NavPracPage.NavPracPageTopItems navItem in sortedNavPracItems)
+                    adminUrl = SiteInfoUtility.LoadParentWeb(urlPMSite);
+
+                    NavPracPage.NavPracPageTopItems pageAdmin = new NavPracPage.NavPracPageTopItems();
+                    pageAdmin.NavPageName = pageAdmin.navPracPageAdmin;
+                    pageAdmin.NavPageFileName = pageAdmin.navPracPageFileAdmin;
+                    pageAdmin.NavPageUrl = adminUrl;
+                    pageAdmin.NavPageSort = 2;
+                    pageAdmin.NavPageStatus = 1;
+                    newNavPracItems.Add(pageAdmin);
+
+                    var sortedNavPracItems2 = newNavPracItems.OrderBy(x => x.NavPageStatus).ThenBy(x => x.NavPageSort).ToList();
+                    foreach (NavPracPage.NavPracPageTopItems navItem in sortedNavPracItems2)
                     {
                         AddTopNav_Pages(navItem, webUrl, urlPMSite);
                     }
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("Navigation_AddToTopNode", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("Navigation_AddToTopNode", ex.Message, "Error", "");
                 }
             }
 
@@ -408,7 +426,8 @@ namespace SiteUtility
 
                             NavigationNodeCreationInformation navCreateInfo = new NavigationNodeCreationInformation();
                             navCreateInfo.Title = navItem.NavPageName;
-                            navCreateInfo.Url = pmUrl + @"/Pages/" + navItem.NavPageFileName;
+                            //navCreateInfo.Url = pmUrl + @"/Pages/" + navItem.NavPageFileName;
+                            navCreateInfo.Url = navItem.NavPageUrl + @"/Pages/" + navItem.NavPageFileName;
                             navCreateInfo.AsLastNode = true;
                             qlNavNodeColl.Add(navCreateInfo);
                             clientContext.ExecuteQuery();
@@ -417,7 +436,7 @@ namespace SiteUtility
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("AddTopNav_Pages", ex.Message, "Error", webUrl);
+                    SiteLogUtility.CreateLogEntry("AddTopNav_Pages", ex.Message, "Error", "");
 
                 }
             }
@@ -439,7 +458,31 @@ namespace SiteUtility
             {
                 QuickLaunch_InitialAdjustment(pracUrl);
                 QuickLaunch_InitialAdjustmentPublishing(pracUrl);
+                ClearQuickNavigation(pracUrl);
                 new Navigation_AddPagesToNode(pracUrl);
+
+                new TopNavigation_InitialAdjustmentPublishing(pracUrl);
+                new ClearTopNavigation(pracUrl);
+                new Navigation_AddToTopNode(pracUrl, pmUrl);
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("NavigationMnt", ex.Message, "Error", "");
+            }
+        }
+
+        /// <summary>
+        /// Call this method to execute same methods as Template Deployment Practice Navigation
+        /// </summary>
+        /// <param name="pracUrl"></param>
+        /// <param name="pmUrl"></param>
+        public static void NavigationPracticeMntTop(string pracUrl, string pmUrl)
+        {
+            try
+            {
+                //QuickLaunch_InitialAdjustment(pracUrl);
+                //QuickLaunch_InitialAdjustmentPublishing(pracUrl);
+                //new Navigation_AddPagesToNode(pracUrl);
 
                 new TopNavigation_InitialAdjustmentPublishing(pracUrl);
                 new ClearTopNavigation(pracUrl);
@@ -475,9 +518,9 @@ namespace SiteUtility
                             //w.Update();
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        //Ignore
+                        SiteLogUtility.CreateLogEntry("ClearNavigation", ex.Message, "Error", "");
                     }
                 }
             }
@@ -545,7 +588,7 @@ namespace SiteUtility
                     }
                     catch (Exception ex)
                     {
-                        SiteLogUtility.CreateLogEntry("ClearQuickNavigationRecent", ex.Message, "Error", wUrl);
+                        SiteLogUtility.CreateLogEntry("ClearQuickNavigationRecent", ex.Message, "Error", "");
                     }
                 }
             }
@@ -625,7 +668,7 @@ namespace SiteUtility
                     }
                     catch (Exception ex)
                     {
-                        SiteLogUtility.CreateLogEntry("RenameQuickNavigationNode", ex.Message, "Error", wUrl);
+                        SiteLogUtility.CreateLogEntry("RenameQuickNavigationNode", ex.Message, "Error", "");
                     }
                 }
             }

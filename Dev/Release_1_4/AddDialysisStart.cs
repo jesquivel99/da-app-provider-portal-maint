@@ -1,135 +1,106 @@
 ﻿using System;
-using System.Data;
 using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
 using SiteUtility;
-using System.Configuration;
 using Microsoft.SharePoint.Client;
-using Microsoft.SharePoint.Client.Publishing;
 using Microsoft.SharePoint.Client.WebParts;
 using System.Net;
-using System.IO;
-
+using Serilog;
 
 namespace Release_1_4
 {
-    public class Program
+    public class AddDialysisStart
     {
-        /// <summary>
-        /// NOTES:
-        /// Update LayoutsFolderMnt (if needed)
-        /// Update urlAdminGroup - url will point to the AdminGroup list for a given PM
-        /// Update urlSiteAssets - url will point to the SiteAssets library of Referral site
-        /// Update rootUrl and siteUrl in the App.config file
-        /// Update runPM - value will be used for url path to PM site
-        /// Update runPractice - value will be used for url path to Practice site
-        /// Update Credentials in SiteCredentialUtility.cs
-        /// </summary>
-        /// 
+        static Guid _listGuid = Guid.Empty;
+        static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
+        const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+        static ILogger _logger = Log.Logger = new LoggerConfiguration()
+           .MinimumLevel.Debug()
+           .Enrich.FromLogContext()
+           .WriteTo.Console()
+           .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp1)
+           .CreateLogger();
+        static ILogger logger = _logger.ForContext<AddDialysisStart>();
         static string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
-        static public List<Practice> practicesIWH = new List<Practice>();
-        static public List<Practice> practicesCKCC = new List<Practice>();
-        static int cntRun = 0;
-        static int cntRunAdminGroup = 0;
-        static int cntIsCkcc = 0;
-        static int cntIsIwh = 0;
-        static int cntIsKc365 = 0;
-        static void Main(string[] args)
+        public void InitProg()
         {
-            string releaseName = "PatientUpdatesPage";
-            string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
-            string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
+            SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
 
-            string pageName = "PatientUpdates";
-            string runPM = "PM06";
-            string runPractice = "99929033839";
-            string urlAdminGroup = @"https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/" + runPM;
-            string urlSiteAssets = @"https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/referral";
+            List<Practice> practices = siteInfoUtility.GetAllCKCCPractices();
 
-            SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
-            SiteLogUtility.Log_Entry("\n\n=============Release Starts=============", true);
-
-            using (ClientContext clientContext = new ClientContext(siteUrl))
+            try
             {
-                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                siteLogUtility.LoggerInfo_Entry("\n\n=============Release Starts=============", true);
 
-                try
+                if (practices != null && practices.Count > 0)
                 {
-                    SiteLogUtility.Log_Entry("\n\n=============[ Get PM AdminGroup ]=============", true);
-                    SiteLogUtility.Log_Entry("Processing AdminGroup:  " + urlAdminGroup, true);
-                    List<PMData> pmData = SiteInfoUtility.initPMDataToList(urlAdminGroup);
-
-                    SiteLogUtility.Log_Entry("\n\n=============[ Get all Portal Practice Data ]=============", true);
-                    List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext, practicesIWH, practicesCKCC, pmData);
-
-                    SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - Start]=============", true);
-                    foreach (ProgramManagerSite pm in practicePMSites)
+                    foreach (var practice in practices)
                     {
-                        foreach (PracticeSite psite in pm.PracticeSiteCollection)
-                        {
-                            if (psite.URL.Contains(runPM) && psite.URL.Contains(runPractice) && psite.IsCKCC.Equals("true"))
-                            {
-                                cntRun++;
-                                cntIsCkcc++;
-                                DialysisStartsSetup(psite, pageName, urlSiteAssets, pmData);
-                            }
-                        }
+                        string urlSiteAssets = SiteInfoUtility.GetReferralUrl(practice.NewSiteUrl);
+                        siteLogUtility.LoggerInfoBody(practice);
+
+                        DialysisStartsSetup(practice, SitePublishUtility.pagePatientStatusUpdates, urlSiteAssets);
                     }
-                    SiteLogUtility.Log_Entry("\n\n=============[ Maintenance Tasks - End]=============", true);
-
-                    SiteLogUtility.Log_Entry("\n\n--PROGRAM PARTICIPATION TOTALS for " + runPM + "--", true);
-                    PMData progPart = new PMData();
-                    progPart.PrintProgramParticipationGroupTotal(pmData);
-
-                    SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
-                    PMData progPart1 = new PMData();
-                    progPart.PrintProgramParticipationGroupSubTotal(pmData, "KCE Participation");
-                    
-                    SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
-                    PMData progPart2 = new PMData();
-                    progPart.PrintProgramParticipationGroupSubTotal(pmData, "InterWell Health");
-
                 }
-                catch (Exception ex)
-                {
-                    SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", "");
-                }
-                finally
-                {
-                    SiteLogUtility.Log_Entry(SiteLogUtility.textLine0, true);
-                    SiteLogUtility.Log_Entry(" Total cntIsCkcc = " + cntIsCkcc.ToString(), true);
-                    SiteLogUtility.Log_Entry("Total cntIsKc365 = " + cntIsKc365.ToString(), true);
-                    SiteLogUtility.Log_Entry("  Total cntIsIwh = " + cntIsIwh.ToString(), true);
-                    SiteLogUtility.Log_Entry(" TOTAL PRACTICES = " + cntRunAdminGroup.ToString(), true);
-
-                    SiteLogUtility.finalLog(releaseName);
-                }
-                SiteLogUtility.Log_Entry("=============Release Ends=============", true);
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", "");
+            }
+            finally
+            {
+                siteLogUtility.LoggerInfo_Entry(SiteLogUtility.textLine0, true);
+                siteLogUtility.LoggerInfo_Entry("=============Release Ends=============", true);
             }
         }
+        public void InitProg(string siteId)
+        {
 
-        public static void DialysisStartsSetup(PracticeSite psite, string pageName, string urlSiteAssets, List<PMData> pMDatas)
+            SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
+
+            Practice practice = siteInfoUtility.GetPracticeBySiteID(siteId);
+            string urlSiteAssets = SiteInfoUtility.GetReferralUrl(practice.NewSiteUrl);
+
+            try
+            {
+                siteLogUtility.LoggerInfo_Entry("\n\n=============Release Starts=============", true);
+
+                if (practice != null)
+                {
+                    if (practice.IsCKCC)
+                    {
+                        siteLogUtility.LoggerInfoBody(practice);
+                        DialysisStartsSetup(practice, SitePublishUtility.pagePatientStatusUpdates, urlSiteAssets);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", "");
+            }
+            finally
+            {
+                siteLogUtility.LoggerInfo_Entry(SiteLogUtility.textLine0, true);
+                siteLogUtility.LoggerInfo_Entry("=============Release Ends=============", true);
+            }
+        }
+        public static void DialysisStartsSetup(Practice psite, string pageName, string urlSiteAssets)
         {
             try
             {
                 SiteFilesUtility sfUtility = new SiteFilesUtility();
                 SitePublishUtility spUtility = new SitePublishUtility();
-                PMData progPart = new PMData();
-                cntRunAdminGroup = progPart.CntProgramParticipationGroupSubTotal(pMDatas, "KCE Participation");
-                SiteLogUtility.Log_Entry("--");
-                SiteLogUtility.Log_Entry("RUN COUNT = " + cntRun.ToString() + " OF " + cntRunAdminGroup.ToString(), true);
-                SiteLogUtility.LogPracDetail(psite);
 
-                //Deploy on 3-04...
-                spUtility.InitializePage(psite.URL, pageName, "Patient Status Updates");
-                spUtility.DeleteWebPart(psite.URL, pageName);
-                ConfigureDialysisStartsPage(psite.URL, urlSiteAssets, pageName);
+                if (!SiteFilesUtility.FileExists(psite.NewSiteUrl, "Pages", pageName + ".aspx"))
+                {
+                    spUtility.InitializePage(psite.NewSiteUrl, pageName, "Patient Status Updates"); 
+                }
+                spUtility.DeleteWebPart(psite.NewSiteUrl, pageName);
+                ConfigureDialysisStartsPage(psite.NewSiteUrl, urlSiteAssets, pageName);
 
-                //Deploy on 3-11...
-                uploadProgramPracticeSupportFilesDialysisStarts(psite);
-                modifyWebPartProgramParticipation(psite.URL, psite);
+                uploadProgramPracticeSupportFilesDialysisStarts(psite, LayoutsFolderMnt);
+                modifyWebPartProgramParticipation(psite.NewSiteUrl, psite);
             }
             catch (Exception ex)
             {
@@ -230,12 +201,12 @@ namespace Release_1_4
                                        "<PartStorage xmlns=\"http://schemas.microsoft.com/WebPart/v2/ContentEditor\" /></WebPart>", webPartTitle, webPartHeight, webPartWidth, webPartContentLink);
             return strXML;
         }
-        public static bool modifyWebPartProgramParticipation(string webUrl, PracticeSite practiceSite)
+        public static bool modifyWebPartProgramParticipation(string webUrl, Practice practiceSite)
         {
             SiteLogUtility.Log_Entry("   modifyWebPartProgramParticipation - In Progress...");
             bool outcome = false;
             string clink = string.Empty;
-            int webPartHeight = gridHeight(webUrl, practiceSite);
+            int webPartHeight = SiteInfoUtility.gridHeight(practiceSite);
 
             using (ClientContext clientContext = new ClientContext(webUrl))
             {
@@ -544,23 +515,23 @@ namespace Release_1_4
 
         //    return pmData;
         //}
-        public static void uploadProgramPracticeSupportFilesDialysisStarts(PracticeSite practiceSite)
+        public static void uploadProgramPracticeSupportFilesDialysisStarts(Practice practiceSite, string layoutsFolder)
         {
             SiteLogUtility.Log_Entry("   uploadProgramPracticeSupportFilesDialysisStarts - In Progress...");
-            string siteType = practiceSite.siteType;
+            //string siteType = practiceSite.siteType;
 
-            if (siteType == "")
-            {
-                return;
-            }
-            string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
-            using (ClientContext clientContext = new ClientContext(practiceSite.URL))
+            //if (siteType == "")
+            //{
+            //    return;
+            //}
+            string LayoutsFolder = @layoutsFolder;
+            using (ClientContext clientContext = new ClientContext(practiceSite.NewSiteUrl))
             {
                 try
                 {
                     clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
                     var web = clientContext.Web;
-                    string rootWebUrl = GetRootSite(practiceSite.URL);
+                    string rootWebUrl = GetRootSite(practiceSite.NewSiteUrl);
 
                     string LibraryName = "Program Participation";
                     string fileName3 = "optimalstarts.jpg";
@@ -573,7 +544,7 @@ namespace Release_1_4
                     fc3.Content = f3;
                     List myLibrary = web.Lists.GetByTitle(LibraryName);
 
-                    if (siteType != null && siteType.Contains("ckcc"))
+                    if (practiceSite.IsCKCC)
                     {
                         Microsoft.SharePoint.Client.File newFile3 = myLibrary.RootFolder.Files.Add(fc3);
                         clientContext.Load(newFile3);
@@ -584,8 +555,8 @@ namespace Release_1_4
                         clientContext.ExecuteQuery();
                         //lItem3["Title"] = "Optimal Starts Coming Soon!";
                         lItem3["Title"] = "Patient Status Updates";
-                        lItem3["ProgramNameText"] = practiceSite.URL + "/Pages/PatientUpdates.aspx";
-                        lItem3["Thumbnail"] = practiceSite.URL + "/Program%20Participation/" + fileName3;
+                        lItem3["ProgramNameText"] = practiceSite.NewSiteUrl + "/Pages/" + SitePublishUtility.pagePatientStatusUpdates + ".aspx";
+                        lItem3["Thumbnail"] = practiceSite.NewSiteUrl + "/Program%20Participation/" + fileName3;
                         lItem3.Update();
                         lItem3.File.CheckIn("Checkin - Create OptimalStart item", CheckinType.OverwriteCheckIn);
                         clientContext.ExecuteQuery();

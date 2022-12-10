@@ -4,7 +4,11 @@ using R_JE_109_AddSortColumn;
 using R_1_10_CkccEngagement;
 using R_1_11_IWH;
 using R_JE_110_Init_UpdateProgramParticipation;
-
+using R_JE_120_CkccKce;
+using R_1_7_Referrall;
+using Release_1_4;
+using R_1_9_MedAlertHospitalizeAlerts;
+using System.Collections.Generic;
 
 namespace SiteUtilityTest
 {
@@ -12,20 +16,37 @@ namespace SiteUtilityTest
     {
         static void Main(string[] args)
         {
-            //CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
-            //carePlanHtmlUpdate.InitiateProg();
+            /* Maintenance after CORE deployment...
+             * program participation - CKCC/KCE Resources
+             * program participation - Patient Status Updates
+             * Data Exchange
+             * Risk Adjustment
+             * Quality
+             * hospitalization alerts
+             * medication alerts
+             * 
+             */
 
-            //MovePractice movePractice = new MovePractice();
-            //movePractice.InitiateProg("94711764549");
+            List<string> pracList = new List<string>();
+            pracList.Add("90653003729");
+            pracList.Add("99252413689");
+            pracList.Add("96341625189");
+            pracList.Add("94845273959");
+            pracList.Add("96472071029");
+            pracList.Add("96860303729");
 
-            UpdateProgramParticipation updateProgramParticipation = new UpdateProgramParticipation();
-            updateProgramParticipation.InitProg();
+            foreach (var siteId in pracList)
+            {
+                //string siteId = "96194284189";
 
-            //--------------------------------------------------------
-            // Run Maintenance Code to Complete a new site Deployment
-            //--------------------------------------------------------
-            //CompleteNewSiteDeployment("98357241959");
+                //MovePractice movePractice = new MovePractice();
+                //movePractice.InitiateProg(siteId);
 
+                //--------------------------------------------------------
+                // Run Maintenance Code to Complete a new site Deployment
+                //--------------------------------------------------------
+                CompleteNewSiteDeployment(siteId); 
+            }
 
             //const string outputTemp = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
             //ILogger logger = Log.Logger = new LoggerConfiguration()
@@ -37,31 +58,48 @@ namespace SiteUtilityTest
             //objProgramNew test = new SiteInfoUtilityTest();
             //objProgramNew.InitiateProg();
             //objProgramNew.ReferralSetup();
-
             //ProgramNew_SS objProgramNew2 = new ProgramNew_SS();
-            //objProgramNew2.InitiateProg();
-
+            //objProgramNew2.InitiateProg(siteId);
             //ProgramNew_AA objProgramNew_AA = new ProgramNew_AA();
             //objProgramNew_AA.InitiateProg();
-
             //ProgramNew_NA objProgramNew_NA = new ProgramNew_NA(logger);
             //objProgramNew_NA.InitiateProg();
 
         }
         static void CompleteNewSiteDeployment(string siteID)
         {
+
+
+            //UpdateProgramParticipation updateProgramParticipation = new UpdateProgramParticipation();
+            //updateProgramParticipation.InitProg(siteID);
+
+
+
+            MedAlertHospitalizeAlerts medAlertHospitalizeAlerts = new MedAlertHospitalizeAlerts();
+            medAlertHospitalizeAlerts.InitiateProg(siteID);
+
+            //AddSortColumn addSortColumn = new AddSortColumn();
+            //addSortColumn.InitiateProg(siteID);  // run again to sort Program Participation...
+
+            //AddReferrall addReferrall = new AddReferrall();
+            //addReferrall.InitiateProg(siteID);
+
+            //AddCkccKce addCkccKce = new AddCkccKce();
+            //addCkccKce.InitProg(siteID);
+
+            //AddDialysisStart addDialysisStart = new AddDialysisStart();
+            //addDialysisStart.InitProg(siteID);
+
+
+
             //AddIWH addIWH = new AddIWH();
             //addIWH.InitProg(siteID);
-            //AddSortColumn addSortColumn = new AddSortColumn();
-            //addSortColumn.InitiateProg(siteID);
             //CkccEngagement ckccEngagement = new CkccEngagement();
             //ckccEngagement.InitiateProg(siteID);
-            //DialysisStart dialysisStart = new DialysisStart();
-            //dialysisStart.InitiateProg(siteID);
-            //BenefitQualityPayor benefitQualityPayor = new BenefitQualityPayor();
-            //benefitQualityPayor.InitiateProg(siteID);
             //CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
             //carePlanHtmlUpdate.InitiateProg(siteID);
+
+            //addSortColumn.InitiateProg(siteID);  // run again to sort Program Participation...
         }
     }
 }

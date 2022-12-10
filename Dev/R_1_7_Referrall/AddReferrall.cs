@@ -6,81 +6,110 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using Serilog;
 
 namespace R_1_7_Referrall
 {
-    public class Program
+    public class AddReferrall
     {
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
 
-        static void Main(string[] args)
-        { }
-            public void InitiateProg()
+        static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
+        const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+        static ILogger _logger = Log.Logger = new LoggerConfiguration()
+           .MinimumLevel.Debug()
+           .Enrich.FromLogContext()
+           .WriteTo.Console()
+           .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp1)
+           .CreateLogger();
+        static ILogger logger = _logger.ForContext<AddReferrall>();
+        const string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
+
+        public void InitiateProg()
         {
-            string sAdminListName = ConfigurationManager.AppSettings["AdminRootListName"];
-            string releaseName = "SiteUtilityTest";
-            SiteRootAdminList objRootSite = new SiteRootAdminList();
-            SiteDeleteUtility objDeleteSite = new SiteDeleteUtility();
-            SiteFilesUtility objFilesSite = new SiteFilesUtility();
+            SiteInfoUtility siu = new SiteInfoUtility();
+            SiteLogUtility slu = new SiteLogUtility();
 
-            SiteLogUtility.InitLogFile(releaseName, rootUrl, strPortalSiteURL);
+            List<Practice> practices = siu.GetAllCKCCPractices();
 
-            using (ClientContext clientContext = new ClientContext(strPortalSiteURL))
+            try
             {
-                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-
-                Console.WriteLine("=============Release Starts=============");
-
-                try
+                if (practices != null && practices.Count > 0)
                 {
-                    List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
-                    foreach (ProgramManagerSite pm in practicePMSites)
+                    foreach (var practice in practices)
                     {
-                        // if (pm.ProgramManager == "01")
-                        // {
-                        foreach (PracticeSite psite in pm.PracticeSiteCollection)
+                        if (practice.IsCKCC == true)
                         {
-                            List<PMData> pmd = SiteInfoUtility.SP_GetAll_PMData(pm.URL, psite.SiteId);
-                            if (pmd.Count > 0)
-                            {
-                                if (pmd[0].IsCKCC == "true")
-                                {
-                                    ReferralSetup(psite.URL + "/");
-                                }
-                                Console.WriteLine(psite.URL);
-                                Console.WriteLine(psite.Name + " setup is completed");
-                                Console.WriteLine("=======================================");
-                            }
+                            ReferralSetup(practice.NewSiteUrl, LayoutsFolder, practice.SiteID);
+
+                            slu.LoggerInfo_Entry(practice.NewSiteUrl, true);
+                            slu.LoggerInfo_Entry(practice.Name + " setup is completed", true);
+                            slu.LoggerInfo_Entry("=======================================", true);
                         }
-                        //  }
                     }
                 }
-                catch (Exception ex)
-                {
-                    SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", strPortalSiteURL);
-                }
+            }
+            catch (Exception ex)
+            {
+                slu.LoggerInfo_Entry(ex.Message, true);
+                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", "");
+            }
+            finally
+            {
+                slu.LoggerInfo_Entry("=======================================");
+                slu.LoggerInfo_Entry("3. Maintenance Tasks Complete - Complete");
+                slu.LoggerInfo_Entry("=============Release Ends=============");
+                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "=============Release Ends=============", "Log", "");
+            }
+        }
+        public void InitiateProg(string siteId)
+        {
+            SiteInfoUtility siu = new SiteInfoUtility();
+            SiteLogUtility slu = new SiteLogUtility();
+            
+            Practice practice = siu.GetPracticeBySiteID(siteId);
 
-                Console.WriteLine("=======================================");
-                Console.WriteLine("3. Maintenance Tasks Complete - Complete");
-                Console.WriteLine("=============Release Ends=============");
-                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "=============Release Ends=============", "Log", strPortalSiteURL);
+            try
+            {
+                if (practice != null)
+                {
+                    if (practice.IsCKCC == true)
+                    {
+                        ReferralSetup(practice.NewSiteUrl, LayoutsFolder, practice.SiteID);
+
+                        slu.LoggerInfo_Entry(practice.NewSiteUrl, true);
+                        slu.LoggerInfo_Entry(practice.Name + " setup is completed", true);
+                        slu.LoggerInfo_Entry("=======================================", true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                slu.LoggerInfo_Entry(ex.Message, true);
+                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - Program", ex.Message, "Error", "");
+            }
+            finally
+            {
+                slu.LoggerInfo_Entry("=======================================");
+                slu.LoggerInfo_Entry("3. Maintenance Tasks Complete - Complete");
+                slu.LoggerInfo_Entry("=============Release Ends=============");
+                SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "=============Release Ends=============", "Log", "");
             }
         }
 
-        public void ReferralSetup(string sitrUrl)
+        public void ReferralSetup(string sitrUrl, string layoutsFolder, string siteId)
         {
             try
             {
-                string strReferralURL = "https://sharepoint.fmc-na-icg.com/bi/fhppp/portal/referral";//NO SLASH AT THE END
-                string strSiteID = getSiteID(sitrUrl);
+                string strReferralURL = SiteInfoUtility.GetReferralUrl(sitrUrl);  //NO SLASH AT THE END
+                //string strSiteID = getSiteID(sitrUrl);
+                string strSiteID = siteId;
 
 
                 SiteFilesUtility objSiteFiles = new SiteFilesUtility();
-                objSiteFiles.DocumentUpload(sitrUrl, @"C:\Users\ssaleh\Documents\VisualStudio\cePrac_CarePlans.html", "SiteAssets");
-                objSiteFiles.DocumentUpload(sitrUrl, @"C:\Users\ssaleh\Documents\VisualStudio\SW_RD_Referrals.jpg", "SiteAssets/Img");
+                objSiteFiles.DocumentUpload(sitrUrl, @layoutsFolder + "cePrac_CarePlans.html", "SiteAssets");
+                objSiteFiles.DocumentUpload(sitrUrl, @layoutsFolder + "SW_RD_Referrals.jpg", "SiteAssets/Img");
                 increaseCarePlansWPHeight(sitrUrl);
 
                 ConfigureReferralPage(sitrUrl, "ReferralPage", "Referral Page", "900px", "900px", strReferralURL + "/SiteAssets/ReferralGrid.html");
@@ -112,7 +141,6 @@ namespace R_1_7_Referrall
                 SiteLogUtility.CreateLogEntry("ReferralSetup", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
         public void addSWReferralNavigationNode(string webUrl)
         {
             try
@@ -153,7 +181,6 @@ namespace R_1_7_Referrall
                 SiteLogUtility.CreateLogEntry("addSWReferralNavigationNode", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
         public void ConfigureReferralPage(string webUrl, string strPageName, string strTitle, string strWPHeight, string strWPWidth, string strContentWPLink)
         {
             try
@@ -202,7 +229,6 @@ namespace R_1_7_Referrall
                 SiteLogUtility.CreateLogEntry("ConfigureReferralPage", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
         public string contentEditorXML(string webPartTitle, string webPartHeight, string webPartWidth, string webPartContentLink)
         {
             string strXML = "";
@@ -240,7 +266,6 @@ namespace R_1_7_Referrall
                                        "<PartStorage xmlns=\"http://schemas.microsoft.com/WebPart/v2/ContentEditor\" /></WebPart>", webPartTitle, webPartHeight, webPartWidth, webPartContentLink);
             return strXML;
         }
-
         public void increaseCarePlansWPHeight(string webURL)
         {
             var pageRelativeUrl = "/Pages/CareCoordination.aspx";
@@ -287,7 +312,6 @@ namespace R_1_7_Referrall
                 }
             }
         }
-
         public void breakPageSecurityInheritance(string strURL, string strPageName, string strLibraryName)
         {
             try
@@ -313,7 +337,6 @@ namespace R_1_7_Referrall
                 SiteLogUtility.CreateLogEntry("breakPageSecurityInheritance", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
         public void addSecurityGroupToList(string strURL, string strSecurityGroupName, string strListName, string strPermissionType)
         {
             try
@@ -348,7 +371,6 @@ namespace R_1_7_Referrall
                 SiteLogUtility.CreateLogEntry("addSecurityGroupToList", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
         public void addSecurityGroupToASPXPage(string strURL, string strSecurityGroupName, string strListName, string strPermissionType, string strPageName)
         {
             try
@@ -388,7 +410,6 @@ namespace R_1_7_Referrall
                 SiteLogUtility.CreateLogEntry("addSecurityGroupToASPXPage", ex.Message, "Error", strPortalSiteURL);
             }
         }
-
         public string getSiteID(string strURL)
         {
             string strRealSiteID = string.Empty;

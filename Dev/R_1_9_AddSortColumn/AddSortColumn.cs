@@ -133,7 +133,7 @@ namespace R_JE_109_AddSortColumn
                     LoggerInfo_Entry(SiteLogUtility.textLine0);
                     LoggerInfo_Entry("Total Practice Count: " + CntPrac, true);
                     LoggerInfo_Entry(SiteLogUtility.textLine0);
-                    SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
+                    //SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
                 }
                 Log.CloseAndFlush();
             }

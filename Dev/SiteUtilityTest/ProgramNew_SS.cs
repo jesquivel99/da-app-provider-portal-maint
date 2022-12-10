@@ -17,7 +17,7 @@ namespace SiteUtilityTest
     {
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
-        public void InitiateProg()
+        public void InitiateProg(string siteId)
         {
             string sAdminListName = ConfigurationManager.AppSettings["AdminRootListName"];
             string releaseName = "SiteUtilityTest";
@@ -42,15 +42,20 @@ namespace SiteUtilityTest
                     Console.WriteLine("=======================================");
                     foreach (ProgramManagerSite pm in practicePMSites)
                     {
-                        if (pm.ProgramManager != "03" && pm.ProgramManager != "05")
+                        //if (pm.ProgramManager != "03" && pm.ProgramManager != "05")
+                        //if (pm.ProgramManager != "03" && pm.ProgramManager != "05")
+                        //if (true)
                         {
                             foreach (PracticeSite psite in pm.PracticeSiteCollection)
                             {
-                                intLoop++;
-                                //setupMedicalAlertDeployment(psite.URL);
-                                //setupHospitalizationAlertDeployment(psite.URL);
-                                Console.WriteLine(intLoop + ". " + psite.Name + "  ..  Med & Hosp Alert Deployed.");
-                                Console.WriteLine("=======================================");
+                                if (psite.PracticeTIN == "815261436")
+                                {
+                                    intLoop++;
+                                    setupMedicalAlertDeployment(psite.URL);
+                                    setupHospitalizationAlertDeployment(psite.URL);
+                                    Console.WriteLine(intLoop + ". " + psite.Name + "  ..  Med & Hosp Alert Deployed.");
+                                    Console.WriteLine("======================================="); 
+                                }
                             }
                         }
                     }
@@ -78,7 +83,7 @@ namespace SiteUtilityTest
                 SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "=============Release Ends=============", "Log", strPortalSiteURL);
             }
         }
-
+        
         public void changeColumnToRichText(string strURL)
         {
             try

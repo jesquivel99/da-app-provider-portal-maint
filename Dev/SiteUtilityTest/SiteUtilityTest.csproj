@@ -80,6 +80,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Release_1_4\R_1_4_DialysisStart.csproj">
+      <Project>{b6c257de-dce4-4e15-addc-6f941a7b2b5e}</Project>
+      <Name>R_1_4_DialysisStart</Name>
+    </ProjectReference>
     <ProjectReference Include="..\R_1_10_CarePlanHtmlUpdate\R_DW_100_CarePlanHtmlUpdate.csproj">
       <Project>{a9c8dc68-debc-47ef-9417-cb7f91797db0}</Project>
       <Name>R_DW_100_CarePlanHtmlUpdate</Name>
@@ -92,6 +96,10 @@
       <Project>{51a627e6-e887-4757-9262-cc4b0b821bae}</Project>
       <Name>R_1_11_IWH</Name>
     </ProjectReference>
+    <ProjectReference Include="..\R_1_7_Referrall\R_1_7_Referrall.csproj">
+      <Project>{e6cbef2b-eecc-441e-9de2-9bc6bbc0c48a}</Project>
+      <Name>R_1_7_Referrall</Name>
+    </ProjectReference>
     <ProjectReference Include="..\R_1_8_MovePractice\R_JE_100_MovePractice.csproj">
       <Project>{032a541f-1f14-4961-a3e0-d7fb238c5bdd}</Project>
       <Name>R_JE_100_MovePractice</Name>
@@ -100,9 +108,17 @@
       <Project>{ed4b7c80-ef5a-469f-b0a1-423b47a956bf}</Project>
       <Name>R_JE_109_AddSortColumn</Name>
     </ProjectReference>
+    <ProjectReference Include="..\R_1_9_MedAlertHospitalizeAlerts\R_1_9_MedAlertHospitalizeAlerts.csproj">
+      <Project>{94839857-0a9b-45be-bdf1-96b984b4e0f1}</Project>
+      <Name>R_1_9_MedAlertHospitalizeAlerts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\R_JE_110_Init_UpdateProgramParticipation\R_JE_110_UpdateProgramParticipation.csproj">
       <Project>{c9d17a4e-dbd8-45cd-9e6e-4665cedb1227}</Project>
       <Name>R_JE_110_UpdateProgramParticipation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\R_JE_120_CkccKce\R_JE_120_CkccKce.csproj">
+      <Project>{be63cfc7-ff2b-4985-b514-60c75ec22a6b}</Project>
+      <Name>R_JE_120_CkccKce</Name>
     </ProjectReference>
     <ProjectReference Include="..\SiteUtility\SiteUtility.csproj">
       <Project>{9d372979-b93c-4937-920a-19d2d36de21d}</Project>

@@ -17,9 +17,10 @@ namespace R_JE_100_MovePractice
            .MinimumLevel.Debug()
            .Enrich.FromLogContext()
            .WriteTo.Console()
-           .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: false, outputTemplate: outputTemp1)
+           .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp1)
            .CreateLogger();
         static ILogger logger = _logger.ForContext<MovePractice>();
+        const string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
         public void InitiateProg()
         {
             SiteInfoUtility siteInfo = new SiteInfoUtility();
@@ -103,26 +104,207 @@ namespace R_JE_100_MovePractice
             {
                 try
                 {
-                    Console.WriteLine("================ Deployment Started =====================");
-
-                    SitePermissionUtility.GetWebGroups(practice);
-                    //UpdateUrlRef(practice, "Program Participation");
-                    //SitePermissionUtility.RoleAssignment_AddPracUser(practice);
-                    //SitePermissionUtility.RoleAssignment_AddPracReadOnly(practice);
-                    //UpdateLogoUrl()
-                    //string adminUrl = LoadParentWeb("");
-                    //UpdateProgramMgrUrl()
-                    //SyncSiteDescription(practice.NewSiteUrl, practice.Name);
-
-                    //UpdateProgramParticipation("", practice, "");
-                    //UpdateProgramParticipation("", practice, "");
-
-                    Console.WriteLine("================ Deployment Completed =====================");
+                    Init_MoveUpdatePractice(practice, LayoutsFolder);
                 }
                 catch (Exception ex)
                 {
                     logger.Error(ex.Message);
                 }
+                finally
+                {
+                    LoggerInfo_Entry(SiteLogUtility.textLine0);
+                    SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
+                }
+                Log.CloseAndFlush();
+            }
+        }
+
+        private void Init_MoveUpdatePractice(Practice practice, string layoutsFolder)
+        {
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
+            SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
+
+            try
+            {
+                siteLogUtility.LoggerInfo_Entry("================ Deployment Started =====================", true);
+
+                Init_DocUpload(practice, layoutsFolder);
+                Init_Permissions(practice, layoutsFolder);
+                UpdateUrlRef(practice, "Program Participation");
+                Init_DocUpload2(practice, layoutsFolder);
+
+                string pmUrl = LoadParentWeb(practice.NewSiteUrl);
+                SiteNavigateUtility.NavigationPracticeMntTop(practice.NewSiteUrl, pmUrl);
+
+                siteInfoUtility.Init_UpdateAllProgramParticipation(practice);
+                Init_UpdateProgramParticipation(practice, layoutsFolder);  // Program Participation Item Update - Img File...
+                SiteInfoUtility.modifyWebPartProgramParticipation(practice.NewSiteUrl, practice);  // Resize...
+                SiteFilesUtility.uploadMultiPartSupportingFilesAll(practice.NewSiteUrl, practice, layoutsFolder);  // JavaScript...
+
+                SiteNavigateUtility.ClearQuickNavigationRecent(practice.NewSiteUrl);
+                SiteNavigateUtility.RenameQuickNavigationNode(practice.NewSiteUrl, "Quality Coming Soon", "Quality");
+
+
+                siteLogUtility.LoggerInfo_Entry("================ Deployment Completed =====================", true);
+
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                SiteLogUtility.CreateLogEntry("Init_MoveUpdatePractice", ex.Message, "Error", "");
+            }
+        }
+
+        private void Init_Permissions(Practice practice, string layoutsFolder)
+        {
+            string pracUserGroup = "Prac_" + practice.TIN + "_User";
+            string pracUserROGroup = "Prac_" + practice.TIN + "_ReadOnly";
+            try
+            {
+                // Get all SP Groups from practice site...
+                List<string> listWebGroups = SitePermissionUtility.GetWebGroups(practice);
+
+                // Get PM group(s) and remove...
+                List<string> pmSiteManagerWebGroups = SitePermissionUtility.GetPMGroupSiteManager(listWebGroups);
+                foreach (string item in pmSiteManagerWebGroups)
+                {
+                    SitePermissionUtility.RoleAssignment_RemovePracUserGroup(item, "Practice Manager Site Permission Level", practice.NewSiteUrl);
+                }
+                // Get PM ReadOnly group(s) and remove...
+                List<string> pmReadOnlyWebGroups = SitePermissionUtility.GetPMGroupReadOnly(listWebGroups);
+                foreach (string item in pmReadOnlyWebGroups)
+                {
+                    SitePermissionUtility.RoleAssignment_RemovePracUserGroup(item, "Read", practice.NewSiteUrl);
+                }
+
+                // Get PracUser group(s) and remove...
+                List<string> pracUserWebGroups = SitePermissionUtility.GetPracUser(listWebGroups);
+                foreach (string item in pracUserWebGroups)
+                {
+                    SitePermissionUtility.RoleAssignment_RemovePracUserGroup(item, "Practice Site User Permission Level", practice.NewSiteUrl);
+                }
+                // Get PracUserReadOnly group(s) and remove...
+                List<string> pracUserReadOnlyWebGroups = SitePermissionUtility.GetPracUserReadOnly(listWebGroups);
+                foreach (string item in pracUserReadOnlyWebGroups)
+                {
+                    SitePermissionUtility.RoleAssignment_RemovePracUserGroup(item, "Read", practice.NewSiteUrl);
+                }
+
+                // Check if Group Exists else Create...
+                if (SitePermissionUtility.CheckIfGroupExists(practice.NewSiteUrl, pracUserGroup) == false)
+                {
+                    SitePermissionUtility.CreateSiteGroup(practice.NewSiteUrl, pracUserGroup, "This is the Sites General Practice User group.");
+                }
+                if (SitePermissionUtility.CheckIfGroupExists(practice.NewSiteUrl, pracUserROGroup) == false)
+                {
+                    SitePermissionUtility.CreateSiteGroup(practice.NewSiteUrl, pracUserROGroup, "This is the Sites Practice ReadOnly User group.");
+                }
+
+                //Add correct PM and User SP Group Permissions...
+                SitePermissionUtility.RoleAssignment_AddSiteManager(practice, practice.NewSiteUrl);
+                SitePermissionUtility.RoleAssignment_AddSiteManagerReadOnly(practice, practice.NewSiteUrl);
+                SitePermissionUtility.RoleAssignment_AddPracUser(practice);
+                SitePermissionUtility.RoleAssignment_AddPracReadOnly(practice);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                SiteLogUtility.CreateLogEntry("Init_Permissions", ex.Message, "Error", "");
+            }
+        }
+
+        private void Init_UpdateProgramParticipation(Practice practice, string layoutsFolder)
+        {
+            SiteLogUtility slu = new SiteLogUtility();
+
+            try
+            {
+                if (practice.IsCKCC)
+                {
+                    // CKCC/KCE Resources...
+                    slu.LoggerInfo_Entry("Adding to Program Participation: " + SitePublishUtility.titleCkccKceResources, true);
+                    SiteFilesUtility.updateProgramParticipation(practice.NewSiteUrl, SitePublishUtility.titleCkccKceResources,
+                            SitePublishUtility.pageCkccKceResources, layoutsFolder, SitePublishUtility.imgCkccKceResources);
+
+                    // Patient Status Updates...
+                    slu.LoggerInfo_Entry("Adding to Program Participation: " + SitePublishUtility.titlePatientStatusUpdates, true);
+                    SiteFilesUtility.updateProgramParticipation(practice.NewSiteUrl, SitePublishUtility.titlePatientStatusUpdates,
+                            SitePublishUtility.pagePatientStatusUpdates, layoutsFolder, SitePublishUtility.imgPatientStatusUpdates);
+                }
+
+                if (practice.IsIWH)
+                {
+                    // CKCC/KCE Resources...
+                    //SiteFilesUtility.updateProgramParticipation(practice.NewSiteUrl, SitePublishUtility.titleCkccKceResources,
+                    //        SitePublishUtility.pageCkccKceResources, layoutsFolder, SitePublishUtility.imgCkccKceResources);
+                }
+
+                if (practice.IsKC365)
+                {
+                    // CKCC/KCE Resources...
+                    //SiteFilesUtility.updateProgramParticipation(practice.NewSiteUrl, SitePublishUtility.titleCkccKceResources,
+                    //        SitePublishUtility.pageCkccKceResources, layoutsFolder, SitePublishUtility.imgCkccKceResources);
+                }
+
+                if (practice.IsTelephonic)
+                {
+                    // CKCC/KCE Resources...
+                    //SiteFilesUtility.updateProgramParticipation(practice.NewSiteUrl, SitePublishUtility.titleCkccKceResources,
+                    //        SitePublishUtility.pageCkccKceResources, layoutsFolder, SitePublishUtility.imgCkccKceResources);
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("Init_UpdateProgramParticipation", ex.Message, "Error", "");
+                logger.Information(ex.Message);
+            }
+        }
+
+        private void Init_DocUpload(Practice practice, string layoutsFolder)
+        {
+            SiteFilesUtility sfu = new SiteFilesUtility();
+
+            try
+            {
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_ProgramParticipation.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_Home.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_RiskAdjustmentResources.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_Quality.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_InteractiveInsights.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "FHPIcon.JPG", "SiteAssets");
+
+                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CarePlans.html", "SiteAssets");
+                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CarePlansDataTable.html", "SiteAssets");
+                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_HospitalAlerts.html", "SiteAssets");
+                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_HospAlertDataTable.html", "SiteAssets");
+                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_MedicationAlerts.html", "SiteAssets");
+                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_MedAlertDataTable.html", "SiteAssets");
+                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CareCoordination.html", "SiteAssets");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                SiteLogUtility.CreateLogEntry("Init_DocUpload", ex.Message, "Error", "", true);
+            }
+        }
+        private void Init_DocUpload2(Practice practice, string layoutsFolder)
+        {
+            SiteFilesUtility sfu = new SiteFilesUtility();
+
+            try
+            {
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CarePlans.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CarePlansDataTable.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_HospitalAlerts.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_HospAlertDataTable.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_MedicationAlerts.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_MedAlertDataTable.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CareCoordination.html", "SiteAssets");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                SiteLogUtility.CreateLogEntry("Init_DocUpload", ex.Message, "Error", "", true);
             }
         }
         private static void LoggerInfo_Entry(string logtext, bool consolePrint = false)
@@ -144,6 +326,7 @@ namespace R_JE_100_MovePractice
         }
         private static void UpdateUrlRef(Practice psite, string listName)
         {
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
             try
             {
                 using (ClientContext clientContext = new ClientContext(psite.NewSiteUrl))
@@ -164,7 +347,8 @@ namespace R_JE_100_MovePractice
                         item["Thumbnail"] = psite.NewSiteUrl + "/Program%20Participation/" + thumbNail;
                         item.Update();
                         clientContext.ExecuteQuery();
-                        SiteLogUtility.Log_Entry($">>> {item["Title"]} - Thumbnail = {item["Thumbnail"]}", true);
+                        logger.Information($">>> {item["Title"]} - Thumbnail = {item["Thumbnail"]}", true);
+                        siteLogUtility.LoggerInfo_Entry($">>> {item["Title"]} - Thumbnail = {item["Thumbnail"]}", true);
                     }
                 }
             }
@@ -349,6 +533,14 @@ namespace R_JE_100_MovePractice
             }
 
             return true;
+        }
+        public List<string> GetPracUserGroups(List<string> webGroups)
+        {
+            return webGroups.Where(g => g.StartsWith("Prac_")).ToList();
+        }
+        public List<string> GetPracUserReadOnly(List<string> webGroups)
+        {
+            return webGroups.Where(gb => gb.StartsWith("Prac_")).Where(ge => ge.EndsWith("_ReadOnly")).ToList();
         }
         public static string LoadParentWeb(string wUrl)
         {
