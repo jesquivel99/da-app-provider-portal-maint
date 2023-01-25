@@ -8,6 +8,7 @@ using R_JE_120_CkccKce;
 using R_1_7_Referrall;
 using Release_1_4;
 using R_1_9_MedAlertHospitalizeAlerts;
+using R_DW_110_MD_Timesheet;
 using System.Collections.Generic;
 
 namespace SiteUtilityTest
@@ -48,23 +49,9 @@ namespace SiteUtilityTest
                 CompleteNewSiteDeployment(siteId); 
             }
 
-            //const string outputTemp = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
-            //ILogger logger = Log.Logger = new LoggerConfiguration()
-            //   .MinimumLevel.Debug()
-            //   .Enrich.FromLogContext()
-            //   .WriteTo.Console()
-            //   .WriteTo.File("Logs/Nabeel/ex_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp)
-            //   .CreateLogger();
-            //objProgramNew test = new SiteInfoUtilityTest();
-            //objProgramNew.InitiateProg();
-            //objProgramNew.ReferralSetup();
-            //ProgramNew_SS objProgramNew2 = new ProgramNew_SS();
-            //objProgramNew2.InitiateProg(siteId);
-            //ProgramNew_AA objProgramNew_AA = new ProgramNew_AA();
-            //objProgramNew_AA.InitiateProg();
-            //ProgramNew_NA objProgramNew_NA = new ProgramNew_NA(logger);
-            //objProgramNew_NA.InitiateProg();
-
+            // Deploy MD Timesheet for AIN
+            //MD_TimesheetDeploy objMD_TimesheetDeploy = new MD_TimesheetDeploy();
+            //objMD_TimesheetDeploy.InitiateProg("97438072639");
         }
         static void CompleteNewSiteDeployment(string siteID)
         {
