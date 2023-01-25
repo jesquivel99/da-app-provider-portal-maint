@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Net;
 using System.IO;
 using Microsoft.SharePoint.Client;
+using Microsoft.SharePoint.Client.WebParts;
 using Microsoft.SharePoint.Client.Publishing;
 
 namespace SiteUtility
@@ -300,13 +297,91 @@ namespace SiteUtility
                 }
             }
         }
-        public static void PublishFunction1()
+        public static void CreateAspxPage(string siteUrl, string strPageName, string strTitle, string strWPWidth, string strContentWPLink)
         {
-            Console.WriteLine("PublishFunction 1");
+            try
+            {
+                SitePublishUtility spUtility = new SitePublishUtility();
+                spUtility.InitializePage(siteUrl, strPageName, strTitle);
+                // spUtility.DeleteWebPart(siteUrl, strPageName);
+
+                using (ClientContext clientContext = new ClientContext(siteUrl))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web web = clientContext.Web;
+                    clientContext.Load(web);
+                    clientContext.Load(web.ParentWeb);
+                    clientContext.ExecuteQuery();
+
+                    var file = web.GetFileByServerRelativeUrl(web.ServerRelativeUrl + "/Pages/" + strPageName + ".aspx");
+                    file.CheckOut();
+                    clientContext.Load(file);
+                    clientContext.ExecuteQuery();
+                    try
+                    {
+                        LimitedWebPartManager olimitedwebpartmanager = file.GetLimitedWebPartManager(Microsoft.SharePoint.Client.WebParts.PersonalizationScope.Shared);
+
+                        WebPartDefinition wpd1 = olimitedwebpartmanager.ImportWebPart(contentEditorXML(strTitle, strWPWidth, strContentWPLink));
+                        wpd1.WebPart.Title = strTitle;
+                        olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "Header", 1);
+
+                        file.CheckIn("CheckIn - Adding Webparts to " + strTitle, CheckinType.MajorCheckIn);
+                        file.Publish("Publish - Adding Webparts to " + strTitle);
+                        clientContext.Load(file);
+                        web.Update();
+                        clientContext.ExecuteQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        file.UndoCheckOut();
+                        clientContext.Load(file);
+                        clientContext.ExecuteQuery();
+                        clientContext.Dispose();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+            }
         }
-        public static void PublishFunction2()
+
+        public static string contentEditorXML(string webPartTitle, string webPartWidth, string webPartContentLink)
         {
-            Console.WriteLine("PublishFunction 2");
+            string strXML = "";
+            strXML = String.Format("<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                                       "<WebPart xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
+                                       " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"" +
+                                       " xmlns=\"http://schemas.microsoft.com/WebPart/v2\">" +
+                                       "<Title>{0}</Title><FrameType>None</FrameType>" +
+                                       "<Description>Allows authors to enter rich text content.</Description>" +
+                                       "<IsIncluded>true</IsIncluded>" +
+                                       "<ZoneID>Header</ZoneID>" +
+                                       "<PartOrder>0</PartOrder>" +
+                                       "<FrameState>Normal</FrameState>" +
+                                       "<Height>{1}</Height>" +
+                                       "<Width>{2}</Width>" +
+                                       "<AllowRemove>true</AllowRemove>" +
+                                       "<AllowZoneChange>true</AllowZoneChange>" +
+                                       "<AllowMinimize>true</AllowMinimize>" +
+                                       "<AllowConnect>true</AllowConnect>" +
+                                       "<AllowEdit>true</AllowEdit>" +
+                                       "<AllowHide>true</AllowHide>" +
+                                       "<IsVisible>true</IsVisible>" +
+                                       "<DetailLink />" +
+                                       "<HelpLink />" +
+                                       "<HelpMode>Modeless</HelpMode>" +
+                                       "<Dir>Default</Dir>" +
+                                       "<PartImageSmall />" +
+                                       "<MissingAssembly>Cannot import this Web Part.</MissingAssembly>" +
+                                       "<PartImageLarge>/_layouts/15/images/mscontl.gif</PartImageLarge>" +
+                                       "<IsIncludedFilter />" +
+                                       "<Assembly>Microsoft.SharePoint, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c</Assembly>" +
+                                       "<TypeName>Microsoft.SharePoint.WebPartPages.ContentEditorWebPart</TypeName>" +
+                                       "<ContentLink xmlns='http://schemas.microsoft.com/WebPart/v2/ContentEditor'>{3}</ContentLink>" +
+                                       "<Content xmlns='http://schemas.microsoft.com/WebPart/v2/ContentEditor' />" +
+                                       "<PartStorage xmlns=\"http://schemas.microsoft.com/WebPart/v2/ContentEditor\" /></WebPart>", webPartTitle, "", webPartWidth, webPartContentLink);
+            return strXML;
         }
     }
 }
+ 

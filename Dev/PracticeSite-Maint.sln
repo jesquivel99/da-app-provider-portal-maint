@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31624.102
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiteUtility", "SiteUtility\SiteUtility.csproj", "{9D372979-B93C-4937-920A-19D2D36DE21D}"
 EndProject
@@ -36,6 +36,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_JE_110_UpdateProgramParticipation", "R_JE_110_Init_UpdateProgramParticipation\R_JE_110_UpdateProgramParticipation.csproj", "{C9D17A4E-DBD8-45CD-9E6E-4665CEDB1227}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_JE_120_CkccKce", "R_JE_120_CkccKce\R_JE_120_CkccKce.csproj", "{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_DW_110_MD_Timesheet", "R_DW_110_MD_Timesheet\R_DW_110_MD_Timesheet.csproj", "{C329DBB8-8C55-42F4-8F01-6DD0C278E899}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +113,10 @@ Global
 		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C329DBB8-8C55-42F4-8F01-6DD0C278E899}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C329DBB8-8C55-42F4-8F01-6DD0C278E899}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C329DBB8-8C55-42F4-8F01-6DD0C278E899}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C329DBB8-8C55-42F4-8F01-6DD0C278E899}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -119,7 +125,7 @@ Global
 		SolutionGuid = {31813A0A-12DA-4840-B68C-846C9614C493}
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 18
+		SccNumberOfProjects = 19
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = http://or-tfs-svr-01:8080/tfs/defaultcollection
 		SccLocalPath0 = .
@@ -174,5 +180,8 @@ Global
 		SccProjectUniqueName17 = R_JE_120_CkccKce\\R_JE_120_CkccKce.csproj
 		SccProjectName17 = R_JE_120_CkccKce
 		SccLocalPath17 = R_JE_120_CkccKce
+		SccProjectUniqueName18 = R_DW_110_MD_Timesheet\\R_DW_110_MD_Timesheet.csproj
+		SccProjectName18 = R_DW_110_MD_Timesheet
+		SccLocalPath18 = R_DW_110_MD_Timesheet
 	EndGlobalSection
 EndGlobal

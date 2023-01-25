@@ -120,6 +120,10 @@
       <Project>{be63cfc7-ff2b-4985-b514-60c75ec22a6b}</Project>
       <Name>R_JE_120_CkccKce</Name>
     </ProjectReference>
+     <ProjectReference Include="..\R_DW_110_MD_Timesheet\R_DW_110_MD_Timesheet.csproj">
+      <Project>{c329dbb8-8c55-42f4-8f01-6dd0c278e899}</Project>
+      <Name>R_DW_110_MD_Timesheet</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SiteUtility\SiteUtility.csproj">
       <Project>{9d372979-b93c-4937-920a-19d2d36de21d}</Project>
       <Name>SiteUtility</Name>
