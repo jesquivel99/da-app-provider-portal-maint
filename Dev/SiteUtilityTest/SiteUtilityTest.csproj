@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="ProgramNew_JE.cs" />
     <Compile Include="ProgramNew_SS.cs" />
     <Compile Include="ProgramNew_AA.cs" />
     <Compile Include="ProgramNew_DW.cs" />

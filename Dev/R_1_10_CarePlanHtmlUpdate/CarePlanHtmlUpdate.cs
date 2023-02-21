@@ -11,7 +11,8 @@ namespace R_DW_100_CarePlanHtmlUpdate
             SiteInfoUtility siteInfo = new SiteInfoUtility();
             SiteLogUtility slu = new SiteLogUtility();
 
-            List<Practice> practices = siteInfo.GetPracticesByPM("10");
+            //List<Practice> practices = siteInfo.GetPracticesByPM("10");
+            List<Practice> practices = siteInfo.GetAllPractices();
             if (practices != null && practices.Count > 0)
             {
                 try

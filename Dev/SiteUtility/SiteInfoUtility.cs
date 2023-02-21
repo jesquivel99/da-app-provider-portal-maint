@@ -811,6 +811,11 @@ namespace SiteUtility
                 pracCKCCArea = SitePMData.formateSiteName(pracCKCCArea);
                 practice.CKCCArea = pracCKCCArea;
 
+                if (practice.CKCCArea == "Nsipa")
+                {
+                    practice.CKCCArea = "NSIPA";
+                }
+
                 practice.ProgramParticipation = siteInfoUtility.FormatProgramParticipation(practice);
                 
                 //Test...
@@ -1038,6 +1043,9 @@ namespace SiteUtility
                     clientContext.ExecuteQuery();
 
                     strParentWeb = clientContext.Web.ParentWeb.ServerRelativeUrl;
+                    clientContext.Web.ServerRelativeUrl = "";
+                    clientContext.Web.Update();
+                    
                     return strParentWeb;
                 }
                 catch (Exception ex)

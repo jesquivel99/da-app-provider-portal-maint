@@ -197,7 +197,8 @@ namespace SiteUtility
                         if (fieldFound == false)
                         {
                             siteLogUtility.LoggerInfo_Entry($"Field NOT Found - Creating: {fieldName}", true);
-                            slu.CreateListColumn($"<Field Type='Number' DisplayName='{fieldName}' Name='{fieldName}' />", listTitle, _wUrl);
+                            //slu.CreateListColumn($"<Field Type='Number' DisplayName='{fieldName}' Name='{fieldName}' />", listTitle, _wUrl);
+                            slu.CreateListColumn($"<Field Type='Text' DisplayName='{fieldName}' Name='{fieldName}' />", listTitle, _wUrl);
                         }
                     }
                     catch (Exception ex)
@@ -282,9 +283,17 @@ namespace SiteUtility
                 }
             }
         }
+        public static Boolean DoesFolderExist(FolderCollection fc, string fname)
+        {
+            if (fc != null & fc.Count > 0)
+                return (fc.First(f => f.Name == fname) != null);
+            else
+                return false;
+        }
         public static void CreateFolder(Practice practiceSite, string docListName, string folderName)
         {
             SiteLogUtility.Log_Entry("CreateFolder - In Progress...");
+            
             try
             {
                 using (ClientContext clientContext = new ClientContext(practiceSite.NewSiteUrl))
@@ -296,14 +305,12 @@ namespace SiteUtility
                     clientContext.Load(folderCollection);
                     clientContext.ExecuteQuery();
 
-                    Folder parentFolder = docList.RootFolder.Folders.Add(folderName);
-                    //if (practiceSite.IsCKCC == "true")
-                    //{
-                    //    Folder parentFolder = docList.RootFolder.Folders.Add(folderName);
-                    //}
-
-                    clientContext.Load(folderCollection);
-                    clientContext.ExecuteQuery();
+                    if (!SiteListUtility.DoesFolderExist(folderCollection, folderName))
+                    {
+                        Folder parentFolder = docList.RootFolder.Folders.Add(folderName);
+                        clientContext.Load(folderCollection);
+                        clientContext.ExecuteQuery();
+                    }
                 }
             }
             catch (Exception ex)

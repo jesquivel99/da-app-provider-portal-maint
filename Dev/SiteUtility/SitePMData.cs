@@ -171,10 +171,19 @@ namespace SiteUtility
             SitePMData objSitePMData = new SitePMData();
             objSitePMData.readDBPortalPMData(PMRef);
         }
-        public static void initialConnectDBPortalDeployed(string PMRef = "")
+        public static void InitialConnectDBPortalDeployed(string PMRef = "")
         {
-            SitePMData objSitePMData = new SitePMData();
-            objSitePMData.readDBPortalDeployed(PMRef);
+            try
+            {
+                SitePMData objSitePMData = new SitePMData();
+                DataTable dtTable = objSitePMData.readDBPortalDeployed(PMRef);
+                objSitePMData.filterPMSiteData(dtTable);
+                //createJSONConfig(dtTable);
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("InitialConnectDBPortalDeployed", ex.Message, "Error", "");
+            }
         }
         public void readPMSiteData()
         {
@@ -273,6 +282,10 @@ namespace SiteUtility
                     SqlCommand cmd = new SqlCommand(query, sqlConn);
                     SqlDataAdapter da = new SqlDataAdapter(cmd);
                     da.Fill(dtTable);
+                    sqlConn.Close();
+                    da.Dispose();
+                    //filterPMSiteData(dtTable);
+                    //createJSONConfig(dtTable);
                 }
                 return dtTable;
             }

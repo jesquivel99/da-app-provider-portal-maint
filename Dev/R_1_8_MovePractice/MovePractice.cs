@@ -89,7 +89,7 @@ namespace R_JE_100_MovePractice
             finally
             {
                 LoggerInfo_Entry(SiteLogUtility.textLine0, true);
-                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
             }
             SiteLogUtility.Log_Entry("=============Release Ends=============", true);
 
@@ -113,7 +113,7 @@ namespace R_JE_100_MovePractice
                 finally
                 {
                     LoggerInfo_Entry(SiteLogUtility.textLine0);
-                    SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
+                    SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
                 }
                 Log.CloseAndFlush();
             }
@@ -126,7 +126,8 @@ namespace R_JE_100_MovePractice
 
             try
             {
-                siteLogUtility.LoggerInfo_Entry("================ Deployment Started =====================", true);
+                siteLogUtility.LoggerInfo_Entry("================ MoveUpdatePractice Deployment Started =====================", true);
+                siteLogUtility.LoggerInfo_Entry("================ " + practice.Name + " =====================", true);
 
                 Init_DocUpload(practice, layoutsFolder);
                 Init_Permissions(practice, layoutsFolder);
