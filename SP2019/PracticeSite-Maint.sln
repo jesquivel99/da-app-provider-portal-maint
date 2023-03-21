@@ -1,0 +1,187 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiteUtility", "SiteUtility\SiteUtility.csproj", "{9D372979-B93C-4937-920A-19D2D36DE21D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiteUtilityTest", "SiteUtilityTest\SiteUtilityTest.csproj", "{E42AAF4C-78F8-45DD-9D96-4B0F7BAAE664}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_1_PermissionsPracUserAndReadOnly", "Release_1_1\R_1_1_PermissionsPracUserAndReadOnly.csproj", "{32A8CF59-354D-4865-AF44-53C7B9B83CE3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_2_HomePageRedirect", "Release_1_2\R_1_2_HomePageRedirect.csproj", "{DDA47872-3FF5-4002-A5D8-8E0919BA6864}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_3_OptimalStartNavigation", "Release_1_3\R_1_3_OptimalStartNavigation.csproj", "{B06DAF49-163C-477A-AFCB-541B7E0DC04C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_4_DialysisStart", "Release_1_4\R_1_4_DialysisStart.csproj", "{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_5_ModifyView", "R_1_5_ModifyView\R_1_5_ModifyView.csproj", "{587FE1CD-E3CD-4F8F-83CB-0334877C8B56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_6_Benefit-Quality-Payor", "R_1_6_Benefit-Quality-Payor\R_1_6_Benefit-Quality-Payor.csproj", "{AAE4797E-8CF1-4425-9252-6375A81F72A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_7_Referrall", "R_1_7_Referrall\R_1_7_Referrall.csproj", "{E6CBEF2B-EECC-441E-9DE2-9BC6BBC0C48A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_JE_100_MovePractice", "R_1_8_MovePractice\R_JE_100_MovePractice.csproj", "{032A541F-1F14-4961-A3E0-D7FB238C5BDD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_9_MedAlertHospitalizeAlerts", "R_1_9_MedAlertHospitalizeAlerts\R_1_9_MedAlertHospitalizeAlerts.csproj", "{94839857-0A9B-45BE-BDF1-96B984B4E0F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_DW_100_CarePlanHtmlUpdate", "R_1_10_CarePlanHtmlUpdate\R_DW_100_CarePlanHtmlUpdate.csproj", "{A9C8DC68-DEBC-47EF-9417-CB7F91797DB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_JE_109_AddSortColumn", "R_1_9_AddSortColumn\R_JE_109_AddSortColumn.csproj", "{ED4B7C80-EF5A-469F-B0A1-423B47A956BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_10_CkccEngagement", "R_1_10_CkccEngagement\R_1_10_CkccEngagement.csproj", "{B0BC8139-90DA-448D-8A43-706BEDF528E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_11_IWH", "R_1_11_IWH\R_1_11_IWH.csproj", "{51A627E6-E887-4757-9262-CC4B0B821BAE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_JE_110_UpdateProgramParticipation", "R_JE_110_Init_UpdateProgramParticipation\R_JE_110_UpdateProgramParticipation.csproj", "{C9D17A4E-DBD8-45CD-9E6E-4665CEDB1227}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_JE_120_CkccKce", "R_JE_120_CkccKce\R_JE_120_CkccKce.csproj", "{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_DW_110_MD_Timesheet", "R_DW_110_MD_Timesheet\R_DW_110_MD_Timesheet.csproj", "{C329DBB8-8C55-42F4-8F01-6DD0C278E899}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9D372979-B93C-4937-920A-19D2D36DE21D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D372979-B93C-4937-920A-19D2D36DE21D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D372979-B93C-4937-920A-19D2D36DE21D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D372979-B93C-4937-920A-19D2D36DE21D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E42AAF4C-78F8-45DD-9D96-4B0F7BAAE664}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E42AAF4C-78F8-45DD-9D96-4B0F7BAAE664}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E42AAF4C-78F8-45DD-9D96-4B0F7BAAE664}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E42AAF4C-78F8-45DD-9D96-4B0F7BAAE664}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32A8CF59-354D-4865-AF44-53C7B9B83CE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32A8CF59-354D-4865-AF44-53C7B9B83CE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32A8CF59-354D-4865-AF44-53C7B9B83CE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32A8CF59-354D-4865-AF44-53C7B9B83CE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDA47872-3FF5-4002-A5D8-8E0919BA6864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDA47872-3FF5-4002-A5D8-8E0919BA6864}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDA47872-3FF5-4002-A5D8-8E0919BA6864}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDA47872-3FF5-4002-A5D8-8E0919BA6864}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B06DAF49-163C-477A-AFCB-541B7E0DC04C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B06DAF49-163C-477A-AFCB-541B7E0DC04C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B06DAF49-163C-477A-AFCB-541B7E0DC04C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B06DAF49-163C-477A-AFCB-541B7E0DC04C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6C257DE-DCE4-4E15-ADDC-6F941A7B2B5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{587FE1CD-E3CD-4F8F-83CB-0334877C8B56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{587FE1CD-E3CD-4F8F-83CB-0334877C8B56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{587FE1CD-E3CD-4F8F-83CB-0334877C8B56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{587FE1CD-E3CD-4F8F-83CB-0334877C8B56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAE4797E-8CF1-4425-9252-6375A81F72A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6CBEF2B-EECC-441E-9DE2-9BC6BBC0C48A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6CBEF2B-EECC-441E-9DE2-9BC6BBC0C48A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6CBEF2B-EECC-441E-9DE2-9BC6BBC0C48A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6CBEF2B-EECC-441E-9DE2-9BC6BBC0C48A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{032A541F-1F14-4961-A3E0-D7FB238C5BDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{032A541F-1F14-4961-A3E0-D7FB238C5BDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{032A541F-1F14-4961-A3E0-D7FB238C5BDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{032A541F-1F14-4961-A3E0-D7FB238C5BDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94839857-0A9B-45BE-BDF1-96B984B4E0F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94839857-0A9B-45BE-BDF1-96B984B4E0F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94839857-0A9B-45BE-BDF1-96B984B4E0F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94839857-0A9B-45BE-BDF1-96B984B4E0F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9C8DC68-DEBC-47EF-9417-CB7F91797DB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9C8DC68-DEBC-47EF-9417-CB7F91797DB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9C8DC68-DEBC-47EF-9417-CB7F91797DB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9C8DC68-DEBC-47EF-9417-CB7F91797DB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED4B7C80-EF5A-469F-B0A1-423B47A956BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED4B7C80-EF5A-469F-B0A1-423B47A956BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED4B7C80-EF5A-469F-B0A1-423B47A956BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED4B7C80-EF5A-469F-B0A1-423B47A956BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0BC8139-90DA-448D-8A43-706BEDF528E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0BC8139-90DA-448D-8A43-706BEDF528E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0BC8139-90DA-448D-8A43-706BEDF528E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0BC8139-90DA-448D-8A43-706BEDF528E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51A627E6-E887-4757-9262-CC4B0B821BAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51A627E6-E887-4757-9262-CC4B0B821BAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51A627E6-E887-4757-9262-CC4B0B821BAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51A627E6-E887-4757-9262-CC4B0B821BAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9D17A4E-DBD8-45CD-9E6E-4665CEDB1227}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9D17A4E-DBD8-45CD-9E6E-4665CEDB1227}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9D17A4E-DBD8-45CD-9E6E-4665CEDB1227}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9D17A4E-DBD8-45CD-9E6E-4665CEDB1227}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE63CFC7-FF2B-4985-B514-60C75EC22A6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C329DBB8-8C55-42F4-8F01-6DD0C278E899}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C329DBB8-8C55-42F4-8F01-6DD0C278E899}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C329DBB8-8C55-42F4-8F01-6DD0C278E899}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C329DBB8-8C55-42F4-8F01-6DD0C278E899}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {31813A0A-12DA-4840-B68C-846C9614C493}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 19
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = http://or-tfs-svr-01:8080/tfs/defaultcollection
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = SiteUtility\\SiteUtility.csproj
+		SccProjectName1 = SiteUtility
+		SccLocalPath1 = SiteUtility
+		SccProjectUniqueName2 = SiteUtilityTest\\SiteUtilityTest.csproj
+		SccProjectName2 = SiteUtilityTest
+		SccLocalPath2 = SiteUtilityTest
+		SccProjectUniqueName3 = R_1_5_ModifyView\\R_1_5_ModifyView.csproj
+		SccProjectName3 = R_1_5_ModifyView
+		SccLocalPath3 = R_1_5_ModifyView
+		SccProjectUniqueName4 = Release_1_1\\R_1_1_PermissionsPracUserAndReadOnly.csproj
+		SccProjectName4 = Release_1_1
+		SccLocalPath4 = Release_1_1
+		SccProjectUniqueName5 = Release_1_2\\R_1_2_HomePageRedirect.csproj
+		SccProjectName5 = Release_1_2
+		SccLocalPath5 = Release_1_2
+		SccProjectUniqueName6 = Release_1_3\\R_1_3_OptimalStartNavigation.csproj
+		SccProjectName6 = Release_1_3
+		SccLocalPath6 = Release_1_3
+		SccProjectUniqueName7 = Release_1_4\\R_1_4_DialysisStart.csproj
+		SccProjectName7 = Release_1_4
+		SccLocalPath7 = Release_1_4
+		SccProjectUniqueName8 = R_1_6_Benefit-Quality-Payor\\R_1_6_Benefit-Quality-Payor.csproj
+		SccProjectName8 = R_1_6_Benefit-Quality-Payor
+		SccLocalPath8 = R_1_6_Benefit-Quality-Payor
+		SccProjectUniqueName9 = R_1_7_Referrall\\R_1_7_Referrall.csproj
+		SccProjectName9 = R_1_7_Referrall
+		SccLocalPath9 = R_1_7_Referrall
+		SccProjectUniqueName10 = R_1_9_MedAlertHospitalizeAlerts\\R_1_9_MedAlertHospitalizeAlerts.csproj
+		SccProjectName10 = R_1_9_MedAlertHospitalizeAlerts
+		SccLocalPath10 = R_1_9_MedAlertHospitalizeAlerts
+		SccProjectUniqueName11 = R_1_10_CarePlanHtmlUpdate\\R_DW_100_CarePlanHtmlUpdate.csproj
+		SccProjectName11 = R_1_10_CarePlanHtmlUpdate
+		SccLocalPath11 = R_1_10_CarePlanHtmlUpdate
+		SccProjectUniqueName12 = R_1_10_CkccEngagement\\R_1_10_CkccEngagement.csproj
+		SccProjectName12 = R_1_10_CkccEngagement
+		SccLocalPath12 = R_1_10_CkccEngagement
+		SccProjectUniqueName13 = R_1_11_IWH\\R_1_11_IWH.csproj
+		SccProjectName13 = R_1_11_IWH
+		SccLocalPath13 = R_1_11_IWH
+		SccProjectUniqueName14 = R_1_8_MovePractice\\R_JE_100_MovePractice.csproj
+		SccProjectName14 = R_1_8_MovePractice
+		SccLocalPath14 = R_1_8_MovePractice
+		SccProjectUniqueName15 = R_1_9_AddSortColumn\\R_JE_109_AddSortColumn.csproj
+		SccProjectName15 = R_1_9_AddSortColumn
+		SccLocalPath15 = R_1_9_AddSortColumn
+		SccProjectUniqueName16 = R_JE_110_Init_UpdateProgramParticipation\\R_JE_110_UpdateProgramParticipation.csproj
+		SccProjectName16 = R_JE_110_Init_UpdateProgramParticipation
+		SccLocalPath16 = R_JE_110_Init_UpdateProgramParticipation
+		SccProjectUniqueName17 = R_JE_120_CkccKce\\R_JE_120_CkccKce.csproj
+		SccProjectName17 = R_JE_120_CkccKce
+		SccLocalPath17 = R_JE_120_CkccKce
+		SccProjectUniqueName18 = R_DW_110_MD_Timesheet\\R_DW_110_MD_Timesheet.csproj
+		SccProjectName18 = R_DW_110_MD_Timesheet
+		SccLocalPath18 = R_DW_110_MD_Timesheet
+	EndGlobalSection
+EndGlobal
