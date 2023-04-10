@@ -533,5 +533,48 @@ namespace SiteUtility
                 return true;
             }
         }
+        public static bool BreakRoleInheritanceOnList(string practiceURL, string userList, string userGroup, RoleType roleToAdd)
+        {
+            //
+            // Usage - 
+            // BreakRoleInheritanceOnList("https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/PM06/99881985029"
+            //                           ,"RiskAdjustment_iwh"
+            //                           ,"Risk_Adjustment_User"
+            //                           ,RoleType.Contributor);
+            //
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(practiceURL))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    clientContext.Load(clientContext.Web.RoleAssignments);
+                    clientContext.ExecuteQuery();
+
+                    RoleDefinition roleToAddDefinition = clientContext.Web.RoleDefinitions.GetByType(roleToAdd);
+
+                    if (clientContext.Web.RoleAssignments != null && clientContext.Web.RoleAssignments.Count > 1)
+                    {
+                        Group group = clientContext.Web.SiteGroups.GetByName(userGroup);
+                        clientContext.Load(group);
+
+                        Microsoft.SharePoint.Client.List list = clientContext.Web.Lists.GetByTitle(userList);
+                        clientContext.ExecuteQuery();
+                        list.BreakRoleInheritance(true, true);
+                        RoleDefinitionBindingCollection collRoleDefinitionBindingList = new RoleDefinitionBindingCollection(clientContext);
+                        collRoleDefinitionBindingList.Add(roleToAddDefinition);
+                        list.RoleAssignments.Add(group, collRoleDefinitionBindingList);
+
+                        clientContext.ExecuteQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("BreakRoleInheritanceOnList - Error", ex.Message, "Error", "");
+                return false;
+            }
+
+            return true;
+        }
     }
 }
