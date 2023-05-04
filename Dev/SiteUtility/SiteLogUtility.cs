@@ -360,10 +360,12 @@ namespace SiteUtility
         }
         public void LoggerInfoBody(Practice practice)
         {
-            LoggerInfo_Entry(SiteLogUtility.textLine0, true);
-            LoggerInfo_Entry("              Prac Url: " + practice.NewSiteUrl, true);
-            LoggerInfo_Entry("         Practice Name: " + practice.Name, true);
-            LoggerInfo_Entry(" Program Participation: " + SiteInfoUtility.GetProgramParticipation(practice), true);
+            LoggerInfo_Entry(SiteLogUtility.textLine0);
+            LoggerInfo_Entry("              Prac Url: " + practice.NewSiteUrl);
+            LoggerInfo_Entry("         Practice Name: " + practice.Name);
+            LoggerInfo_Entry(" Program Participation: " + SiteInfoUtility.GetProgramParticipation(practice));
+            LoggerInfo_Entry("         Prac User Url: " + practice.NewSiteUrl + @"_layouts/user.aspx");
+            LoggerInfo_Entry("        View Lists Url: " + practice.NewSiteUrl + @"_layouts/viewlsts.aspx");
         }
         public void LoggerInfo_Entry(string logtext, bool consolePrint = false)
         {

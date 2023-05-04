@@ -157,7 +157,7 @@ namespace SiteUtility
             }
             catch (Exception ex)
             {
-                SiteLogUtility.CreateLogEntry("CreateListColumn", ex.Message, "Error", strWebURL);
+                SiteLogUtility.CreateLogEntry("CreateListColumn", ex.Message, "Error", "");
             }
         }
         public void ProvisionField(Practice psite, string listTitle, string fieldName)
