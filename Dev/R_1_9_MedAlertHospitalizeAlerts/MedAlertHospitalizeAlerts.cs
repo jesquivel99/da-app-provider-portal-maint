@@ -211,7 +211,7 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                 //createCarePlanListColumns(strURL);
                 UploadMedAlertRelatedHTMLFile(strURL);
                 IncreaseMedHospAlertWPHeight(strURL, "/Pages/MedicationAlerts.aspx", "Medication Alerts", "SiteAssets/cePrac_MedAlertDataTable.html");
-                ModifyMedicalAlertNavigationNode(strURL, "Medication Alert Coming Soon", "Medication Alert", "Pages/MedicationAlerts.aspx");
+                ModifyMedicalAlertNavigationNode(strURL, "Medication Alert Coming Soon", "Medication Alerts", "Pages/MedicationAlerts.aspx");
             }
             catch (Exception ex)
             {
@@ -241,7 +241,7 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                 CreateHospitalizeAlertList(strURL, sHsptlAlertListName);
                 UploadHospAlertRelatedHTMLfile(strURL);
                 IncreaseMedHospAlertWPHeight(strURL, "/Pages/HospitalAlerts.aspx", "Hospitalization Alerts", "SiteAssets/cePrac_HospAlertDataTable.html");
-                ModifyMedicalAlertNavigationNode(strURL, "Hospitalization Alerts Coming Soon", "Hospitalization Alert", "Pages/HospitalAlerts.aspx");
+                ModifyMedicalAlertNavigationNode(strURL, "Hospitalization Alerts Coming Soon", "Hospitalization Alerts", "Pages/HospitalAlerts.aspx");
             }
             catch (Exception ex)
             {
@@ -264,7 +264,7 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                     objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DateOfBirth' Name='DateOfBirth' />", sHsptlAlertListName, strURL);
                     objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DischargeDate' Name='DischargeDate' />", sHsptlAlertListName, strURL);
                     objListUtility.CreateListColumn("<Field Type='Text' DisplayName='DischargeFacility' Name='DischargeFacility' />", sHsptlAlertListName, strURL);
-                    objListUtility.CreateListColumn("<Field Type='Text' DisplayName='Diagnosis' Name='Diagnosis' />", sHsptlAlertListName, strURL);
+                    objListUtility.CreateListColumn("<Field Type='Note' DisplayName='Diagnosis' Name='Diagnosis' />", sHsptlAlertListName, strURL);
                     objListUtility.CreateListColumn("<Field Type='Text' DisplayName='FacilityType' Name='FacilityType' />", sHsptlAlertListName, strURL);
                     objListUtility.CreateListColumn("<Field Type='Text' DisplayName='Setting' Name='Setting' />", sHsptlAlertListName, strURL);
                     objListUtility.CreateListColumn("<Field Type='Text' DisplayName='Nephrologist' Name='Nephrologist' />", sHsptlAlertListName, strURL);
