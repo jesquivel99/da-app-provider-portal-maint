@@ -1,37 +1,27 @@
-﻿using Microsoft.SharePoint.Client;
-using Microsoft.SharePoint.Client.WebParts;
-using SiteUtility;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Text;
-using Serilog;
 using System.Threading.Tasks;
+using Microsoft.SharePoint.Client;
+using Microsoft.SharePoint.Client.WebParts;
+using SiteUtility;
+using System.Configuration;
 
-namespace SiteUtilityTest
+namespace R_SS_130_TransitionManagement
 {
-    public class ProgramNew_SS
+    public class Program
     {
         static Guid _listGuid = Guid.Empty;
         static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
         const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
-        static ILogger _logger = Log.Logger = new LoggerConfiguration()
-           .MinimumLevel.Debug()
-           .Enrich.FromLogContext()
-           .WriteTo.Console()
-           .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp1)
-           .CreateLogger();
+       
         const string LayoutsFolder = @"C:\Users\ssaleh\Downloads\";
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
-        public void InitiateProg()
+        public static void Main(string[] args)
         {
-            //TransitionSetup("https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/PM01/94910221369/", LayoutsFolder);
-            createPayorProgramIWHTracker();
             SiteInfoUtility siu = new SiteInfoUtility();
             SiteLogUtility slu = new SiteLogUtility();
             List<Practice> practices = siu.GetAllPractices();
@@ -46,7 +36,8 @@ namespace SiteUtilityTest
                         if (intLoop > 16)
                         {
                             //uploadHospAlertRelatedHTMLfile(practice.NewSiteUrl);
-                            TransitionSetup(practice.NewSiteUrl, LayoutsFolder, practice.IsCKCC);
+                            Program objP = new Program();
+                            objP.TransitionSetup(practice.NewSiteUrl, LayoutsFolder, practice.IsCKCC);
                             Console.WriteLine(intLoop + ". " + practice.Name + "  ..  Hosp Alert file uploaded.");
                             Console.WriteLine("=======================================");
                         }
@@ -65,8 +56,9 @@ namespace SiteUtilityTest
                 SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
             }
 
-            Log.CloseAndFlush();
+            //Log.CloseAndFlush();
         }
+
 
         public void TransitionSetup(string sitrUrl, string layoutsFolder, bool strIsCKCC)
         {
@@ -270,37 +262,6 @@ namespace SiteUtilityTest
         }
 
 
-
-        public void createPayorProgramIWHTracker()
-        {
-            try
-            {
-                string[] cars = { "Aledade CKD Medicare Advantage", "Anthem ESRD Commercial", "Anthem ESRD Medicare Advantage", "BCBS MI ESRD Medicare Advantage", "BCBS NC CKD Commercial", "BCBS NC CKD Medicare Advantage", "BCBS NC ESRD Commercial", "BCBS NC ESRD Medicare Advantage", "Cigna Commercial", "CKCC Medicare", "County Care Health Plan CKD Medicaid", "County Care Health Plan ESRD Medicaid", "HAPMI CKD Medicare Advantage", "HAPMI ESRD Medicare Advantage", "Highmark ESRD Medicare Advantage",
-                                    "Humana CKD Commercial","Humana CKD Medicare Advantage","Humana ESRD Medicare Advantage","MDX Hawaii CKD Medicare Advantage","Providence CKD Commercial","Providence CKD Medicare Advantage","Providence ESRD Commercial", "Providence ESRD Medicare Advantage", "Triple-S ESRD Commercial", "Triple-S ESRD Medicare Advantage", "Triple-S ESRD Medicaid", "UPMC CKD Commercial", "UPMC CKD Medicaid", "UPMC CKD Medicare Advantage", "UPMC ESRD Commercial", "UPMC ESRD Medicaid", "UPMC ESRD Medicare Advantage", "Vantage CKD Medicare Advantage", "Vantage ESRD Medicare Advantage"};
-                using (ClientContext clientContext = new ClientContext("https://sharepointdev.fmc-na-icg.com/bi/IWH"))
-                {
-                    // clientcontext.Web.Lists.GetById - This option also can be used to get the list using List GUID
-                    // This value is NOT List internal name
-                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-                    List targetList = clientContext.Web.Lists.GetByTitle("PayorProgram");
-                    for(int intLoop = 0; intLoop < cars.Length; intLoop++)
-                    {
-                        ListItemCreationInformation oListItemCreationInformation = new ListItemCreationInformation();
-                        ListItem oItem = targetList.AddItem(oListItemCreationInformation);
-                        oItem["Title"] = cars[intLoop];
-                        oItem["ProgramDescription"] = cars[intLoop];
-                        oItem["ProgramID"] = intLoop + 4;
-
-                        oItem.Update();
-                        clientContext.ExecuteQuery();
-                    }                    
-                }
-            }
-            catch(Exception ex)
-            {
-
-            }
-        }
 
     }
 }
