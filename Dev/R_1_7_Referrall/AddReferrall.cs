@@ -186,7 +186,10 @@ namespace R_1_7_Referrall
             try
             {
                 SitePublishUtility spUtility = new SitePublishUtility();
-                //spUtility.InitializePage(webUrl, strPageName, strTitle);
+                if (!SiteFilesUtility.FileExists(webUrl, "Pages", strPageName + ".aspx"))
+                {
+                    spUtility.InitializePage(webUrl, strPageName, strTitle); 
+                }
                 spUtility.DeleteWebPart(webUrl, strPageName);
 
                 using (ClientContext clientContext = new ClientContext(webUrl))

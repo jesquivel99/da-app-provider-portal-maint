@@ -21,6 +21,7 @@ namespace R_JE_100_MovePractice
            .CreateLogger();
         static ILogger logger = _logger.ForContext<MovePractice>();
         const string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
+        //const string LayoutsFolder = @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\";
         public void InitiateProg()
         {
             SiteInfoUtility siteInfo = new SiteInfoUtility();
@@ -708,7 +709,7 @@ namespace R_JE_100_MovePractice
 
                     if (items.Count > 0)
                     {
-                        if (items[0].FieldValues["KCEArea"] != null)
+                        if (items[0].FieldValues["KCEArea"] != null && items[0].FieldValues["KCEArea"].ToString() == "" && items[0].FieldValues["KCEArea"].ToString() == "NULL")
                         {
                             strDescription = SiteTitle + " is a member of " + items[0].FieldValues["KCEArea"].ToString() + ". Program Participation: ";
                         }

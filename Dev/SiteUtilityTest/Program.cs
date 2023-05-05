@@ -28,48 +28,47 @@ namespace SiteUtilityTest
              * 
              */
 
-            //List<string> pracList = new List<string>();
-            //pracList.Add("90653003729");
-            //pracList.Add("99252413689");
-            //pracList.Add("96341625189");
-            //pracList.Add("94845273959");
-            //pracList.Add("96472071029");
-            //pracList.Add("96860303729");
+            List<string> pracList = new List<string>();
+            pracList.Add("92027241279");
 
-            //foreach (var siteId in pracList)
-            //{
-            //    //string siteId = "96194284189";
+            foreach (string siteId in pracList)
+            {
+                //--------------------------------------------------------
+                // Update Practice(s) after CORE Deployment
+                //--------------------------------------------------------
+                //MovePractice movePractice = new MovePractice();
+                //movePractice.InitiateProg(siteId);
 
-            //    //MovePractice movePractice = new MovePractice();
-            //    //movePractice.InitiateProg(siteId);
+                //--------------------------------------------------------
+                // Run Maintenance Code to Complete a new site Deployment
+                //--------------------------------------------------------
+                CompleteNewSiteDeployment(siteId);
 
-            //    //--------------------------------------------------------
-            //    // Run Maintenance Code to Complete a new site Deployment
-            //    //--------------------------------------------------------
-            //    CompleteNewSiteDeployment(siteId); 
-            //}
+            }
 
             // Deploy MD Timesheet for AIN
             //MD_TimesheetDeploy objMD_TimesheetDeploy = new MD_TimesheetDeploy();
             //objMD_TimesheetDeploy.InitiateProg("97438072639");
 
-            ProgramNew_SS objSS = new ProgramNew_SS();
-            objSS.InitiateProg();
+            //ProgramNew_SS objSS = new ProgramNew_SS();
+            //objSS.InitiateProg();
         }
         static void CompleteNewSiteDeployment(string siteID)
         {
-
+            //CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
+            //carePlanHtmlUpdate.InitiateProg(siteID);
 
             //UpdateProgramParticipation updateProgramParticipation = new UpdateProgramParticipation();
             //updateProgramParticipation.InitProg(siteID);
 
+            //MedAlertHospitalizeAlerts medAlertHospitalizeAlerts = new MedAlertHospitalizeAlerts();
+            //medAlertHospitalizeAlerts.InitiateProg(siteID);
 
+            //AddIWH addIWH = new AddIWH();
+            //addIWH.InitProg(siteID);
 
-            MedAlertHospitalizeAlerts medAlertHospitalizeAlerts = new MedAlertHospitalizeAlerts();
-            medAlertHospitalizeAlerts.InitiateProg(siteID);
-
-            //AddSortColumn addSortColumn = new AddSortColumn();
-            //addSortColumn.InitiateProg(siteID);  // run again to sort Program Participation...
+            ProgramNew_JE programNew_JE = new ProgramNew_JE();
+            programNew_JE.InitiateProg(siteID);
 
             //AddReferrall addReferrall = new AddReferrall();
             //addReferrall.InitiateProg(siteID);
@@ -80,16 +79,12 @@ namespace SiteUtilityTest
             //AddDialysisStart addDialysisStart = new AddDialysisStart();
             //addDialysisStart.InitProg(siteID);
 
-
-
-            //AddIWH addIWH = new AddIWH();
-            //addIWH.InitProg(siteID);
             //CkccEngagement ckccEngagement = new CkccEngagement();
             //ckccEngagement.InitiateProg(siteID);
-            //CarePlanHtmlUpdate carePlanHtmlUpdate = new CarePlanHtmlUpdate();
-            //carePlanHtmlUpdate.InitiateProg(siteID);
 
+            //AddSortColumn addSortColumn = new AddSortColumn();
             //addSortColumn.InitiateProg(siteID);  // run again to sort Program Participation...
+
         }
     }
 }

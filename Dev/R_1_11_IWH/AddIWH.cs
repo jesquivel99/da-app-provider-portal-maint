@@ -133,10 +133,17 @@ namespace R_1_11_IWH
 
         private void Init_CarePlan(Practice practice)
         {
+            SiteFilesUtility siteFilesUtility = new SiteFilesUtility();
+            string LayoutsFolderIwn = @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\Iwn\";
+
             try
             {
                 //check if only IWN
                 //upload cePrac_CarePlans.html
+                if(practice.IsCKCC == false && practice.IsIWH == true)
+                {
+                    siteFilesUtility.DocumentUpload(practice.NewSiteUrl, LayoutsFolderIwn + "cePrac_CarePlans.html", "SiteAssets");
+                }
             }
             catch (Exception ex)
             {
@@ -247,6 +254,7 @@ namespace R_1_11_IWH
             SiteLogUtility.Log_Entry("Init_Payor - In Progress...");
             bool ConfigSuccess = false;
             string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
+            string LayoutsFolderIwn = @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\Iwn\";
 
             SiteFilesUtility sfUtility = new SiteFilesUtility();
             SitePublishUtility spUtility = new SitePublishUtility();
@@ -306,6 +314,14 @@ namespace R_1_11_IWH
                 SiteListUtility.CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder2QualityIwh);
                 SiteListUtility.CreateFolder(practiceSite, slUtility.listNameQualityIwh, slUtility.listFolder3QualityIwh);
 
+                //if (practiceSite.IsCKCC && SiteListUtility.DoesListExist(practiceSite.NewSiteUrl, slUtility.listNameQualityCkcc) == false)
+                //{
+                //    SiteListUtility.ProvisionList(practiceSite, slUtility, slUtility.listNameQualityCkcc, practiceCView);
+                //}
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder1QualityCkcc);
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder2QualityCkcc);
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameQualityCkcc, slUtility.listFolder3QualityCkcc);
+
                 if (!SiteFilesUtility.FileExists(practiceSite.NewSiteUrl, "Pages", slUtility.pageNameQuality + ".aspx"))
                 {
                     spUtility.InitializePage(practiceSite.NewSiteUrl, slUtility.pageNameQuality, slUtility.pageTitleQuality);
@@ -356,6 +372,18 @@ namespace R_1_11_IWH
                 SiteListUtility.CreateFolder(practiceSite, slUtility.listNameDataExchangeIwh, slUtility.listFolder3DataExchangeIwh);
                 SiteListUtility.CreateFolder(practiceSite, slUtility.listNameDataExchangeIwh, slUtility.listFolder4DataExchangeIwh);
 
+                //if (practiceSite.IsCKCC && SiteListUtility.DoesListExist(practiceSite.NewSiteUrl, slUtility.listNameDataExchangeCkcc) == false)
+                //{
+                //    SiteListUtility.ProvisionList(practiceSite, slUtility, slUtility.listNameDataExchangeCkcc, practiceCView);
+                //}
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameDataExchangeCkcc, slUtility.listFolder1DataExchangeCkcc);
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameDataExchangeCkcc, slUtility.listFolder2DataExchangeCkcc);
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameDataExchangeCkcc, slUtility.listFolder3DataExchangeCkcc);
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameDataExchangeCkcc, slUtility.listFolder4DataExchangeCkcc);
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameDataExchangeCkcc, slUtility.listFolder5DataExchangeCkcc);
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameDataExchangeCkcc, slUtility.listFolder6DataExchangeCkcc);
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameDataExchangeCkcc, slUtility.listFolder7DataExchangeCkcc);
+
                 if (!SiteFilesUtility.FileExists(practiceSite.NewSiteUrl, "Pages", slUtility.pageNameDataExchange + ".aspx"))
                 {
                     spUtility.InitializePage(practiceSite.NewSiteUrl, slUtility.pageNameDataExchange, slUtility.pageTitleDataExchange); 
@@ -402,6 +430,16 @@ namespace R_1_11_IWH
                 }
                 SiteListUtility.CreateFolder(practiceSite, slUtility.listNameRiskAdjustmentIwh, slUtility.listFolder1RiskAdjustmentIwh);
                 SiteListUtility.CreateFolder(practiceSite, slUtility.listNameRiskAdjustmentIwh, slUtility.listFolder2RiskAdjustmentIwh);
+
+                SitePermissionUtility.BreakRoleInheritanceOnList(practiceSite.NewSiteUrl, slUtility.listNameRiskAdjustmentIwh, "Risk_Adjustment_User", RoleType.Contributor);
+
+                //if (practiceSite.IsCKCC && SiteListUtility.DoesListExist(practiceSite.NewSiteUrl, slUtility.listNameRiskAdjustmentCkcc) == false)
+                //{
+                //    SiteListUtility.ProvisionList(practiceSite, slUtility, slUtility.listNameRiskAdjustmentCkcc, practiceCView);
+                //}
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameRiskAdjustmentCkcc, slUtility.listFolder1RiskAdjustmentCkcc);
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameRiskAdjustmentCkcc, slUtility.listFolder2RiskAdjustmentCkcc);
+                //SiteListUtility.CreateFolder(practiceSite, slUtility.listNameRiskAdjustmentCkcc, slUtility.listFolder3RiskAdjustmentCkcc);
 
                 if (!SiteFilesUtility.FileExists(practiceSite.NewSiteUrl, "Pages", slUtility.pageNameRiskAdjustment + ".aspx"))
                 {

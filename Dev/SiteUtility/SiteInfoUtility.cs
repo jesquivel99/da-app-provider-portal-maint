@@ -79,7 +79,7 @@ namespace SiteUtility
 
                             practice.CKCCArea = reader["CKCCArea"].ToString();
 
-                            if (practice.CKCCArea == "")
+                            if (practice.CKCCArea == "" || practice.CKCCArea == "NULL")
                                 practice.IsCKCC = false;
                             else
                                 practice.IsCKCC = true;
@@ -642,7 +642,7 @@ namespace SiteUtility
 
                     if (items.Count > 0)
                     {
-                        if (items[0].FieldValues["KCEArea"] != null)
+                        if (items[0].FieldValues["KCEArea"] != null && items[0].FieldValues["KCEArea"].ToString() != "" && items[0].FieldValues["KCEArea"].ToString() != "NULL")
                         {
                             strDescription = sTitle + " is a member of " + items[0].FieldValues["KCEArea"].ToString() + ". Program Participation: ";
                         }
@@ -678,7 +678,7 @@ namespace SiteUtility
 
             try
             {
-                if (practice.CKCCArea != null)
+                if (practice.CKCCArea != null && practice.CKCCArea != "" && practice.CKCCArea != "NULL")
                 {
                     strDescription = sTitle + " is a member of " + practice.CKCCArea.ToString() + ". Program Participation: ";
                 }
@@ -811,6 +811,10 @@ namespace SiteUtility
                 pracCKCCArea = SitePMData.formateSiteName(pracCKCCArea);
                 practice.CKCCArea = pracCKCCArea;
 
+                if (practice.CKCCArea == "NULL")
+                {
+                    practice.CKCCArea = "";
+                }
                 if (practice.CKCCArea == "Nsipa")
                 {
                     practice.CKCCArea = "NSIPA";
@@ -1019,7 +1023,7 @@ namespace SiteUtility
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("UpdatePmAdminGrp", ex.Message, "Error", "");
+                    SiteLogUtility.CreateLogEntry("UpdateSiteSettingsDesc", ex.Message, "Error", "");
                 }
             }
         }

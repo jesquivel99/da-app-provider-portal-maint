@@ -285,10 +285,18 @@ namespace SiteUtility
         }
         public static Boolean DoesFolderExist(FolderCollection fc, string fname)
         {
-            if (fc != null & fc.Count > 0)
-                return (fc.First(f => f.Name == fname) != null);
-            else
+            try
+            {
+                if (fc != null & fc.Count > 0)
+                    return (fc.First(f => f.Name == fname) != null);
+                else
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("DoesFolderExist", ex.Message, "Error", "");
                 return false;
+            }
         }
         public static void CreateFolder(Practice practiceSite, string docListName, string folderName)
         {

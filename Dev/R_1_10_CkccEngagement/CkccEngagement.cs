@@ -123,6 +123,7 @@ namespace R_1_10_CkccEngagement
         {
             SiteInfoUtility siteInfo = new SiteInfoUtility();
             SiteLogUtility slu = new SiteLogUtility();
+            SiteListUtility siteListUtility = new SiteListUtility();
 
             #region LoggerRegion
             const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
@@ -138,11 +139,13 @@ namespace R_1_10_CkccEngagement
 
             string pageName = "CkccEngagement";
             //string urlAdminGroup = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/portal/" + runPM;
-            string urlSiteAssets = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/interimckcc/referral";
+            //string urlSiteAssets = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/interimckcc/referral";
 
             try
             {
                 Practice practice = siteInfo.GetPracticeBySiteID(siteID);
+                string urlSiteAssets = SiteInfoUtility.GetReferralUrl(practice.NewSiteUrl);
+
                 if (practice != null)
                 {
                     try

@@ -292,7 +292,7 @@ namespace SiteUtility
                 }
                 catch (Exception ex)
                 {
-                    SiteLogUtility.CreateLogEntry("DeleteWebPart", ex.Message, "Error", webURL);
+                    SiteLogUtility.CreateLogEntry("DeleteWebPart", ex.Message, "Error", "");
                     clientContext.Dispose();
                 }
             }

@@ -68,7 +68,7 @@ namespace R_JE_120_CkccKce
             {
                 slu.LoggerInfo_Entry("========================================Release Starts========================================", true);
 
-                if (practice != null)
+                if (practice != null && practice.IsCKCC)
                 {
                     Init_AddCkccKce(practice, LayoutsFolder);
                 }
