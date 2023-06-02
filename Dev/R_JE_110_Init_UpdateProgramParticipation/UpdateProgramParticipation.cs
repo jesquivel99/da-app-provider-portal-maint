@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SiteUtility;
 using Serilog;
+using System.Configuration;
 
 namespace R_JE_110_Init_UpdateProgramParticipation
 {
@@ -12,6 +13,8 @@ namespace R_JE_110_Init_UpdateProgramParticipation
     {
         static readonly string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
         static ILogger logger;
+        static readonly string EmailToMe = ConfigurationManager.AppSettings["EmailStatusToMe"];
+
         public void InitProg()
         {
             #region LoggerRegion
@@ -62,7 +65,7 @@ namespace R_JE_110_Init_UpdateProgramParticipation
                 siteLogUtility.LoggerInfo_Entry("Total Practice Count: " + CntPrac, true);
                 siteLogUtility.LoggerInfo_Entry(SiteLogUtility.textLine0);
                 siteLogUtility.LoggerInfo_Entry("========================================Release Ends========================================", true);
-                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
             }
 
             Log.CloseAndFlush();
@@ -88,13 +91,13 @@ namespace R_JE_110_Init_UpdateProgramParticipation
 
             try
             {
-                siteLogUtility.LoggerInfo_Entry("-------------[ Deployment Started            ]-------------", true);
+                siteLogUtility.LoggerInfo_Entry("-------------[ UpdateProgram Participation Deployment Started            ]-------------", true);
                 if (practice != null)
                 {
                     siteLogUtility.LoggerInfoBody(practice);
                     siteInfoUtility.Init_UpdateAllProgramParticipation(practice);
                 }
-                siteLogUtility.LoggerInfo_Entry("-------------[ Deployment Completed              ]-------------", true);
+                siteLogUtility.LoggerInfo_Entry("-------------[ UpdateProgram Participation Deployment Completed              ]-------------", true);
             }
             catch (Exception ex)
             {

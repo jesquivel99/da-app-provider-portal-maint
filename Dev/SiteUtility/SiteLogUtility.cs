@@ -383,7 +383,23 @@ namespace SiteUtility
                 SiteLogUtility.CreateLogEntry("LoggerInfo_Entry", ex.Message, "Error", "", true);
             }
         }
-        
+        public static void LoggerInfoEntry(string logtext, bool consolePrint = false)
+        {
+            try
+            {
+                logger.Information(logtext);
+                SiteLogUtility.LogList.Add(logtext + "\n");
+                if (consolePrint)
+                {
+                    Console.WriteLine(logtext + "\n");
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("LoggerInfo_Entry", ex.Message, "Error", "", true);
+            }
+        }
+
         public static void LogFunction1()
         {
             Console.WriteLine("LogFunction 1");

@@ -6,6 +6,7 @@ using Microsoft.SharePoint.Client;
 using System.Net;
 using System.Globalization;
 using Serilog;
+using System.Configuration;
 
 namespace R_JE_100_MovePractice
 {
@@ -21,67 +22,33 @@ namespace R_JE_100_MovePractice
            .CreateLogger();
         static ILogger logger = _logger.ForContext<MovePractice>();
         const string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
-        //const string LayoutsFolder = @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\";
+
+        //const string LayoutsFolderDeploy = @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\";
+        //const string LayoutsFolderDeployIwn = @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\Iwn\";
+        readonly string LayoutsFolderDeploy = ConfigurationManager.AppSettings["LayoutsFolderDeploy"];
+        readonly string LayoutsFolderDeployIwn = ConfigurationManager.AppSettings["LayoutsFolderIwn"];
+        readonly string LayoutsFolderDeployImg = ConfigurationManager.AppSettings["LayoutsFolderImg"];
+        readonly string EmailToMe = ConfigurationManager.AppSettings["EmailStatusToMe"];
         public void InitiateProg()
         {
             SiteInfoUtility siteInfo = new SiteInfoUtility();
-
             List<Practice> practices = siteInfo.GetAllPractices();
             try
             {
-                LoggerInfo_Entry("\n\n=============[ Deployment - Start]=============", true);
-
                 if (practices != null && practices.Count > 0)
                 {
                     foreach (Practice practice in practices)
                     {
-                        SiteFilesUtility sfu = new SiteFilesUtility();
-
-                        //HTML Update Files - Deploy 9/09...
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_CarePlansDataTable.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_HospAlertDataTable.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_HospitalAlerts.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_MedAlertDataTable.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_MedicationAlerts.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_ProgramParTableData.html");
-
-                        /*
-                        //HTML Files for Landing Page
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_ProgramParticipation.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_ProgramParTableData.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_Home.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_RiskAdjustmentResources.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_CareCoordination.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_InteractiveInsights.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_Quality.html");
-
-                        //HTML Files for CareCoordination Page
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_CarePlans.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_CarePlans_Ckcc.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_HospitalAlerts.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_MedicationAlerts.html");
-
-                        //HTML Files for CarePlans Page
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_CarePlansDataTable.html");
-
-                        //HTML Files - Other
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_HospitalAlerts.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_MedicationAlerts.html");
-                        sfu.uploadHtmlSupportingFilesSingleFile(practice.NewSiteUrl, "cePrac_InteractiveInsights.html");
-
-                        UpdateUrlRef(practice, "Program Participation");
-                        SitePermissionUtility.RoleAssignment_AddPracUser(practice);
-                        SitePermissionUtility.RoleAssignment_AddPracReadOnly(practice);
-                        string adminUrl = LoadParentWeb("");
-                        UpdateProgramParticipation("", practice, "");
-                        UpdateProgramParticipation("", practice, "");
-                        SyncSiteDescription(practice.NewSiteUrl, practice.Name);
-                        //UpdateLogoUrl()
-                        //UpdateProgramMgrUrl()
-                        */
+                        try
+                        {
+                            Init_MoveUpdatePractice(practice);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Error(ex.Message);
+                        }
                     }
                 }
-                LoggerInfo_Entry("\n\n=============[ Deployment - End]=============", true);
             }
             catch (Exception ex)
             {
@@ -90,7 +57,7 @@ namespace R_JE_100_MovePractice
             finally
             {
                 LoggerInfo_Entry(SiteLogUtility.textLine0, true);
-                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
             }
             SiteLogUtility.Log_Entry("=============Release Ends=============", true);
 
@@ -105,7 +72,7 @@ namespace R_JE_100_MovePractice
             {
                 try
                 {
-                    Init_MoveUpdatePractice(practice, LayoutsFolder);
+                    Init_MoveUpdatePractice(practice);
                 }
                 catch (Exception ex)
                 {
@@ -114,13 +81,13 @@ namespace R_JE_100_MovePractice
                 finally
                 {
                     LoggerInfo_Entry(SiteLogUtility.textLine0);
-                    SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
+                    SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
                 }
                 Log.CloseAndFlush();
             }
         }
 
-        private void Init_MoveUpdatePractice(Practice practice, string layoutsFolder)
+        private void Init_MoveUpdatePractice(Practice practice)
         {
             SiteLogUtility siteLogUtility = new SiteLogUtility();
             SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
@@ -130,24 +97,24 @@ namespace R_JE_100_MovePractice
                 siteLogUtility.LoggerInfo_Entry("================ MoveUpdatePractice Deployment Started =====================", true);
                 siteLogUtility.LoggerInfo_Entry("================ " + practice.Name + " =====================", true);
 
-                Init_DocUpload(practice, layoutsFolder);
-                Init_Permissions(practice, layoutsFolder);
+                Init_DocUpload(practice);
+                Init_Permissions(practice);
                 UpdateUrlRef(practice, "Program Participation");
-                Init_DocUpload2(practice, layoutsFolder);
+                Init_DocUpload2(practice);
 
                 string pmUrl = LoadParentWeb(practice.NewSiteUrl);
                 SiteNavigateUtility.NavigationPracticeMntTop(practice.NewSiteUrl, pmUrl);
 
                 siteInfoUtility.Init_UpdateAllProgramParticipation(practice);
-                Init_UpdateProgramParticipation(practice, layoutsFolder);  // Program Participation Item Update - Img File...
+                Init_UpdateProgramParticipation(practice);  // Program Participation Item Update - Img File...
                 SiteInfoUtility.modifyWebPartProgramParticipation(practice.NewSiteUrl, practice);  // Resize...
-                SiteFilesUtility.uploadMultiPartSupportingFilesAll(practice.NewSiteUrl, practice, layoutsFolder);  // JavaScript...
+                SiteFilesUtility.uploadMultiPartSupportingFilesAll(practice.NewSiteUrl, practice);  // JavaScript...
 
                 SiteNavigateUtility.ClearQuickNavigationRecent(practice.NewSiteUrl);
                 SiteNavigateUtility.RenameQuickNavigationNode(practice.NewSiteUrl, "Quality Coming Soon", "Quality");
 
 
-                siteLogUtility.LoggerInfo_Entry("================ Deployment Completed =====================", true);
+                siteLogUtility.LoggerInfo_Entry("================ MoveUpdatePractice Deployment Completed =====================", true);
 
             }
             catch (Exception ex)
@@ -157,14 +124,14 @@ namespace R_JE_100_MovePractice
             }
         }
 
-        private void Init_Permissions(Practice practice, string layoutsFolder)
+        private void Init_Permissions(Practice practice)
         {
             string pracUserGroup = "Prac_" + practice.TIN + "_User";
             string pracUserROGroup = "Prac_" + practice.TIN + "_ReadOnly";
             try
             {
                 // Get all SP Groups from practice site...
-                List<string> listWebGroups = SitePermissionUtility.GetWebGroups(practice);
+                List<string> listWebGroups = SitePermissionUtility.GetWebGroups(practice.NewSiteUrl);
 
                 // Get PM group(s) and remove...
                 List<string> pmSiteManagerWebGroups = SitePermissionUtility.GetPMGroupSiteManager(listWebGroups);
@@ -215,7 +182,7 @@ namespace R_JE_100_MovePractice
             }
         }
 
-        private void Init_UpdateProgramParticipation(Practice practice, string layoutsFolder)
+        private void Init_UpdateProgramParticipation(Practice practice)
         {
             SiteLogUtility slu = new SiteLogUtility();
 
@@ -226,12 +193,12 @@ namespace R_JE_100_MovePractice
                     // CKCC/KCE Resources...
                     slu.LoggerInfo_Entry("Adding to Program Participation: " + SitePublishUtility.titleCkccKceResources, true);
                     SiteFilesUtility.updateProgramParticipation(practice.NewSiteUrl, SitePublishUtility.titleCkccKceResources,
-                            SitePublishUtility.pageCkccKceResources, layoutsFolder, SitePublishUtility.imgCkccKceResources);
+                            SitePublishUtility.pageCkccKceResources, LayoutsFolderDeployImg, SitePublishUtility.imgCkccKceResources);
 
                     // Patient Status Updates...
                     slu.LoggerInfo_Entry("Adding to Program Participation: " + SitePublishUtility.titlePatientStatusUpdates, true);
                     SiteFilesUtility.updateProgramParticipation(practice.NewSiteUrl, SitePublishUtility.titlePatientStatusUpdates,
-                            SitePublishUtility.pagePatientStatusUpdates, layoutsFolder, SitePublishUtility.imgPatientStatusUpdates);
+                            SitePublishUtility.pagePatientStatusUpdates, LayoutsFolderDeployImg, SitePublishUtility.imgPatientStatusUpdates);
                 }
 
                 if (practice.IsIWH)
@@ -262,26 +229,18 @@ namespace R_JE_100_MovePractice
             }
         }
 
-        private void Init_DocUpload(Practice practice, string layoutsFolder)
+        private void Init_DocUpload(Practice practice)
         {
             SiteFilesUtility sfu = new SiteFilesUtility();
 
             try
             {
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_ProgramParticipation.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_Home.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_RiskAdjustmentResources.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_Quality.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_InteractiveInsights.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "FHPIcon.JPG", "SiteAssets");
-
-                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CarePlans.html", "SiteAssets");
-                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CarePlansDataTable.html", "SiteAssets");
-                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_HospitalAlerts.html", "SiteAssets");
-                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_HospAlertDataTable.html", "SiteAssets");
-                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_MedicationAlerts.html", "SiteAssets");
-                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_MedAlertDataTable.html", "SiteAssets");
-                //sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CareCoordination.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolder + "cePrac_ProgramParticipation.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolder + "cePrac_Home.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolder + "cePrac_RiskAdjustmentResources.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolder + "cePrac_Quality.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolder + "cePrac_InteractiveInsights.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolderDeployIwn + "FHPIcon.JPG", "SiteAssets");
             }
             catch (Exception ex)
             {
@@ -289,19 +248,19 @@ namespace R_JE_100_MovePractice
                 SiteLogUtility.CreateLogEntry("Init_DocUpload", ex.Message, "Error", "", true);
             }
         }
-        private void Init_DocUpload2(Practice practice, string layoutsFolder)
+        private void Init_DocUpload2(Practice practice)
         {
             SiteFilesUtility sfu = new SiteFilesUtility();
 
             try
             {
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CarePlans.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CarePlansDataTable.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_HospitalAlerts.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_HospAlertDataTable.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_MedicationAlerts.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_MedAlertDataTable.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, layoutsFolder + "cePrac_CareCoordination.html", "SiteAssets");
+                SiteFilesUtility.UploadHtmlCarePlanPage(practice.NewSiteUrl, practice.IsCKCC);
+
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolder + "cePrac_CarePlansDataTable.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolder + "cePrac_HospAlertDataTable.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolder + "cePrac_MedicationAlerts.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolder + "cePrac_MedAlertDataTable.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, LayoutsFolder + "cePrac_CareCoordination.html", "SiteAssets");
             }
             catch (Exception ex)
             {

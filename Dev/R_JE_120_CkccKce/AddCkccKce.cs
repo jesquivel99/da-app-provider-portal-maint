@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -23,7 +24,10 @@ namespace R_JE_120_CkccKce
            .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp1)
            .CreateLogger();
         static ILogger logger = _logger.ForContext<AddCkccKce>();
-        const string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
+        //const string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
+        static string LayoutsFolder = ConfigurationManager.AppSettings["LayoutsFolderDeploy"];
+        static string LayoutsFolderImg = ConfigurationManager.AppSettings["LayoutsFolderImg"];
+        readonly string EmailToMe = ConfigurationManager.AppSettings["EmailStatusToMe"];
 
         public void InitProg()
         {
@@ -40,7 +44,7 @@ namespace R_JE_120_CkccKce
                 {
                     foreach (Practice practice in practices)
                     {
-                        Init_AddCkccKce(practice, LayoutsFolder);
+                        Init_AddCkccKce(practice);
                     }
                 }
             }
@@ -52,7 +56,7 @@ namespace R_JE_120_CkccKce
             {
                 slu.LoggerInfo_Entry(SiteLogUtility.textLine0);
                 slu.LoggerInfo_Entry("========================================Release Ends========================================", true);
-                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
             }
 
             Log.CloseAndFlush();
@@ -66,11 +70,11 @@ namespace R_JE_120_CkccKce
 
             try
             {
-                slu.LoggerInfo_Entry("========================================Release Starts========================================", true);
+                slu.LoggerInfo_Entry("======================================== AddCkccKce Release Starts ========================================", true);
 
                 if (practice != null && practice.IsCKCC)
                 {
-                    Init_AddCkccKce(practice, LayoutsFolder);
+                    Init_AddCkccKce(practice);
                 }
             }
             catch (Exception ex)
@@ -80,33 +84,29 @@ namespace R_JE_120_CkccKce
             finally
             {
                 slu.LoggerInfo_Entry(SiteLogUtility.textLine0);
-                slu.LoggerInfo_Entry("========================================Release Ends========================================", true);
-                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
+                slu.LoggerInfo_Entry("======================================== AddCkccKce Release Ends ========================================", true);
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
             }
 
             Log.CloseAndFlush();
         }
 
-        private void Init_AddCkccKce(Practice practice, string layoutsFolder)
+        private void Init_AddCkccKce(Practice practice)
         {
             SiteInfoUtility siu = new SiteInfoUtility();
             SiteLogUtility slu = new SiteLogUtility();
             try
             {
                 siu.Init_UpdateAllProgramParticipation(practice);
-                Init_DocUpload(practice, layoutsFolder);
-                Init_UpdateProgramParticipation(practice, layoutsFolder);  // Program Participation Item Update - Img File...
+                Init_DocUpload(practice);
+                Init_UpdateProgramParticipation(practice);  // Program Participation Item Update - Img File...
                 SiteInfoUtility.modifyWebPartProgramParticipation(practice.NewSiteUrl, practice);  // Resize...
-                SiteFilesUtility.uploadMultiPartSupportingFilesAll(practice.NewSiteUrl, practice, layoutsFolder);  // JavaScript...
+                SiteFilesUtility.uploadMultiPartSupportingFilesAll(practice.NewSiteUrl, practice);  // JavaScript...
 
-                //Init_CkccEngagement                              // CKCC KCE Engagement...
-                //Init_DialysisStarts(practice, layoutsFolder);    // Patient Status Updates...
-                Init_Benefit(practice, layoutsFolder);             // CKCC KCE Resources...
-                // SW-RD Referral...
-
-                Init_DataExchange(practice, layoutsFolder);
-                Init_RiskAdjustment(practice, layoutsFolder);
-                Init_Quality(practice, layoutsFolder);
+                Init_Benefit(practice);             // CKCC KCE Resources...
+                Init_DataExchange(practice);
+                Init_RiskAdjustment(practice);
+                Init_Quality(practice);
 
                 slu.LoggerInfo_Entry("Practice: " + practice.Name + " - " + practice.NewSiteUrl);
 
@@ -141,17 +141,17 @@ namespace R_JE_120_CkccKce
             }
         }
 
-        private void Init_DocUpload(Practice practice, string layoutsFolder)
+        private void Init_DocUpload(Practice practice)
         {
             SiteLogUtility slu = new SiteLogUtility();
             try
             {
                 SiteFilesUtility sfu = new SiteFilesUtility();
-                sfu.DocumentUpload(practice.NewSiteUrl, @layoutsFolder + "cePrac_ProgramParTableData.html", "SiteAssets");
-                sfu.DocumentUpload(practice.NewSiteUrl, @layoutsFolder + "SW_RD_Referrals.jpg", "SiteAssets/Img");
-                sfu.DocumentUpload(practice.NewSiteUrl, @layoutsFolder + "MedicationAlerts.JPG", "SiteAssets/Img");
-                sfu.DocumentUpload(practice.NewSiteUrl, @layoutsFolder + "HospitalAlerts.jpg", "SiteAssets/Img");
-                sfu.DocumentUpload(practice.NewSiteUrl, @layoutsFolder + "Quality.jpg", "SiteAssets/Img");
+                sfu.DocumentUpload(practice.NewSiteUrl, @LayoutsFolder + "cePrac_ProgramParTableData.html", "SiteAssets");
+                sfu.DocumentUpload(practice.NewSiteUrl, @LayoutsFolderImg + "SW_RD_Referrals.jpg", "SiteAssets/Img");
+                sfu.DocumentUpload(practice.NewSiteUrl, @LayoutsFolderImg + "MedicationAlerts.JPG", "SiteAssets/Img");
+                sfu.DocumentUpload(practice.NewSiteUrl, @LayoutsFolderImg + "HospitalAlerts.jpg", "SiteAssets/Img");
+                sfu.DocumentUpload(practice.NewSiteUrl, @LayoutsFolderImg + "Quality.jpg", "SiteAssets/Img");
             }
             catch (Exception ex)
             {
@@ -159,7 +159,7 @@ namespace R_JE_120_CkccKce
                 SiteLogUtility.CreateLogEntry("Init_DocUpload", ex.Message, "Error", "", true);
             }
         }
-        private void Init_UpdateProgramParticipation(Practice practice, string layoutsFolder)
+        private void Init_UpdateProgramParticipation(Practice practice)
         {
             try
             {
@@ -167,11 +167,11 @@ namespace R_JE_120_CkccKce
                 {
                     // CKCC/KCE Resources...
                     SiteFilesUtility.updateProgramParticipation(practice.NewSiteUrl, SitePublishUtility.titleCkccKceResources,
-                            SitePublishUtility.pageCkccKceResources, layoutsFolder, SitePublishUtility.imgCkccKceResources);
+                            SitePublishUtility.pageCkccKceResources, LayoutsFolderImg, SitePublishUtility.imgCkccKceResources);
 
                     // Patient Status Updates...
                     SiteFilesUtility.updateProgramParticipation(practice.NewSiteUrl, SitePublishUtility.titlePatientStatusUpdates,
-                            SitePublishUtility.pagePatientStatusUpdates, layoutsFolder, SitePublishUtility.imgPatientStatusUpdates); 
+                            SitePublishUtility.pagePatientStatusUpdates, LayoutsFolderImg, SitePublishUtility.imgPatientStatusUpdates); 
                 }
             }
             catch (Exception ex)
@@ -180,12 +180,10 @@ namespace R_JE_120_CkccKce
                 logger.Information(ex.Message);
             }
         }
-        private static void Init_Quality(Practice practiceSite, string layoutsFolder)
+        private static void Init_Quality(Practice practiceSite)
         {
             SiteLogUtility.Log_Entry("Init_Quality - In Progress...");
             bool ConfigSuccess = false;
-            //PublishingPage PPage = null;
-            string LayoutsFolderMnt = @layoutsFolder;
 
             SiteFilesUtility sfu = new SiteFilesUtility();
             SitePublishUtility spUtility = new SitePublishUtility();
@@ -203,8 +201,8 @@ namespace R_JE_120_CkccKce
                 }
 
                 spUtility.DeleteWebPart(practiceSite.NewSiteUrl, slUtility.pageNameQuality);
-                sfu.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "Quality_MultiTab.js", "SiteAssets");
-                sfu.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                sfu.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "Quality_MultiTab.js", "SiteAssets");
+                sfu.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "jquery-ui.theme.css", "SiteAssets");
                 sfu.uploadImageSupportingFilesSingleImage(practiceSite.NewSiteUrl, "Quality.jpg");
                 sfu.uploadHtmlSupportingFilesSingleFile(practiceSite.NewSiteUrl, "cePrac_Quality.html");
                 ConfigSuccess = SiteListUtility.ConfigureQualityPage(practiceSite.NewSiteUrl, practiceSite);
@@ -226,11 +224,10 @@ namespace R_JE_120_CkccKce
                 SiteLogUtility.CreateLogEntry("Init_Quality", ex.Message, "Error", "");
             }
         }
-        private static void Init_DataExchange(Practice practiceSite, string layoutsFolder)
+        private static void Init_DataExchange(Practice practiceSite)
         {
             SiteLogUtility.Log_Entry("Init_DataExchange - In Progress...");
             bool ConfigSuccess = false;
-            string LayoutsFolderMnt = @layoutsFolder;
 
             SiteFilesUtility sfUtility = new SiteFilesUtility();
             SitePublishUtility spUtility = new SitePublishUtility();
@@ -254,8 +251,8 @@ namespace R_JE_120_CkccKce
 
                 //spUtility.InitializePage(practiceSite.URL, slUtility.pageNameDataExchange, slUtility.pageTitleDataExchange);
                 spUtility.DeleteWebPart(practiceSite.NewSiteUrl, slUtility.pageNameDataExchange);
-                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "PracticeSiteTemplate_MultiTab.js", "SiteAssets");
-                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "PracticeSiteTemplate_MultiTab.js", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "jquery-ui.theme.css", "SiteAssets");
                 ConfigSuccess = SiteListUtility.ConfigureDocumentExchangePage(practiceSite.NewSiteUrl, practiceSite);
                 if (ConfigSuccess)
                 {
@@ -274,12 +271,11 @@ namespace R_JE_120_CkccKce
                 SiteLogUtility.CreateLogEntry("Init_DataExchange", ex.Message, "Error", "");
             }
         }
-        private static void Init_RiskAdjustment(Practice practiceSite, string layoutsFolder)
+        private static void Init_RiskAdjustment(Practice practiceSite)
         {
             SiteLogUtility.Log_Entry("Init_RiskAdjustment - In Progress...");
             bool ConfigSuccess = false;
             PublishingPage PPage = null;
-            string LayoutsFolderMnt = @layoutsFolder;
 
             SiteFilesUtility sfUtility = new SiteFilesUtility();
             SitePublishUtility spUtility = new SitePublishUtility();
@@ -298,8 +294,8 @@ namespace R_JE_120_CkccKce
 
                 //spUtility.InitializePage(practiceSite.URL, slUtility.pageNameRiskAdjustment, slUtility.pageTitleRiskAdjustment);
                 spUtility.DeleteWebPart(practiceSite.NewSiteUrl, slUtility.pageNameRiskAdjustment);
-                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "RiskAdjustment.js", "SiteAssets");
-                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "RiskAdjustment.js", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "jquery-ui.theme.css", "SiteAssets");
                 ConfigSuccess = SiteListUtility.ConfigureRiskAdjustmentPage(practiceSite.NewSiteUrl, practiceSite);
                 if (ConfigSuccess)
                 {
@@ -319,7 +315,7 @@ namespace R_JE_120_CkccKce
             }
             //cntIsIwh++;
         }
-        private static void Init_Benefit(Practice practiceSite, string layoutsFolder)
+        private static void Init_Benefit(Practice practiceSite)
         {
             SiteLogUtility.Log_Entry("Init_Benefit - In Progress...");
             bool ConfigSuccess = false;
@@ -343,8 +339,8 @@ namespace R_JE_120_CkccKce
                     spu.InitializePage(practiceSite.NewSiteUrl, slu.pageNameBenefitEnhancement, slu.pageTitleBenefitEnhancement);
                 }
                 spu.DeleteWebPart(practiceSite.NewSiteUrl, slu.pageNameBenefitEnhancement);
-                sfu.DocumentUpload(practiceSite.NewSiteUrl, layoutsFolder + "BenefitEnhancement_MultiTab.js", "SiteAssets");
-                sfu.DocumentUpload(practiceSite.NewSiteUrl, layoutsFolder + "jquery-ui.theme.css", "SiteAssets");
+                sfu.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "BenefitEnhancement_MultiTab.js", "SiteAssets");
+                sfu.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "jquery-ui.theme.css", "SiteAssets");
                 ConfigSuccess = SiteListUtility.ConfigureBenefitEnhancementPage(practiceSite.NewSiteUrl, practiceSite);
                 if (ConfigSuccess)
                 {

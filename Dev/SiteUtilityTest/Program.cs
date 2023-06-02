@@ -9,6 +9,8 @@ using R_1_7_Referrall;
 using Release_1_4;
 using R_1_9_MedAlertHospitalizeAlerts;
 using R_DW_110_MD_Timesheet;
+using R_SS_130_TransitionManagement;
+using R_1_9_PayorEnrollment;
 using System.Collections.Generic;
 
 namespace SiteUtilityTest
@@ -17,19 +19,12 @@ namespace SiteUtilityTest
     {
         static void Main(string[] args)
         {
-            /* Maintenance after CORE deployment...
-             * program participation - CKCC/KCE Resources
-             * program participation - Patient Status Updates
-             * Data Exchange
-             * Risk Adjustment
-             * Quality
-             * hospitalization alerts
-             * medication alerts
-             * 
-             */
-
             List<string> pracList = new List<string>();
-            pracList.Add("92027241279");
+            pracList.Add("94026153649");
+            pracList.Add("90478722389");
+            pracList.Add("93708603959");
+            pracList.Add("96755254749");
+            pracList.Add("99244625749");
 
             foreach (string siteId in pracList)
             {
@@ -42,16 +37,12 @@ namespace SiteUtilityTest
                 //--------------------------------------------------------
                 // Run Maintenance Code to Complete a new site Deployment
                 //--------------------------------------------------------
-                CompleteNewSiteDeployment(siteId);
+                //CompleteNewSiteDeployment(siteId);
 
+                ProgramNew_JE programNew_JE = new ProgramNew_JE();
+                programNew_JE.InitiateProg(siteId);
             }
 
-            // Deploy MD Timesheet for AIN
-            //MD_TimesheetDeploy objMD_TimesheetDeploy = new MD_TimesheetDeploy();
-            //objMD_TimesheetDeploy.InitiateProg("97438072639");
-
-            //ProgramNew_SS objSS = new ProgramNew_SS();
-            //objSS.InitiateProg();
         }
         static void CompleteNewSiteDeployment(string siteID)
         {
@@ -64,11 +55,14 @@ namespace SiteUtilityTest
             //MedAlertHospitalizeAlerts medAlertHospitalizeAlerts = new MedAlertHospitalizeAlerts();
             //medAlertHospitalizeAlerts.InitiateProg(siteID);
 
+            //TransitionManagement transitionManagement = new TransitionManagement();
+            //transitionManagement.InitiateProg(siteID);
+
             //AddIWH addIWH = new AddIWH();
             //addIWH.InitProg(siteID);
 
-            ProgramNew_JE programNew_JE = new ProgramNew_JE();
-            programNew_JE.InitiateProg(siteID);
+            //PayorEnrollment payorEnrollment = new PayorEnrollment();
+            //payorEnrollment.Init_PayorEnrollment(siteID);
 
             //AddReferrall addReferrall = new AddReferrall();
             //addReferrall.InitiateProg(siteID);

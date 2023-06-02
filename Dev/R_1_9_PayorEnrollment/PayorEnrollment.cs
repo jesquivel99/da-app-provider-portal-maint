@@ -12,75 +12,154 @@ using System.Threading.Tasks;
 
 namespace R_1_9_PayorEnrollment
 {
-    class Program
+    public class PayorEnrollment
     {
-        const string outputTemp = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
-           static ILogger _logger = Log.Logger = new LoggerConfiguration()
-               .MinimumLevel.Debug()
-               .Enrich.FromLogContext()
-               .WriteTo.Console()
-               .WriteTo.File("Logs/ex_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp)
-               .CreateLogger();
+        //const string outputTemp = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+        //   static ILogger _logger = Log.Logger = new LoggerConfiguration()
+        //       .MinimumLevel.Debug()
+        //       .Enrich.FromLogContext()
+        //       .WriteTo.Console()
+        //       .WriteTo.File("Logs/ex_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp)
+        //       .CreateLogger();
 
+        static Guid _listGuid = Guid.Empty;
+        static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
+        const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+        static ILogger _logger = Log.Logger = new LoggerConfiguration()
+           .MinimumLevel.Debug()
+           .Enrich.FromLogContext()
+           .WriteTo.Console()
+           .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp1)
+           .CreateLogger();
+        static ILogger logger = _logger.ForContext<PayorEnrollment>();
+
+        const string LayoutsFolder = @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\";
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         static string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
-        static void Main(string[] args)
+        //static void Main(string[] args)
+        //{
+        //    _logger.Information("InitiateProg() started...");
+
+        //    using (ClientContext clientContext = new ClientContext(strPortalSiteURL))
+        //    {
+        //        clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+
+        //        try
+        //        {
+        //            List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
+        //            foreach (ProgramManagerSite pm in practicePMSites)
+        //            {
+        //                if (pm.ProgramManager == "10")
+        //                {
+        //                    foreach (PracticeSite psite in pm.PracticeSiteCollection)
+        //                    {
+        //                        List<PMData> pmd = SiteInfoUtility.SP_GetAll_PMData(pm.URL, psite.SiteId);
+        //                        if (pmd.Count > 0)
+        //                        {
+        //                            if (pmd[0].IsKC365 == "true")
+        //                            {
+        //                                if (PayorEnrollment_Setup(psite.URL + "/"))
+        //                                {
+        //                                    _logger.Information(psite.Name + " setup is completed");
+        //                                }
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logger.Error(ex.Message + " " + ex.StackTrace);
+        //        }
+
+
+        //        _logger.Information("Maintenance Tasks Completed Successfully!");
+        //    }
+        //}
+
+        public void Init_PayorEnrollment()
         {
-            _logger.Information("InitiateProg() started...");
+            SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
 
-            using (ClientContext clientContext = new ClientContext(strPortalSiteURL))
+            //List<Practice> practices = siteInfo.GetPracticesByPM("10");
+            List<Practice> practices = siteInfoUtility.GetAllPractices();
+            if (practices != null && practices.Count > 0)
             {
-                clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
-
                 try
                 {
-                    List<ProgramManagerSite> practicePMSites = SiteInfoUtility.GetAllPracticeDetails(clientContext);
-                    foreach (ProgramManagerSite pm in practicePMSites)
+                    _logger.Information("================ Deployment Started =====================", true);
+                    int intLoop = 0;
+
+                    foreach (Practice practice in practices)
                     {
-                        if (pm.ProgramManager == "10")
+                        if (practice.IsKC365)
                         {
-                            foreach (PracticeSite psite in pm.PracticeSiteCollection)
-                            {
-                                List<PMData> pmd = SiteInfoUtility.SP_GetAll_PMData(pm.URL, psite.SiteId);
-                                if (pmd.Count > 0)
-                                {
-                                    if (pmd[0].IsKC365 == "true")
-                                    {
-                                        if (PayorEnrollment_Setup(psite.URL + "/"))
-                                        {
-                                            _logger.Information(psite.Name + " setup is completed");
-                                        }
-                                    }
-                                }
-                            }
+                            PayorEnrollment_Setup(practice.NewSiteUrl, practice.SiteID);
+                            _logger.Information(practice.Name + "  .. Html Updated.", true);
+                            _logger.Information(practice.NewSiteUrl, true);
+                            intLoop++; 
                         }
                     }
+
+                    _logger.Information("Total Practices: " + intLoop, true);
+                    _logger.Information("================ Deployment Completed =====================", true);
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex.Message + " " + ex.StackTrace);
+                    SiteLogUtility.CreateLogEntry("Init_PayorEnrollment", ex.Message, "Error", "");
                 }
-
-
-                _logger.Information("Maintenance Tasks Completed Successfully!");
             }
         }
+        public void Init_PayorEnrollment(string siteId)
+        {
+            SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
 
-
-        public static bool PayorEnrollment_Setup(string siteUrl)
+            Practice practice = siteInfoUtility.GetPracticeBySiteID(siteId);
+            if (practice != null && practice.IsKC365)
+            {
+                try
+                {
+                    _logger.Information("================ PayorEnrollment Started =====================", true);
+                    PayorEnrollment_Setup(practice.NewSiteUrl, practice.SiteID);
+                    _logger.Information(practice.Name + "  .. Html Updated.", true);
+                    _logger.Information("================ PayorEnrollment Completed =====================", true);
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("Init_PayorEnrollment(siteId)", ex.Message, "Error", "");
+                }
+            }
+        }
+        public static bool PayorEnrollment_Setup(string siteUrl, string siteId)
         {
             try
             {
-                SiteFilesUtility objSiteFiles = new SiteFilesUtility();
-                objSiteFiles.DocumentUpload(siteUrl, @"C:\Users\nalkazaki\OneDrive - Fresenius Medical Care\Documents\VisualStudio\PayorEnrollment\PayorEnrollment.html", "SiteAssets");
-                objSiteFiles.DocumentUpload(siteUrl, @"C:\Users\nalkazaki\OneDrive - Fresenius Medical Care\Documents\VisualStudio\PayorEnrollment\bootstrap-float-label.min.css", "SiteAssets");
+                SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
+                SiteFilesUtility siteFilesUtility = new SiteFilesUtility();
+                Practice practice = siteInfoUtility.GetPracticeBySiteID(siteId);
+                string urlSiteAssets = SiteInfoUtility.GetReferralUrl(practice.NewSiteUrl);
+
+                //siteFilesUtility.DocumentUpload(siteUrl, @"C:\Users\nalkazaki\OneDrive - Fresenius Medical Care\Documents\VisualStudio\PayorEnrollment\PayorEnrollment.html", "SiteAssets");
+                //siteFilesUtility.DocumentUpload(siteUrl, @"C:\Users\nalkazaki\OneDrive - Fresenius Medical Care\Documents\VisualStudio\PayorEnrollment\bootstrap-float-label.min.css", "SiteAssets");
+
+                //siteFilesUtility.DocumentUpload(siteUrl, @layoutsFolder + "PayorEnrollment.html", "SiteAssets");
+                //siteFilesUtility.DocumentUpload(siteUrl, @layoutsFolder + "bootstrap-float-label.min.css", "SiteAssets");
 
                 if (!SiteFilesUtility.FileExists(siteUrl, "Pages", "PayorEnrollment.aspx"))
                 {
-                    createPayorEnrollmentPage(siteUrl, "PayorEnrollment", "Payor Enrollment", "1000px", siteUrl + "SiteAssets/PayorEnrollment.html");
+                    createPayorEnrollmentPage(siteUrl, "PayorEnrollment", "Payor Enrollment", "1000px", urlSiteAssets + "/SiteAssets/PayorEnrollment.html");
                 }
 
                 updateProgramParticipation(siteUrl);
+
+                //AddPermissionGroup_PayorEnrollment(siteId, "Referrals", "Contribute_NoDelete");             // Dev...
+                //AddPermissionGroup_PayorEnrollment(siteId, "ReferralsPrevious", "Contribute_NoDelete");     // Dev...
+                AddPermissionGroup_PayorEnrollment(siteId, "Referrals", "Contribute Edit Only");             // Prod...
+                AddPermissionGroup_PayorEnrollment(siteId, "ReferralsPrevious", "Contribute Edit Only");     // Prod...
+
+                logger.Information(" Payor Enrollment setup is completed");
+
                 return true;
             }
             catch (Exception ex)
@@ -90,6 +169,23 @@ namespace R_1_9_PayorEnrollment
             }
 
 
+        }
+
+        public static void AddPermissionGroup_PayorEnrollment(string siteId, string listName, string permType)
+        {
+            SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
+            Practice practice = siteInfoUtility.GetPracticeBySiteID(siteId);
+            try
+            {
+                string pracUserGroup = "Prac_" + practice.TIN + "_User";
+                string strReferralURL = SiteInfoUtility.GetPayorEnrollmentUrl(practice.NewSiteUrl);  //NO SLASH AT THE END
+
+                SitePermissionUtility.AddSecurityGroupToList(strReferralURL, pracUserGroup, listName, permType);
+            }
+            catch (Exception ex)
+            {
+                logger.Information(ex.Message);
+            }
         }
 
         public static void createPayorEnrollmentPage(string siteUrl, string strPageName, string strTitle, string strWPWidth, string strContentWPLink)
@@ -212,7 +308,7 @@ namespace R_1_9_PayorEnrollment
                     }
                     else
                     {
-                        string fileLocation = @"C:\Users\nalkazaki\OneDrive - Fresenius Medical Care\Documents\VisualStudio\PayorEnrollment\";
+                        string fileLocation = @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\";
                         string fileName = "PracticeReferrals.JPG";
 
                         byte[] f = System.IO.File.ReadAllBytes(fileLocation + fileName);

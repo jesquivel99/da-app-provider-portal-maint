@@ -14,7 +14,6 @@ namespace R_1_10_CkccEngagement
 {
     public class CkccEngagement
     {
-        static string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
         static public List<Practice> practicesIWH = new List<Practice>();
         static public List<Practice> practicesCKCC = new List<Practice>();
         static int cntRun = 0;
@@ -146,14 +145,14 @@ namespace R_1_10_CkccEngagement
                 Practice practice = siteInfo.GetPracticeBySiteID(siteID);
                 string urlSiteAssets = SiteInfoUtility.GetReferralUrl(practice.NewSiteUrl);
 
-                if (practice != null)
+                if (practice != null && practice.IsTelephonic)
                 {
                     try
                     {
-                        slu.LoggerInfo_Entry("================ Deployment Started =====================", true);
+                        slu.LoggerInfo_Entry("================ CkccEngagement Deployment Started =====================", true);
                         CkccEngagementSetup(practice, pageName, urlSiteAssets);
                         slu.LoggerInfo_Entry(practice.Name + "  .. Html Updated.", true);
-                        slu.LoggerInfo_Entry("================ Deployment Completed =====================", true);
+                        slu.LoggerInfo_Entry("================ CkccEngagement Deployment Completed =====================", true);
                     }
                     catch (Exception ex)
                     {

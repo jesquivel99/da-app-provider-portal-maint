@@ -113,6 +113,10 @@
       <Project>{94839857-0a9b-45be-bdf1-96b984b4e0f1}</Project>
       <Name>R_1_9_MedAlertHospitalizeAlerts</Name>
     </ProjectReference>
+    <ProjectReference Include="..\R_1_9_PayorEnrollment\R_1_9_PayorEnrollment.csproj">
+      <Project>{e0363025-183e-4a0b-8ad4-ed5800a3e75a}</Project>
+      <Name>R_1_9_PayorEnrollment</Name>
+    </ProjectReference>
     <ProjectReference Include="..\R_JE_110_Init_UpdateProgramParticipation\R_JE_110_UpdateProgramParticipation.csproj">
       <Project>{c9d17a4e-dbd8-45cd-9e6e-4665cedb1227}</Project>
       <Name>R_JE_110_UpdateProgramParticipation</Name>

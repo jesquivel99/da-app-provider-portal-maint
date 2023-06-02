@@ -346,9 +346,9 @@ namespace SiteUtility
                 return "";
             }
         }
-        public static List<string> GetWebGroups(Practice pracInfo)
+        public static List<string> GetWebGroups(string wUrl)
         {
-            var path = pracInfo.NewSiteUrl;
+            var path = wUrl;
             List<string> listWebGrp = new List<string>();
 
             try
@@ -575,6 +575,42 @@ namespace SiteUtility
             }
 
             return true;
+        }
+        public static void AddSecurityGroupToList(string strURL, string strSecurityGroupName, string strListName, string strPermissionType)
+        {
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(strURL))
+                {
+                    List targetList = clientContext.Web.Lists.GetByTitle(strListName);
+                    clientContext.Load(targetList, target => target.HasUniqueRoleAssignments);
+                    clientContext.ExecuteQuery();
+
+                    if (targetList.HasUniqueRoleAssignments)
+                    {
+                        // Write group name to be added in the list
+                        Group group = clientContext.Web.SiteGroups.GetByName(strSecurityGroupName);
+                        RoleDefinitionBindingCollection roleDefCollection = new RoleDefinitionBindingCollection(clientContext);
+
+                        // Set the permission level of the group for this particular list
+                        RoleDefinition readDef = clientContext.Web.RoleDefinitions.GetByName(strPermissionType);
+                        roleDefCollection.Add(readDef);
+
+                        Principal userGroup = group;
+                        RoleAssignment roleAssign = targetList.RoleAssignments.Add(userGroup, roleDefCollection);
+
+                        clientContext.Load(roleAssign);
+                        roleAssign.Update();
+                        clientContext.ExecuteQuery();
+
+                        logger.Information("Group {0} Added to {1} with Permission Type = {2}", strSecurityGroupName, strListName, strPermissionType);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("AddSecurityGroupToList", ex.Message, "Error", "");
+            }
         }
     }
 }

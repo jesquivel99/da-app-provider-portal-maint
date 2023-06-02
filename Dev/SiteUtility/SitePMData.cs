@@ -463,7 +463,15 @@ namespace SiteUtility
         public static string changeSiteNameTitleCaseNxt(string strSiteName)
         {
             TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
-            string strNewText = textInfo.ToTitleCase(strSiteName.Split(',')[0].ToLower()) + "," + strSiteName.Split(',')[1].ToString();
+            string strNewText;
+            if (strSiteName.Contains(")") && strSiteName.Split(',').Count() == 3)
+            {
+                strNewText = textInfo.ToTitleCase(strSiteName.Split(',')[0].ToLower()) + "," + strSiteName.Split(',')[1].ToString() + "," + strSiteName.Split(',')[2].ToString(); 
+            }
+            else
+            {
+                strNewText = textInfo.ToTitleCase(strSiteName.Split(',')[0].ToLower()) + "," + strSiteName.Split(',')[1].ToString();
+            }
             if (strNewText.Contains("Of"))
             {
                 strNewText = strNewText.Replace("Of", "of");

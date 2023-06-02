@@ -47,10 +47,10 @@ namespace R_DW_100_CarePlanHtmlUpdate
             {
                 try
                 {
-                    slu.LoggerInfo_Entry("================ Deployment Started =====================", true);
+                    slu.LoggerInfo_Entry("================ CarePlanHtmlUpdate Deployment Started =====================", true);
                     UpdateCarePlanHtmlFile(practice.NewSiteUrl);
                     slu.LoggerInfo_Entry(practice.Name + "  .. Html Updated.", true);
-                    slu.LoggerInfo_Entry("================ Deployment Completed =====================", true);
+                    slu.LoggerInfo_Entry("================ CarePlanHtmlUpdate Deployment Completed =====================", true);
                 }
                 catch (Exception ex)
                 {
@@ -63,9 +63,7 @@ namespace R_DW_100_CarePlanHtmlUpdate
             try
             {
                 SiteFilesUtility objFilesSite = new SiteFilesUtility();
-                //objFilesSite.DocumentUpload(strURL, @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\cePrac_CarePlansDataTable.html", "SiteAssets");
 
-                //HTML Update Files - Deploy 9/09...
                 objFilesSite.DocumentUpload(strURL, @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\cePrac_CarePlansDataTable.html", "SiteAssets");
                 objFilesSite.DocumentUpload(strURL, @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\cePrac_HospAlertDataTable.html", "SiteAssets");
                 //objFilesSite.DocumentUpload(strURL, @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\cePrac_HospitalAlerts.html", "SiteAssets");

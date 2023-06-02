@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_DW_110_MD_Timesheet", "R_
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_SS_130_TransitionManagement", "R_SS_130_TransitionManagement\R_SS_130_TransitionManagement.csproj", "{70500A15-ACDC-46C0-8445-E51FD55E4CED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R_1_9_PayorEnrollment", "R_1_9_PayorEnrollment\R_1_9_PayorEnrollment.csproj", "{E0363025-183E-4A0B-8AD4-ED5800A3E75A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -123,6 +125,10 @@ Global
 		{70500A15-ACDC-46C0-8445-E51FD55E4CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70500A15-ACDC-46C0-8445-E51FD55E4CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70500A15-ACDC-46C0-8445-E51FD55E4CED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0363025-183E-4A0B-8AD4-ED5800A3E75A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0363025-183E-4A0B-8AD4-ED5800A3E75A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0363025-183E-4A0B-8AD4-ED5800A3E75A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0363025-183E-4A0B-8AD4-ED5800A3E75A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -131,7 +137,7 @@ Global
 		SolutionGuid = {31813A0A-12DA-4840-B68C-846C9614C493}
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 20
+		SccNumberOfProjects = 21
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = http://or-tfs-svr-01:8080/tfs/defaultcollection
 		SccLocalPath0 = .
@@ -192,5 +198,8 @@ Global
 		SccProjectUniqueName19 = R_SS_130_TransitionManagement\\R_SS_130_TransitionManagement.csproj
 		SccProjectName19 = R_SS_130_TransitionManagement
 		SccLocalPath19 = R_SS_130_TransitionManagement
+		SccProjectUniqueName20 = R_1_9_PayorEnrollment\\R_1_9_PayorEnrollment.csproj
+		SccProjectName20 = R_1_9_PayorEnrollment
+		SccLocalPath20 = R_1_9_PayorEnrollment
 	EndGlobalSection
 EndGlobal

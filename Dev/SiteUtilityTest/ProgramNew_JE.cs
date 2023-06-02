@@ -21,6 +21,7 @@ namespace SiteUtilityTest
         //   .CreateLogger();
         static ILogger logger = Log.ForContext<ProgramNew_JE>();
         private Guid _listGuid = Guid.Empty;
+        readonly string EmailToMe = ConfigurationManager.AppSettings["EmailStatusToMe"];
         public void InitiateProg()
         {
             string releaseName = "SiteUtilityTest";
@@ -50,6 +51,8 @@ namespace SiteUtilityTest
                         //SiteUtility.SitePMData.InitialConnectDBPortalDeployed("PM06");
                         
                         siteLogUtility.LoggerInfoBody(practice);
+                        siteLogUtility.LoggerInfoBody(practice);
+                        siteInfoUtility.Init_UpdateAllProgramParticipation(practice);
 
                         //SiteNavigateUtility.ClearQuickNavigationRecent(practice.NewSiteUrl);
                         SiteNavigateUtility.RenameQuickNavigationNode(practice.NewSiteUrl, "Hospitalization Alert", "Hospitalization Alerts");
@@ -67,7 +70,7 @@ namespace SiteUtilityTest
                 {
                     siteLogUtility.LoggerInfo_Entry(SiteLogUtility.textLine0);
                     //SiteLogUtility.finalLog("Final: " + releaseName);
-                    SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
+                    SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
                 }
                 siteLogUtility.LoggerInfo_Entry("========================================Release Ends========================================");
             }
@@ -94,14 +97,18 @@ namespace SiteUtilityTest
 
                 try
                 {
-                    //string sHsptlAlertListName = "HospitalizationAlert";
-                    //siteListUtility.CreateListColumn("<Field Type='Note' DisplayName='Diagnosis' Name='Diagnosis' />", sHsptlAlertListName, practice.NewSiteUrl);
+                    siteLogUtility.LoggerInfo_Entry("======================================== ProgramNew_JE - Release Start ========================================", true);
 
+                    siteLogUtility.LoggerInfoBody(practice);
                     //Init_BuildXmlConfig();
                     //Init_AddPayorEnrollment(practices);
 
                     //Testing...
-                    SitePermissionUtility.BreakRoleInheritanceOnList(practice.NewSiteUrl, siteListUtility.listNameRiskAdjustmentIwh, "Risk_Adjustment_User", RoleType.Contributor);
+                    //siteLogUtility.LoggerInfoBody(practice);
+                    //siteInfoUtility.Init_UpdateAllProgramParticipation(practice);
+                    //AddPermissionGroup_PayorEnrollment(siteId,"Referrals", "Contribute_NoDelete");
+                    //AddPermissionGroup_PayorEnrollment(siteId,"ReferralsPrevious", "Contribute_NoDelete");
+                    //SitePermissionUtility.BreakRoleInheritanceOnList(practice.NewSiteUrl, siteListUtility.listNameRiskAdjustmentIwh, "Risk_Adjustment_User", RoleType.Contributor);
                     //BreakRoleInheritanceForList(practice.NewSiteUrl, "RiskAdjustment_ckcc");
                     //BreakRoleInheritanceForList(practice.NewSiteUrl, "RiskAdjustment_iwh");
                     //SiteNavigateUtility.ClearQuickNavigationRecent(practice.NewSiteUrl);
@@ -115,12 +122,31 @@ namespace SiteUtilityTest
                 finally
                 {
                     siteLogUtility.LoggerInfo_Entry(SiteLogUtility.textLine0);
+                    siteLogUtility.LoggerInfo_Entry("======================================== ProgramNew_JE - Release End ========================================", true);
+
                     //SiteLogUtility.finalLog("Final: " + releaseName);
                     //SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
                 }
             }
 
             //Log.CloseAndFlush();
+        }
+
+        public void AddPermissionGroup_PayorEnrollment(string siteId, string listName, string permType)
+        {
+            SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
+            Practice practice = siteInfoUtility.GetPracticeBySiteID(siteId);
+            try
+            {
+                string pracUserGroup = "Prac_" + practice.TIN + "_User";
+                string strReferralURL = SiteInfoUtility.GetPayorEnrollmentUrl(practice.NewSiteUrl);  //NO SLASH AT THE END
+
+                SitePermissionUtility.AddSecurityGroupToList(strReferralURL, pracUserGroup, listName, permType);
+            }
+            catch (Exception ex)
+            {
+                logger.Information(ex.Message);
+            }
         }
 
         private void Init_AddPayorEnrollment(List<Practice> practices)
@@ -135,7 +161,12 @@ namespace SiteUtilityTest
                     {
                         if (PayorEnrollment_Setup(practice, practice.NewSiteUrl))
                         {
-                            logger.Information(practice.Name + " setup is completed");
+                            UpdateUrlRef(practice, "Program Participation");
+                            AddPermissionGroup_PayorEnrollment(practice.SiteID, "Referrals", "Contribute_NoDelete");
+                            AddPermissionGroup_PayorEnrollment(practice.SiteID, "ReferralsPrevious", "Contribute_NoDelete");
+
+                            logger.Information(practice.Name);
+                            logger.Information(" Payor Enrollment setup is completed");
                         }
                     } 
                 }
@@ -457,7 +488,7 @@ namespace SiteUtilityTest
                     }
                     else
                     {
-                        string fileLocation = @"C:\Users\nalkazaki\OneDrive - Fresenius Medical Care\Documents\VisualStudio\PayorEnrollment\";
+                        string fileLocation = @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Images\";
                         string fileName = "PracticeReferrals.JPG";
 
                         byte[] f = System.IO.File.ReadAllBytes(fileLocation + fileName);
@@ -602,6 +633,75 @@ namespace SiteUtilityTest
                 logger.Error(ex.Message + " " + ex.StackTrace);
             }
             return intHeight[intCount - 1];
+        }
+
+        private static void UpdateUrlRef(Practice psite, string listName)
+        {
+            SiteLogUtility siteLogUtility = new SiteLogUtility();
+            try
+            {
+                using (ClientContext clientContext = new ClientContext(psite.NewSiteUrl))
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    Web web = clientContext.Web;
+                    List list = web.Lists.GetByTitle(listName);
+                    var items = list.GetItems(CamlQuery.CreateAllItemsQuery());
+
+                    clientContext.Load(items);
+                    clientContext.ExecuteQuery();
+
+
+                    foreach (var item in items)
+                    {
+                        var fndTitle = item["Title"].ToString();
+                        string thumbNail = GetProgramParticipationImg(fndTitle);
+                        item["Thumbnail"] = psite.NewSiteUrl + "/Program%20Participation/" + thumbNail;
+                        item.Update();
+                        clientContext.ExecuteQuery();
+                        logger.Information($">>> {item["Title"]} - Thumbnail = {item["Thumbnail"]}", true);
+                        siteLogUtility.LoggerInfo_Entry($">>> {item["Title"]} - Thumbnail = {item["Thumbnail"]}", true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("UpdateSortCol", ex.Message, "Error", "");
+            }
+        }
+        private static string GetProgramParticipationImg(string fndTitle)
+        {
+            string thumbNail = string.Empty;
+            try
+            {
+                switch (fndTitle)
+                {
+                    case SiteListUtility.progpart_PayorEnrollment:
+                        thumbNail = "PracticeReferrals.JPG";
+                        break;
+                    case SiteListUtility.progpart_CkccKceResources:
+                        thumbNail = "KCEckcc.JPG";
+                        break;
+                    case SiteListUtility.progpart_PayorProgeducation:
+                        thumbNail = "EducationReviewPro.JPG";
+                        break;
+                    case SiteListUtility.progpart_PatientStatusUpdates:
+                        thumbNail = "optimalstarts.jpg";
+                        break;
+                    case SiteListUtility.progpart_CkccKceEngagement:
+                        thumbNail = "CKCC_KCEEngagement.png";
+                        break;
+
+
+                    default:
+                        thumbNail = "";
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("GetProgramParticipationImg", ex.Message, "Error", "");
+            }
+            return thumbNail;
         }
     }
 }

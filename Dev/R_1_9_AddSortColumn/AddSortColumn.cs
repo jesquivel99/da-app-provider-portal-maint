@@ -17,6 +17,7 @@ namespace R_JE_109_AddSortColumn
         public static List<ProgPart> progParts = new List<ProgPart>();
         static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
         static ILogger logger;
+        readonly string EmailToMe = ConfigurationManager.AppSettings["EmailStatusToMe"];
 
         public void InitiateProg()
         {
@@ -79,7 +80,7 @@ namespace R_JE_109_AddSortColumn
                 LoggerInfo_Entry("Total Practice Count: " + CntPrac, true);
                 LoggerInfo_Entry("Total Practice Did Not Exist Count: " + CntNoPrac, true);
                 LoggerInfo_Entry(SiteLogUtility.textLine0);
-                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
             }
             Log.CloseAndFlush();
         }
@@ -100,7 +101,7 @@ namespace R_JE_109_AddSortColumn
             SiteInfoUtility siteInfo = new SiteInfoUtility();
             int CntPrac = 0;
 
-            LoggerInfo_Entry("-------------[ Deployment Started            ]-------------", true);
+            LoggerInfo_Entry("-------------[ AddSortColumn Deployment Started            ]-------------", true);
 
             Practice practice = siteInfo.GetPracticeBySiteID(siteID);
             if (practice != null)
@@ -133,6 +134,8 @@ namespace R_JE_109_AddSortColumn
                     LoggerInfo_Entry(SiteLogUtility.textLine0);
                     LoggerInfo_Entry("Total Practice Count: " + CntPrac, true);
                     LoggerInfo_Entry(SiteLogUtility.textLine0);
+                    LoggerInfo_Entry("-------------[ AddSortColumn Deployment Started            ]-------------", true);
+
                     //SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
                 }
                 Log.CloseAndFlush();

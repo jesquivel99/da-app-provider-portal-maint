@@ -5,6 +5,7 @@ using Microsoft.SharePoint.Client;
 using Microsoft.SharePoint.Client.WebParts;
 using System.Net;
 using Serilog;
+using System.Configuration;
 
 namespace Release_1_4
 {
@@ -20,7 +21,7 @@ namespace Release_1_4
            .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp1)
            .CreateLogger();
         static ILogger logger = _logger.ForContext<AddDialysisStart>();
-        static string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
+        static string LayoutsFolderImg = ConfigurationManager.AppSettings["LayoutsFolderImg"];
         public void InitProg()
         {
             SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
@@ -64,7 +65,7 @@ namespace Release_1_4
 
             try
             {
-                siteLogUtility.LoggerInfo_Entry("\n\n=============Release Starts=============", true);
+                siteLogUtility.LoggerInfo_Entry("\n\n============= AddDialysisStart Release Starts=============", true);
 
                 if (practice != null)
                 {
@@ -82,7 +83,7 @@ namespace Release_1_4
             finally
             {
                 siteLogUtility.LoggerInfo_Entry(SiteLogUtility.textLine0, true);
-                siteLogUtility.LoggerInfo_Entry("=============Release Ends=============", true);
+                siteLogUtility.LoggerInfo_Entry("============= AddDialysisStart Release Ends =============", true);
             }
         }
         public static void DialysisStartsSetup(Practice psite, string pageName, string urlSiteAssets)
@@ -99,7 +100,7 @@ namespace Release_1_4
                 spUtility.DeleteWebPart(psite.NewSiteUrl, pageName);
                 ConfigureDialysisStartsPage(psite.NewSiteUrl, urlSiteAssets, pageName);
 
-                uploadProgramPracticeSupportFilesDialysisStarts(psite, LayoutsFolderMnt);
+                uploadProgramPracticeSupportFilesDialysisStarts(psite);
                 modifyWebPartProgramParticipation(psite.NewSiteUrl, psite);
             }
             catch (Exception ex)
@@ -515,16 +516,9 @@ namespace Release_1_4
 
         //    return pmData;
         //}
-        public static void uploadProgramPracticeSupportFilesDialysisStarts(Practice practiceSite, string layoutsFolder)
+        public static void uploadProgramPracticeSupportFilesDialysisStarts(Practice practiceSite)
         {
             SiteLogUtility.Log_Entry("   uploadProgramPracticeSupportFilesDialysisStarts - In Progress...");
-            //string siteType = practiceSite.siteType;
-
-            //if (siteType == "")
-            //{
-            //    return;
-            //}
-            string LayoutsFolder = @layoutsFolder;
             using (ClientContext clientContext = new ClientContext(practiceSite.NewSiteUrl))
             {
                 try
@@ -536,7 +530,7 @@ namespace Release_1_4
                     string LibraryName = "Program Participation";
                     string fileName3 = "optimalstarts.jpg";
 
-                    byte[] f3 = System.IO.File.ReadAllBytes(LayoutsFolder + fileName3);
+                    byte[] f3 = System.IO.File.ReadAllBytes(LayoutsFolderImg + fileName3);
 
                     FileCreationInformation fc3 = new FileCreationInformation();
                     fc3.Url = fileName3;

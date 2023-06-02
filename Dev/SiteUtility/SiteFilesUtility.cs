@@ -7,12 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Serilog;
+using System.Configuration;
 
 namespace SiteUtility
 {
     public class SiteFilesUtility
     {
         static ILogger _logger = Log.ForContext<SiteFilesUtility>();
+        static readonly string LayoutsFolderDeploy = ConfigurationManager.AppSettings["LayoutsFolderDeploy"];
+        static readonly string LayoutsFolderDeployIwn = ConfigurationManager.AppSettings["LayoutsFolderIwn"];
+        static readonly string LayoutsFolderDeployImg = ConfigurationManager.AppSettings["LayoutsFolderImg"];
         public void DocumentUpload(string siteURL, string filePath, string LibraryName)
         {
             SiteLogUtility.Log_Entry("   DocumentUpload - In Progress...");
@@ -162,7 +166,6 @@ namespace SiteUtility
         public void uploadHtmlSupportingFilesSingleFile(string wUrl, string htmlFileName)
         {
             SiteLogUtility.Log_Entry("   UploadHtmlSupportingFilesSingleFile - " + htmlFileName);
-            string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
             using (ClientContext clientContext = new ClientContext(wUrl))
             {
                 try
@@ -174,7 +177,7 @@ namespace SiteUtility
 
 
                     // Get cePrac html files...
-                    string[] cePracFiles = Directory.GetFiles(LayoutsFolderMnt, "cePrac*.html");
+                    string[] cePracFiles = Directory.GetFiles(LayoutsFolderDeploy, "cePrac*.html");
 
                     // File into byte array and add to List<>...
                     foreach (var item in cePracFiles)
@@ -562,6 +565,61 @@ namespace SiteUtility
                 }
             }
         }
+        private void UploadFilesToSubFolder(string wUrl)
+        {
+            using (ClientContext clientContext = new ClientContext(wUrl))
+            {
+                try
+                {
+                    clientContext.Credentials = new NetworkCredential(SiteCredentialUtility.UserName, SiteCredentialUtility.Password, SiteCredentialUtility.Domain);
+                    var web = clientContext.Web;
+                    string LibraryName = "Site Assets";
+                    List<FileCreationInformation> imgFileCreateInfo = new List<FileCreationInformation>();
+
+                    // Get jpg files...
+                    string[] files0 = Directory.GetFiles(Path.Combine(LayoutsFolderDeployImg, "Img"), "*.*");
+
+                    // Create FileCreateInfo and add to List<>...
+                    foreach (var item in files0)
+                    {
+                        byte[] f0 = System.IO.File.ReadAllBytes(item);
+                        FileInfo fileName = new FileInfo(Path.GetFileName(item));
+
+                        FileCreationInformation fc0 = new FileCreationInformation();
+                        fc0.Url = fileName.ToString();
+                        fc0.Overwrite = true;
+                        fc0.Content = f0;
+
+                        imgFileCreateInfo.Add(fc0);
+                    }
+
+                    // Get Site Assets
+                    List myLibrary = web.Lists.GetByTitle(LibraryName);
+                    clientContext.ExecuteQuery();
+
+                    // Upload image files to "Site Assets/Img" folder...
+                    clientContext.Load(myLibrary.RootFolder.Folders);
+                    clientContext.ExecuteQuery();
+
+                    foreach (Folder SubFolder in myLibrary.RootFolder.Folders)
+                    {
+                        if (SubFolder.Name.Equals("Img"))
+                        {
+                            foreach (FileCreationInformation fileCreationInfo in imgFileCreateInfo)
+                            {
+                                clientContext.Load(SubFolder.Files.Add(fileCreationInfo));
+                            }
+                            clientContext.ExecuteQuery();
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    SiteLogUtility.CreateLogEntry("uploadImageSupportingFiles", ex.Message, "Error", "");
+                }
+            }
+        }
         public static void updateProgramParticipation(string siteUrl, string progPartTitle, string progPartPage, string LayoutsFolder, string progPartImgFile)
         {
             //string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
@@ -858,11 +916,11 @@ namespace SiteUtility
         public static object lockObjBenefitEnhancement = new object();
         public static object lockObjQuality = new object();
         public static object lockObjPayorEducation = new object();
-        public static void uploadMultiPartSupportingFilesAll(string wUrl, Practice practiceSite, string layoutsFolder)
+        public static void uploadMultiPartSupportingFilesAll(string wUrl, Practice practiceSite)
         {
             SiteLogUtility siteLogUtility = new SiteLogUtility();
 
-            string LayoutsFolderMnt = layoutsFolder;
+            string LayoutsFolder = LayoutsFolderDeploy;
             try
             {
                 SiteListUtility slu = new SiteListUtility();
@@ -872,11 +930,11 @@ namespace SiteUtility
                 string strJSContentQuality = "";
                 string strJSContentPayorEducation = "";
 
-                string strJSFileServerPathDataExchange = LayoutsFolderMnt + "PracticeSiteTemplate_MultiTab.js";
-                string strJSFileServerPathRiskAdjustment = LayoutsFolderMnt + "RiskAdjustment.js";
-                string strJSFileServerPathBenefitEnhancement = LayoutsFolderMnt + "BenefitEnhancement_MultiTab.js";
-                string strJSFileServerPathQuality = LayoutsFolderMnt + "Quality_MultiTab.js";
-                string strJSFileServerPathPayorEducation = LayoutsFolderMnt + "PayorEducation_MultiTab.js";
+                string strJSFileServerPathDataExchange = LayoutsFolder + "PracticeSiteTemplate_MultiTab.js";
+                string strJSFileServerPathRiskAdjustment = LayoutsFolder + "RiskAdjustment.js";
+                string strJSFileServerPathBenefitEnhancement = LayoutsFolder + "BenefitEnhancement_MultiTab.js";
+                string strJSFileServerPathQuality = LayoutsFolder + "Quality_MultiTab.js";
+                string strJSFileServerPathPayorEducation = LayoutsFolder + "PayorEducation_MultiTab.js";
 
                 if (practiceSite.IsIWH)
                 {
@@ -974,9 +1032,9 @@ namespace SiteUtility
                 SiteLogUtility.CreateLogEntry("uploadMultiPartSupportingFilesAll", ex.Message, "Error", "");
             }
         }
-        public static void uploadMultiPartSupportingFilesIwh(string wUrl, PracticeSite practiceSite)
+        public static void UploadMultiPartSupportingFilesIwh(string wUrl, PracticeSite practiceSite)
         {
-            string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
+            string LayoutsFolder = @LayoutsFolderDeploy;
             try
             {
                 SiteListUtility slu = new SiteListUtility();
@@ -985,10 +1043,10 @@ namespace SiteUtility
                 string strJSContentQuality = "";
                 string strJSContentPayorEducation = "";
 
-                string strJSFileServerPathDataExchange = LayoutsFolderMnt + "PracticeSiteTemplate_MultiTab.js";
-                string strJSFileServerPathRiskAdjustment = LayoutsFolderMnt + "RiskAdjustment.js";
-                string strJSFileServerPathQuality = LayoutsFolderMnt + "Quality_MultiTab.js";
-                string strJSFileServerPathPayorEducation = LayoutsFolderMnt + "PayorEducation_MultiTab.js";
+                string strJSFileServerPathDataExchange = LayoutsFolder + "PracticeSiteTemplate_MultiTab.js";
+                string strJSFileServerPathRiskAdjustment = LayoutsFolder + "RiskAdjustment.js";
+                string strJSFileServerPathQuality = LayoutsFolder + "Quality_MultiTab.js";
+                string strJSFileServerPathPayorEducation = LayoutsFolder + "PayorEducation_MultiTab.js";
 
                 if (practiceSite.IsIWH.Equals("true"))
                 {
@@ -1110,7 +1168,29 @@ namespace SiteUtility
                 }
             }
         }
-
+        public static void UploadHtmlCarePlanPage(string wUrl, bool isCkcc)
+        {
+            SiteFilesUtility siteFilesUtility = new SiteFilesUtility();
+            string layoutsFolder = ConfigurationManager.AppSettings["LayoutsFolderDeploy"];
+            string layoutsFolderIwn = ConfigurationManager.AppSettings["LayoutsFolderIwn"];
+            try
+            {
+                if (isCkcc)
+                {
+                    siteFilesUtility.DocumentUpload(wUrl, layoutsFolder + "cePrac_CarePlans.html", "SiteAssets");
+                    siteFilesUtility.DocumentUpload(wUrl, layoutsFolder + "cePrac_HospitalAlerts.html", "SiteAssets");
+                }
+                else
+                {
+                    siteFilesUtility.DocumentUpload(wUrl, layoutsFolderIwn + "cePrac_CarePlans.html", "SiteAssets");
+                    siteFilesUtility.DocumentUpload(wUrl, layoutsFolderIwn + "cePrac_HospitalAlerts.html", "SiteAssets");
+                }
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("UploadHtmlCarePlanPage", ex.Message, "Error", "");
+            }
+        }
 
     }
 }

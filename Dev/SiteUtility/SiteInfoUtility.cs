@@ -1119,6 +1119,34 @@ namespace SiteUtility
                 return string.Empty;
             }
         }
+        public static string GetPayorEnrollmentUrl(string sUrl)
+        {
+            SiteInfoUtility siu = new SiteInfoUtility();
+            try
+            {
+                string rootSite = siu.GetRootSite(sUrl);
+                string urlPayorEnrollment = string.Empty;
+
+                // "https://sharepoint.fmc-na-icg.com/bi/fhppp/iwn/EnrollmentReferrals";
+                // "https://sharepointdev.fmc-na-icg.com/bi/fhppp/iwn/EnrollmentReferrals";
+
+                if (rootSite.Contains("sharepointdev"))
+                {
+                    urlPayorEnrollment = @"https://sharepointdev.fmc-na-icg.com/bi/fhppp/iwn/EnrollmentReferrals";
+                }
+                else
+                {
+                    urlPayorEnrollment = @"https://sharepoint.fmc-na-icg.com/bi/fhppp/iwn/EnrollmentReferrals";
+                }
+
+                return urlPayorEnrollment;
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("GetReferralUrl", ex.Message, "Error", "");
+                return string.Empty;
+            }
+        }
 
         public static string DecryptPTIN(string s)
         {
@@ -1143,6 +1171,24 @@ namespace SiteUtility
             {
                 SiteLogUtility.CreateLogEntry("DecryptPTIN", ex.Message, "Error", "");
                 return s;
+            }
+        }
+        public static string PTINtoSiteId(string pTin)
+        {
+            try
+            {
+                int sLen = pTin.Length;
+
+                char[] charArray = pTin.ToCharArray();
+                Array.Reverse(charArray);
+                string siteId = "9" + new string(charArray) + "9";
+                //return new string(charArray);
+                return siteId;
+            }
+            catch (Exception ex)
+            {
+                SiteLogUtility.CreateLogEntry("PTINtoSiteId", ex.Message, "Error", "");
+                return pTin;
             }
         }
 

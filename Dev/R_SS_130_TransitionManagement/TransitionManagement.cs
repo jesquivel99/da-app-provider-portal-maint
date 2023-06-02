@@ -8,40 +8,50 @@ using Microsoft.SharePoint.Client;
 using Microsoft.SharePoint.Client.WebParts;
 using SiteUtility;
 using System.Configuration;
+using Serilog;
 
 namespace R_SS_130_TransitionManagement
 {
-    public class Program
+    public class TransitionManagement
     {
+        //static Guid _listGuid = Guid.Empty;
+        //static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
+        //const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
+
         static Guid _listGuid = Guid.Empty;
         static string dateHrMin = DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString();
         const string outputTemp1 = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] ({SourceContext}) {Message}{NewLine}{Exception}";
-       
-        const string LayoutsFolder = @"C:\Users\ssaleh\Downloads\";
+        static ILogger _logger = Log.Logger = new LoggerConfiguration()
+           .MinimumLevel.Debug()
+           .Enrich.FromLogContext()
+           .WriteTo.Console()
+           .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: outputTemp1)
+           .CreateLogger();
+        static ILogger logger = _logger.ForContext<TransitionManagement>();
+
+        //const string LayoutsFolder = @"C:\Users\ssaleh\Downloads\";
+        readonly string LayoutsFolder = ConfigurationManager.AppSettings["LayoutsFolderDeploy"];
+        readonly string LayoutsFolderIwn = ConfigurationManager.AppSettings["LayoutsFolderIwn"];
+        readonly string EmailToMe = ConfigurationManager.AppSettings["EmailStatusToMe"];
+
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
-        public static void Main(string[] args)
+        public void InitiateProg()
         {
             SiteInfoUtility siu = new SiteInfoUtility();
             SiteLogUtility slu = new SiteLogUtility();
             List<Practice> practices = siu.GetAllPractices();
             try
             {
-                slu.LoggerInfo_Entry("========================================Release Starts========================================", true);
+                slu.LoggerInfo_Entry("======================================== TransitionManagement Release Starts ========================================", true);
                 int intLoop = 0;
                 if (practices != null && practices.Count > 0)
                 {
                     foreach (Practice practice in practices)
                     {
-                        if (intLoop > 16)
-                        {
-                            //uploadHospAlertRelatedHTMLfile(practice.NewSiteUrl);
-                            Program objP = new Program();
-                            objP.TransitionSetup(practice.NewSiteUrl, LayoutsFolder, practice.IsCKCC);
-                            Console.WriteLine(intLoop + ". " + practice.Name + "  ..  Hosp Alert file uploaded.");
-                            Console.WriteLine("=======================================");
-                        }
-                        intLoop++;
+                        TransitionManagement objP = new TransitionManagement();
+                        objP.TransitionSetup(practice.NewSiteUrl, LayoutsFolder, LayoutsFolderIwn, practice.IsCKCC);
+                        logger.Information(practice.Name + "  ..  Transition Management Complete");
                     }
                 }
             }
@@ -52,34 +62,61 @@ namespace R_SS_130_TransitionManagement
             finally
             {
                 slu.LoggerInfo_Entry(SiteLogUtility.textLine0);
-                slu.LoggerInfo_Entry("========================================Release Ends========================================", true);
-                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
+                slu.LoggerInfo_Entry("======================================== TransitionManagement Release Ends ========================================", true);
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
+            }
+
+            //Log.CloseAndFlush();
+        }
+        public void InitiateProg(string siteId)
+        {
+            SiteInfoUtility siu = new SiteInfoUtility();
+            SiteLogUtility slu = new SiteLogUtility();
+            Practice practice = siu.GetPracticeBySiteID(siteId);
+            try
+            {
+                slu.LoggerInfo_Entry("======================================== TransitionManagement Release Starts ========================================", true);
+                if (practice != null)
+                {
+                    TransitionManagement objP = new TransitionManagement();
+                    objP.TransitionSetup(practice.NewSiteUrl, LayoutsFolder, LayoutsFolderIwn, practice.IsCKCC);
+                    slu.LoggerInfo_Entry(practice.Name + "  ..  Transition Management Complete");
+                }
+            }
+            catch (Exception ex)
+            {
+                slu.LoggerInfo_Entry("Error: " + ex.Message, true);
+            }
+            finally
+            {
+                slu.LoggerInfo_Entry(SiteLogUtility.textLine0);
+                slu.LoggerInfo_Entry("======================================== TransitionManagement Release Ends ========================================", true);
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
             }
 
             //Log.CloseAndFlush();
         }
 
 
-        public void TransitionSetup(string sitrUrl, string layoutsFolder, bool strIsCKCC)
+        public void TransitionSetup(string sitrUrl, string layoutsFolder, string layoutsFolderIwn, bool strIsCKCC)
         {
             try
             {
                 String strWebPartName = strIsCKCC ? "Hospital Alerts" : "Care Plans";
                 SiteFilesUtility objSiteFiles = new SiteFilesUtility();
-                objSiteFiles.DocumentUpload(sitrUrl, @layoutsFolder + "cePrac_CarePlansDataTable.html", "SiteAssets");
                 if (strIsCKCC)
                 {
                     objSiteFiles.DocumentUpload(sitrUrl, @layoutsFolder + "cePrac_HospitalAlerts.html", "SiteAssets");
                 }
                 else
                 {
-                    objSiteFiles.DocumentUpload(sitrUrl, @layoutsFolder + "cePrac_CarePlans.html", "SiteAssets");
+                    objSiteFiles.DocumentUpload(sitrUrl, @layoutsFolderIwn + "cePrac_CarePlans.html", "SiteAssets");
                 }
                 objSiteFiles.DocumentUpload(sitrUrl, @layoutsFolder + "cePrac_TransitionDataTable.html", "SiteAssets");
                 objSiteFiles.DocumentUpload(sitrUrl, @layoutsFolder + "TransitionManagement.jpg", "SiteAssets/Img");
-                increaseHospitalizationAlertWPHeight(sitrUrl, strWebPartName);
-                configureTransitionPage(sitrUrl, "TransitionPlan", "Transition Management", "666px", "1200px", sitrUrl + "SiteAssets/cePrac_TransitionDataTable.html");
-                addTransitionPageNavigationNode(sitrUrl);
+                IncreaseHospitalizationAlertWPHeight(sitrUrl, strWebPartName);
+                ConfigureTransitionPage(sitrUrl, "TransitionPlan", "Transition Management", "666px", "1200px", sitrUrl + "SiteAssets/cePrac_TransitionDataTable.html");
+                AddTransitionPageNavigationNode(sitrUrl);
             }
             catch (Exception ex)
             {
@@ -87,7 +124,7 @@ namespace R_SS_130_TransitionManagement
             }
         }
 
-        public void configureTransitionPage(string webUrl, string strPageName, string strTitle, string strWPHeight, string strWPWidth, string strContentWPLink)
+        public void ConfigureTransitionPage(string webUrl, string strPageName, string strTitle, string strWPHeight, string strWPWidth, string strContentWPLink)
         {
             try
             {
@@ -111,7 +148,7 @@ namespace R_SS_130_TransitionManagement
                     {
                         LimitedWebPartManager olimitedwebpartmanager = file.GetLimitedWebPartManager(Microsoft.SharePoint.Client.WebParts.PersonalizationScope.Shared);
 
-                        WebPartDefinition wpd1 = olimitedwebpartmanager.ImportWebPart(contentEditorXML(strTitle, strWPHeight, strWPWidth, strContentWPLink));
+                        WebPartDefinition wpd1 = olimitedwebpartmanager.ImportWebPart(ContentEditorXML(strTitle, strWPHeight, strWPWidth, strContentWPLink));
                         wpd1.WebPart.Title = strTitle;
                         olimitedwebpartmanager.AddWebPart(wpd1.WebPart, "CenterLeftColumn", 1);
 
@@ -135,7 +172,7 @@ namespace R_SS_130_TransitionManagement
                 SiteLogUtility.CreateLogEntry("ConfigureTransitionPage", ex.Message, "Error", strPortalSiteURL);
             }
         }
-        public string contentEditorXML(string webPartTitle, string webPartHeight, string webPartWidth, string webPartContentLink)
+        public string ContentEditorXML(string webPartTitle, string webPartHeight, string webPartWidth, string webPartContentLink)
         {
             string strXML = "";
             strXML = String.Format("<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
@@ -173,7 +210,7 @@ namespace R_SS_130_TransitionManagement
             return strXML;
         }
 
-        public void increaseHospitalizationAlertWPHeight(string webURL, string strWebPartName)
+        public void IncreaseHospitalizationAlertWPHeight(string webURL, string strWebPartName)
         {
             var pageRelativeUrl = "/Pages/CareCoordination.aspx";
             using (ClientContext clientContext = new ClientContext(webURL))
@@ -220,7 +257,7 @@ namespace R_SS_130_TransitionManagement
             }
         }
 
-        public void addTransitionPageNavigationNode(string webUrl)
+        public void AddTransitionPageNavigationNode(string webUrl)
         {
             try
             {

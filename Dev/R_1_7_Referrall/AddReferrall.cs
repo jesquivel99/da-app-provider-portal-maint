@@ -76,6 +76,8 @@ namespace R_1_7_Referrall
                 {
                     if (practice.IsCKCC == true)
                     {
+                        slu.LoggerInfo_Entry("======================================== AddReferral - Release Start ========================================", true);
+
                         ReferralSetup(practice.NewSiteUrl, LayoutsFolder, practice.SiteID);
 
                         slu.LoggerInfo_Entry(practice.NewSiteUrl, true);
@@ -93,7 +95,7 @@ namespace R_1_7_Referrall
             {
                 slu.LoggerInfo_Entry("=======================================");
                 slu.LoggerInfo_Entry("3. Maintenance Tasks Complete - Complete");
-                slu.LoggerInfo_Entry("=============Release Ends=============");
+                slu.LoggerInfo_Entry("======================================== AddReferral - Release End ========================================", true);
                 SiteLogUtility.CreateLogEntry("PracticeSite-Maint - SiteUtilityTest", "=============Release Ends=============", "Log", "");
             }
         }

@@ -27,7 +27,7 @@ namespace R_1_9_MedAlertHospitalizeAlerts
 
         string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
         string strPortalSiteURL = ConfigurationManager.AppSettings["SP_SiteUrl"];
-        string LayoutsFolder = ConfigurationManager.AppSettings["LayoutsFolderMnt"];
+        string LayoutsFolder = ConfigurationManager.AppSettings["LayoutsFolderDeploy"];
 
         public void InitiateProg()
         {
@@ -106,6 +106,8 @@ namespace R_1_9_MedAlertHospitalizeAlerts
 
             try
             {
+                siteLogUtility.LoggerInfo_Entry("======================================== MedAlertHositalizeAlerts - Release Start ========================================", true);
+
                 siteLogUtility.LoggerInfoBody(practice);
                 //SiteNavigateUtility.NavigationPracticeMnt(practice.NewSiteUrl, SiteInfoUtility.GetPMUrl(practice.NewSiteUrl));  //maybe only on Dev...
                 objListUtility.ProvisionField(practice, "CarePlan", "FaxType");
@@ -123,7 +125,7 @@ namespace R_1_9_MedAlertHospitalizeAlerts
             finally
             {
                 siteLogUtility.LoggerInfo_Entry(SiteLogUtility.textLine0);
-                siteLogUtility.LoggerInfo_Entry("========================================MedAlertHositalizeAlerts - Release Ends========================================", true);
+                siteLogUtility.LoggerInfo_Entry("======================================== MedAlertHositalizeAlerts - Release Ends ========================================", true);
                 //SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@freseniusmedicalcare.com");
             }
 

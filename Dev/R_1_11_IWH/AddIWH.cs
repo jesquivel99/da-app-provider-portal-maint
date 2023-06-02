@@ -10,6 +10,7 @@ using System.Net;
 using System.Xml;
 using System.Reflection;
 using Serilog;
+using System.Configuration;
 
 namespace R_1_11_IWH
 {
@@ -25,7 +26,8 @@ namespace R_1_11_IWH
            .WriteTo.File("Logs/maint" + dateHrMin + "_.log", rollingInterval: RollingInterval.Day, shared: false, outputTemplate: outputTemp1)
            .CreateLogger();
         static ILogger logger = _logger.ForContext<AddIWH>();
-
+        readonly string EmailToMe = ConfigurationManager.AppSettings["EmailStatusToMe"];
+        static readonly string LayoutsFolder = ConfigurationManager.AppSettings["LayoutsFolderDeploy"];
         public void InitProg()
         {
             SiteInfoUtility siteInfo = new SiteInfoUtility();
@@ -44,9 +46,9 @@ namespace R_1_11_IWH
                     foreach (Practice practice in practices)
                     {
                         {
-                            uploadProgramPracticeSupportFilesIwnPayorEd(practice);                // Image...
-                            modifyWebPartProgramParticipation(practice.NewSiteUrl, practice);     // Resize...
-                            uploadMultiPartSupportingFilesAll(practice.NewSiteUrl, practice);     // JavaScript...
+                            UploadProgramPracticeSupportFilesIwnPayorEd(practice);                // Image...
+                            ModifyWebPartProgramParticipation(practice.NewSiteUrl, practice);     // Resize...
+                            UploadMultiPartSupportingFilesAll(practice.NewSiteUrl, practice);     // JavaScript...
 
                             Init_Payor(practice);
                             Init_DataExchange(practice);
@@ -72,7 +74,7 @@ namespace R_1_11_IWH
                 LoggerInfo_Entry("Total Practice Count: " + CntPrac, true);
                 LoggerInfo_Entry(SiteLogUtility.textLine0);
                 LoggerInfo_Entry("========================================Release Ends========================================", true);
-                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
             }
 
             Log.CloseAndFlush();
@@ -85,34 +87,28 @@ namespace R_1_11_IWH
 
             try
             {
-                LoggerInfo_Entry("========================================Release Starts========================================", true);
+                LoggerInfo_Entry("======================================== AddIWH Starts ========================================", true);
 
                 if (practice != null)
-                //if (practices != null && practices.Count > 0)
                 {
-                    //foreach (Practice practice in practices)
-                    {
-                        {
-                            //siteInfo.Init_UpdateAllProgramParticipation(practice);
-                            //return;
+                    //siteInfo.Init_UpdateAllProgramParticipation(practice);
+                    //return;
 
-                            uploadProgramPracticeSupportFilesIwnPayorEd(practice);                // Image...
-                            modifyWebPartProgramParticipation(practice.NewSiteUrl, practice);     // Resize...
-                            uploadMultiPartSupportingFilesAll(practice.NewSiteUrl, practice);     // JavaScript...
+                    UploadProgramPracticeSupportFilesIwnPayorEd(practice);                // Image...
+                    ModifyWebPartProgramParticipation(practice.NewSiteUrl, practice);     // Resize...
+                    UploadMultiPartSupportingFilesAll(practice.NewSiteUrl, practice);     // JavaScript...
 
-                            Init_Payor(practice);
-                            Init_DataExchange(practice);
-                            Init_RiskAdjustment(practice);
-                            Init_Quality(practice);
-                            Init_CarePlan(practice);
+                    Init_Payor(practice);
+                    Init_DataExchange(practice);
+                    Init_RiskAdjustment(practice);
+                    Init_Quality(practice);
+                    Init_CarePlan(practice);
 
-                            LoggerInfo_Entry("Practice: " + practice.Name + " - " + practice.NewSiteUrl);
+                    SiteLogUtility.LoggerInfoEntry("Practice: " + practice.Name + " - " + practice.NewSiteUrl);
 
-                            SiteNavigateUtility.ClearQuickNavigationRecent(practice.NewSiteUrl);
-                            SiteNavigateUtility.RenameQuickNavigationNode(practice.NewSiteUrl, "Quality Coming Soon", "Quality");
-                            CntPrac++;
-                        }
-                    }
+                    SiteNavigateUtility.ClearQuickNavigationRecent(practice.NewSiteUrl);
+                    SiteNavigateUtility.RenameQuickNavigationNode(practice.NewSiteUrl, "Quality Coming Soon", "Quality");
+                    CntPrac++;
                 }
             }
             catch (Exception ex)
@@ -124,8 +120,8 @@ namespace R_1_11_IWH
                 LoggerInfo_Entry(SiteLogUtility.textLine0);
                 LoggerInfo_Entry("Total Practice Count: " + CntPrac, true);
                 LoggerInfo_Entry(SiteLogUtility.textLine0);
-                LoggerInfo_Entry("========================================Release Ends========================================", true);
-                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", "james.esquivel@interwellhealth.com");
+                LoggerInfo_Entry("======================================== AddIWH Ends ========================================", true);
+                SiteLogUtility.email_toMe(String.Join("\n", SiteLogUtility.LogList), "LogFile", EmailToMe);
             }
 
             Log.CloseAndFlush();
@@ -143,6 +139,7 @@ namespace R_1_11_IWH
                 if(practice.IsCKCC == false && practice.IsIWH == true)
                 {
                     siteFilesUtility.DocumentUpload(practice.NewSiteUrl, LayoutsFolderIwn + "cePrac_CarePlans.html", "SiteAssets");
+                    SiteLogUtility.LoggerInfoEntry("Uploaded cePrac_CarePlans.html");
                 }
             }
             catch (Exception ex)
@@ -253,8 +250,6 @@ namespace R_1_11_IWH
         {
             SiteLogUtility.Log_Entry("Init_Payor - In Progress...");
             bool ConfigSuccess = false;
-            string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
-            string LayoutsFolderIwn = @"M:\FTP Targets\Integrated Care Group\Portal\~Deployment\Pages\Iwn\";
 
             SiteFilesUtility sfUtility = new SiteFilesUtility();
             SitePublishUtility spUtility = new SitePublishUtility();
@@ -275,8 +270,8 @@ namespace R_1_11_IWH
                     spUtility.InitializePage(practiceSite.NewSiteUrl, slUtility.pageNamePayorEducation, slUtility.pageTitlePayorEducation); 
                 }
                 spUtility.DeleteWebPart(practiceSite.NewSiteUrl, slUtility.pageNamePayorEducation);
-                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "PayorEducation_MultiTab.js", "SiteAssets");
-                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "PayorEducation_MultiTab.js", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "jquery-ui.theme.css", "SiteAssets");
                 ConfigSuccess = ConfigurePayorEducationPage(practiceSite.NewSiteUrl, practiceSite);
                 if (ConfigSuccess)
                 {
@@ -286,6 +281,7 @@ namespace R_1_11_IWH
                     }
                 }
                 SP_Update_ProgramParticipation(practiceSite.NewSiteUrl, slUtility.pageNamePayorEducation, "Payor Program Education Resources Coming Soon", "Payor Program Education Resources", "EducationReviewPro.JPG");
+                SiteLogUtility.LoggerInfoEntry("Added - PayorEducation IWH");
             }
             catch (Exception ex)
             {
@@ -297,7 +293,6 @@ namespace R_1_11_IWH
             SiteLogUtility.Log_Entry("Init_Quality - In Progress...");
             bool ConfigSuccess = false;
             PublishingPage PPage = null;
-            string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
 
             SiteFilesUtility sfu = new SiteFilesUtility();
             SitePublishUtility spUtility = new SitePublishUtility();
@@ -327,8 +322,8 @@ namespace R_1_11_IWH
                     spUtility.InitializePage(practiceSite.NewSiteUrl, slUtility.pageNameQuality, slUtility.pageTitleQuality);
                 }
                 spUtility.DeleteWebPart(practiceSite.NewSiteUrl, slUtility.pageNameQuality);
-                sfu.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "Quality_MultiTab.js", "SiteAssets");
-                sfu.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                sfu.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "Quality_MultiTab.js", "SiteAssets");
+                sfu.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "jquery-ui.theme.css", "SiteAssets");
                 sfu.uploadImageSupportingFilesSingleImage(practiceSite.NewSiteUrl, "Quality.jpg");
                 sfu.uploadHtmlSupportingFilesSingleFile(practiceSite.NewSiteUrl, "cePrac_Quality.html");
                 ConfigSuccess = ConfigureQualityPage(practiceSite.NewSiteUrl, practiceSite);
@@ -343,7 +338,7 @@ namespace R_1_11_IWH
                         modifyView(practiceSite.NewSiteUrl, slUtility.pageNameQuality + ".aspx", slUtility.webpartQualityCkcc);
                     }
                 }
-
+                SiteLogUtility.LoggerInfoEntry("Added - Quality IWH");
             }
             catch (Exception ex)
             {
@@ -354,7 +349,6 @@ namespace R_1_11_IWH
         {
             SiteLogUtility.Log_Entry("Init_DataExchange - In Progress...");
             bool ConfigSuccess = false;
-            string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
 
             SiteFilesUtility sfUtility = new SiteFilesUtility();
             SitePublishUtility spUtility = new SitePublishUtility();
@@ -389,8 +383,8 @@ namespace R_1_11_IWH
                     spUtility.InitializePage(practiceSite.NewSiteUrl, slUtility.pageNameDataExchange, slUtility.pageTitleDataExchange); 
                 }
                 spUtility.DeleteWebPart(practiceSite.NewSiteUrl, slUtility.pageNameDataExchange);
-                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "PracticeSiteTemplate_MultiTab.js", "SiteAssets");
-                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "PracticeSiteTemplate_MultiTab.js", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "jquery-ui.theme.css", "SiteAssets");
                 ConfigSuccess = ConfigureDocumentExchangePage(practiceSite.NewSiteUrl, practiceSite);
                 if (ConfigSuccess)
                 {
@@ -403,6 +397,7 @@ namespace R_1_11_IWH
                         modifyView(practiceSite.NewSiteUrl, slUtility.pageNameDataExchange + ".aspx", slUtility.webpartDataExchangeCkcc);
                     }
                 }
+                SiteLogUtility.LoggerInfoEntry("Added - DataExchange IWH");
             }
             catch (Exception ex)
             {
@@ -415,7 +410,6 @@ namespace R_1_11_IWH
             SiteLogUtility.Log_Entry("Init_RiskAdjustment - In Progress...");
             bool ConfigSuccess = false;
             PublishingPage PPage = null;
-            string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
 
             SiteFilesUtility sfUtility = new SiteFilesUtility();
             SitePublishUtility spUtility = new SitePublishUtility();
@@ -446,8 +440,8 @@ namespace R_1_11_IWH
                     spUtility.InitializePage(practiceSite.NewSiteUrl, slUtility.pageNameRiskAdjustment, slUtility.pageTitleRiskAdjustment); 
                 }
                 spUtility.DeleteWebPart(practiceSite.NewSiteUrl, slUtility.pageNameRiskAdjustment);
-                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "RiskAdjustment.js", "SiteAssets");
-                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolderMnt + "jquery-ui.theme.css", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "RiskAdjustment.js", "SiteAssets");
+                sfUtility.DocumentUpload(practiceSite.NewSiteUrl, LayoutsFolder + "jquery-ui.theme.css", "SiteAssets");
                 ConfigSuccess = ConfigureRiskAdjustmentPage(practiceSite.NewSiteUrl, practiceSite);
                 if (ConfigSuccess)
                 {
@@ -460,6 +454,7 @@ namespace R_1_11_IWH
                         modifyView(practiceSite.NewSiteUrl, slUtility.pageNameRiskAdjustment + ".aspx", slUtility.webpartRiskAdjustmentCkcc);
                     }
                 }
+                SiteLogUtility.LoggerInfoEntry("Added - RiskAdjustment IWH");
             }
             catch (Exception ex)
             {
@@ -1470,7 +1465,7 @@ namespace R_1_11_IWH
                 SiteLogUtility.CreateLogEntry("cViews-SetToolbarType", ex.Message, "Error", "");
             }
         }
-        public static bool modifyWebPartProgramParticipation(string webUrl, Practice practiceSite)
+        public static bool ModifyWebPartProgramParticipation(string webUrl, Practice practiceSite)
         {
             bool outcome = false;
             string clink = string.Empty;
@@ -1530,6 +1525,7 @@ namespace R_1_11_IWH
                         web.Update();
                         clientContext.ExecuteQuery();
                         outcome = true;
+                        SiteLogUtility.LoggerInfoEntry("Webpart Height Updated: " + webPartHeight.ToString());
                     }
                     catch (Exception ex)
                     {
@@ -1737,9 +1733,8 @@ namespace R_1_11_IWH
         public static object lockObjBenefitEnhancement = new object();
         public static object lockObjQuality = new object();
         public static object lockObjPayorEducation = new object();
-        public static void uploadMultiPartSupportingFilesAll(string wUrl, Practice practiceSite)
+        public static void UploadMultiPartSupportingFilesAll(string wUrl, Practice practiceSite)
         {
-            string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
             try
             {
                 SiteListUtility slu = new SiteListUtility();
@@ -1749,11 +1744,11 @@ namespace R_1_11_IWH
                 string strJSContentQuality = "";
                 string strJSContentPayorEducation = "";
 
-                string strJSFileServerPathDataExchange = LayoutsFolderMnt + "PracticeSiteTemplate_MultiTab.js";
-                string strJSFileServerPathRiskAdjustment = LayoutsFolderMnt + "RiskAdjustment.js";
-                string strJSFileServerPathBenefitEnhancement = LayoutsFolderMnt + "BenefitEnhancement_MultiTab.js";
-                string strJSFileServerPathQuality = LayoutsFolderMnt + "Quality_MultiTab.js";
-                string strJSFileServerPathPayorEducation = LayoutsFolderMnt + "PayorEducation_MultiTab.js";
+                string strJSFileServerPathDataExchange = LayoutsFolder + "PracticeSiteTemplate_MultiTab.js";
+                string strJSFileServerPathRiskAdjustment = LayoutsFolder + "RiskAdjustment.js";
+                string strJSFileServerPathBenefitEnhancement = LayoutsFolder + "BenefitEnhancement_MultiTab.js";
+                string strJSFileServerPathQuality = LayoutsFolder + "Quality_MultiTab.js";
+                string strJSFileServerPathPayorEducation = LayoutsFolder + "PayorEducation_MultiTab.js";
 
                 //if (practiceSite.IsIWH.Equals("true"))
                 if (practiceSite.IsIWH)
@@ -1842,15 +1837,15 @@ namespace R_1_11_IWH
                     }
                     System.IO.File.WriteAllLines(strJSFileServerPathPayorEducation, lines);
                 }
+                SiteLogUtility.LoggerInfoEntry("Updated Javascript Files for MultiTab Wepart");
             }
             catch (Exception ex)
             {
                 SiteLogUtility.CreateLogEntry("uploadMultiPartSupportingFilesAll", ex.Message, "Error", "");
             }
         }
-        public static void uploadMultiPartSupportingFilesIwh(string wUrl, PracticeSite practiceSite)
+        public static void UploadMultiPartSupportingFilesIwh(string wUrl, PracticeSite practiceSite)
         {
-            string LayoutsFolderMnt = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
             try
             {
                 SiteListUtility slu = new SiteListUtility();
@@ -1859,10 +1854,10 @@ namespace R_1_11_IWH
                 string strJSContentQuality = "";
                 string strJSContentPayorEducation = "";
 
-                string strJSFileServerPathDataExchange = LayoutsFolderMnt + "PracticeSiteTemplate_MultiTab.js";
-                string strJSFileServerPathRiskAdjustment = LayoutsFolderMnt + "RiskAdjustment.js";
-                string strJSFileServerPathQuality = LayoutsFolderMnt + "Quality_MultiTab.js";
-                string strJSFileServerPathPayorEducation = LayoutsFolderMnt + "PayorEducation_MultiTab.js";
+                string strJSFileServerPathDataExchange = LayoutsFolder + "PracticeSiteTemplate_MultiTab.js";
+                string strJSFileServerPathRiskAdjustment = LayoutsFolder + "RiskAdjustment.js";
+                string strJSFileServerPathQuality = LayoutsFolder + "Quality_MultiTab.js";
+                string strJSFileServerPathPayorEducation = LayoutsFolder + "PayorEducation_MultiTab.js";
 
                 if (practiceSite.IsIWH.Equals("true"))
                 {
@@ -1934,14 +1929,8 @@ namespace R_1_11_IWH
                 SiteLogUtility.CreateLogEntry("uploadMultiPartSupportingFilesAll", ex.Message, "Error", "");
             }
         }
-        public static void uploadProgramPracticeSupportFilesIwnPayorEd(Practice practiceSite)
+        public static void UploadProgramPracticeSupportFilesIwnPayorEd(Practice practiceSite)
         {
-            //string siteType = practiceSite.siteType;
-
-            //if (siteType == "")
-            //{
-            //    return;
-            //}
             string LayoutsFolder = @"C:\Projects\PracticeSite-Core\Dev\PracticeSiteTemplate\Config\";
             using (ClientContext clientContext = new ClientContext(practiceSite.NewSiteUrl))
             {
@@ -1981,6 +1970,7 @@ namespace R_1_11_IWH
                         lItem0.Update();
                         lItem0.File.CheckIn("Z", CheckinType.OverwriteCheckIn);
                         clientContext.ExecuteQuery();
+                        SiteLogUtility.LoggerInfoEntry("Image file updated: " + fileName0);
                     }
                 }
                 catch (Exception ex)
