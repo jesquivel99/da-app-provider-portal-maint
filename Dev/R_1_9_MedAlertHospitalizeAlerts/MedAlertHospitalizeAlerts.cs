@@ -214,6 +214,7 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                 UploadMedAlertRelatedHTMLFile(strURL);
                 IncreaseMedHospAlertWPHeight(strURL, "/Pages/MedicationAlerts.aspx", "Medication Alerts", "SiteAssets/cePrac_MedAlertDataTable.html");
                 ModifyMedicalAlertNavigationNode(strURL, "Medication Alert Coming Soon", "Medication Alerts", "Pages/MedicationAlerts.aspx");
+                ModifyMedicalAlertNavigationNode(strURL, "Medication Alert", "Medication Alerts", "Pages/MedicationAlerts.aspx");
             }
             catch (Exception ex)
             {
@@ -244,6 +245,7 @@ namespace R_1_9_MedAlertHospitalizeAlerts
                 UploadHospAlertRelatedHTMLfile(strURL);
                 IncreaseMedHospAlertWPHeight(strURL, "/Pages/HospitalAlerts.aspx", "Hospitalization Alerts", "SiteAssets/cePrac_HospAlertDataTable.html");
                 ModifyMedicalAlertNavigationNode(strURL, "Hospitalization Alerts Coming Soon", "Hospitalization Alerts", "Pages/HospitalAlerts.aspx");
+                ModifyMedicalAlertNavigationNode(strURL, "Hospitalization Alert", "Hospitalization Alerts", "Pages/HospitalAlerts.aspx");
             }
             catch (Exception ex)
             {

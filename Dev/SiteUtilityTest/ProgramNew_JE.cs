@@ -24,14 +24,14 @@ namespace SiteUtilityTest
         readonly string EmailToMe = ConfigurationManager.AppSettings["EmailStatusToMe"];
         public void InitiateProg()
         {
-            string releaseName = "SiteUtilityTest";
+            string releaseName = "ProgramNew_JE";
             string rootUrl = ConfigurationManager.AppSettings["SP_RootUrl"];
             string siteUrl = ConfigurationManager.AppSettings["SP_SiteUrl"];
             SiteInfoUtility siteInfoUtility = new SiteInfoUtility();
             SiteLogUtility siteLogUtility = new SiteLogUtility();
 
-            //List<Practice> practices = siteInfoUtility.GetAllCKCCPractices();
-            List<Practice> practices = siteInfoUtility.GetPracticesByPM("01");
+            List<Practice> practices = siteInfoUtility.GetAllCKCCPractices();
+            //List<Practice> practices = siteInfoUtility.GetPracticesByPM("01");
 
             //SiteLogUtility.InitLogFile(releaseName, rootUrl, siteUrl);
             siteLogUtility.LoggerInfo_Entry("This is the Release Name: " + releaseName);
@@ -51,11 +51,12 @@ namespace SiteUtilityTest
                         //SiteUtility.SitePMData.InitialConnectDBPortalDeployed("PM06");
                         
                         siteLogUtility.LoggerInfoBody(practice);
-                        siteLogUtility.LoggerInfoBody(practice);
-                        siteInfoUtility.Init_UpdateAllProgramParticipation(practice);
+
+                        //siteLogUtility.LoggerInfoBody(practice);
+                        //siteInfoUtility.Init_UpdateAllProgramParticipation(practice);
 
                         //SiteNavigateUtility.ClearQuickNavigationRecent(practice.NewSiteUrl);
-                        SiteNavigateUtility.RenameQuickNavigationNode(practice.NewSiteUrl, "Hospitalization Alert", "Hospitalization Alerts");
+                        //SiteNavigateUtility.RenameQuickNavigationNode(practice.NewSiteUrl, "Hospitalization Alert", "Hospitalization Alerts");
                     }
 
                     siteLogUtility.LoggerInfo_Entry("-------------[ Maintenance Tasks - End              ]-------------");

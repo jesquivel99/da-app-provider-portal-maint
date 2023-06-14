@@ -21,10 +21,6 @@ namespace SiteUtilityTest
         {
             List<string> pracList = new List<string>();
             pracList.Add("94026153649");
-            pracList.Add("90478722389");
-            pracList.Add("93708603959");
-            pracList.Add("96755254749");
-            pracList.Add("99244625749");
 
             foreach (string siteId in pracList)
             {
@@ -39,10 +35,11 @@ namespace SiteUtilityTest
                 //--------------------------------------------------------
                 //CompleteNewSiteDeployment(siteId);
 
-                ProgramNew_JE programNew_JE = new ProgramNew_JE();
-                programNew_JE.InitiateProg(siteId);
+                //ProgramNew_JE programNew_JE = new ProgramNew_JE();
+                //programNew_JE.InitiateProg(siteId);
             }
-
+            ProgramNew_JE programNew_JE = new ProgramNew_JE();
+            programNew_JE.InitiateProg();
         }
         static void CompleteNewSiteDeployment(string siteID)
         {

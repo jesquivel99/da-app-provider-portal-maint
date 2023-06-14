@@ -365,7 +365,8 @@ namespace SiteUtility
             LoggerInfo_Entry("         Practice Name: " + practice.Name);
             LoggerInfo_Entry(" Program Participation: " + SiteInfoUtility.GetProgramParticipation(practice));
             LoggerInfo_Entry("         Prac User Url: " + practice.NewSiteUrl + @"_layouts/user.aspx");
-            LoggerInfo_Entry("        View Lists Url: " + practice.NewSiteUrl + @"_layouts/viewlsts.aspx");
+            LoggerInfo_Entry("        View Lists Url: " + practice.NewSiteUrl + @"_layouts/viewlsts.aspx"); //QualityCkcc/Quality%20Reporting
+            LoggerInfo_Entry("View Quality Reporting Ckcc: " + practice.NewSiteUrl + @"QualityCkcc/Quality%20Reporting"); //QualityCkcc/Quality%20Reporting
         }
         public void LoggerInfo_Entry(string logtext, bool consolePrint = false)
         {
